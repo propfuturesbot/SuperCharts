@@ -1,0 +1,44 @@
+[0;34m🚀 Starting React Trading Dashboard...[0m
+[0;34m======================================[0m
+[0;34m🧹 Cleaning up ports...[0m
+[1;33m🔍 Checking for processes on port 3000...[0m
+[0;32m✅ Port 3000 is already free[0m
+[1;33m🔍 Checking for processes on port 8000...[0m
+[0;32m✅ Port 8000 is already free[0m
+[0;34m🔍 Verifying ports are available...[0m
+[0;32m✅ Port 3000 is available for React[0m
+[0;34m🔍 Checking dependencies...[0m
+[0;32m✅ Node.js v18.20.8 detected[0m
+[0;32m✅ npm 10.8.2 detected[0m
+[0;32m✅ Dependencies already installed[0m
+[0;34m🌐 Environment Configuration:[0m
+   Port: 3000
+   Auto-browser: disabled
+   Source maps: enabled
+[0;34m🚀 Starting React development server...[0m
+[0;34m======================================[0m
+[0;32m🌐 Dashboard will be available at: http://localhost:3000[0m
+[0;32m📱 Mobile access: http://[your-ip]:3000[0m
+[1;33m⚡ Hot reload is enabled - changes will auto-refresh[0m
+[1;33m🛑 Press Ctrl+C to stop the server[0m
+[0;34m======================================[0m
+
+> trading-dashboard@0.1.0 start
+> react-scripts start
+
+(node:56525) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:56525) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+Starting the development server...
+
+Compiled successfully!
+
+You can now view trading-dashboard in the browser.
+
+  Local:            http://localhost:3000
+  On Your Network:  http://192.168.1.15:3000
+
+Note that the development build is not optimized.
+To create a production build, use npm run build.
+
+webpack compiled successfully
