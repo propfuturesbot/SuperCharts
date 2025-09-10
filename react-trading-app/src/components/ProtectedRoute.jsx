@@ -14,14 +14,14 @@ const ProtectedRoute = ({ children }) => {
         justifyContent: 'center',
         height: '100vh',
         background: '#000',
-        color: '#00ff00',
+        color: '#00d4ff',
         fontFamily: 'Rajdhani, sans-serif'
       }}>
         <div style={{
           width: '40px',
           height: '40px',
-          border: '3px solid rgba(0, 255, 0, 0.3)',
-          borderTop: '3px solid #00ff00',
+          border: '3px solid rgba(0, 212, 255, 0.3)',
+          borderTop: '3px solid #00d4ff',
           borderRadius: '50%',
           animation: 'spin 1s linear infinite',
           marginRight: '15px'

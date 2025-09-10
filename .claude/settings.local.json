@@ -1,7 +1,29 @@
 {
   "permissions": {
     "allow": [
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(docker exec:*)",
+      "Bash(docker inspect:*)",
+      "Bash(PGPASSWORD=techanalysis2024 psql -h localhost -p 5432 -U techuser -d techanalysis -c '\\l')",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm start)",
+      "Bash(PGPASSWORD=techanalysis2024 psql -h localhost -p 5432 -U techuser -d techanalysis -c '\\dt')",
+      "Bash(curl:*)",
+      "Bash(lsof:*)",
+      "Bash(vm_stat:*)",
+      "Bash(node start-monitored.js)",
+      "Bash(npx ts-node:*)",
+      "Bash(pkill:*)",
+      "Bash(npm run dev:*)",
+      "Bash(node:*)",
+      "Bash(./start-trading-system.sh:*)",
+      "Bash(find:*)",
+      "Bash(npm test:*)",
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_9g6A2P/**)",
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_2p6Rsm/**)",
+      "Bash(docker-compose up:*)",
+      "Bash(PGPASSWORD=techanalysis2024 psql -h localhost -p 5432 -U techuser -d techanalysis -c \"ALTER TABLE strategies DROP CONSTRAINT strategies_contract_symbol_fkey;\")"
     ],
     "deny": [],
     "ask": []

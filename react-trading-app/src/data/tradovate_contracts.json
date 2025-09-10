@@ -1,0 +1,258 @@
+[
+  {
+    "symbol": "ES",
+    "name": "E-mini S&P 500 Futures",
+    "exchange": "CME",
+    "category": "Equity Index",
+    "tickSize": 0.25,
+    "pointValue": 50
+  },
+  {
+    "symbol": "NQ",
+    "name": "E-mini Nasdaq-100 Futures",
+    "exchange": "CME", 
+    "category": "Equity Index",
+    "tickSize": 0.25,
+    "pointValue": 20
+  },
+  {
+    "symbol": "YM",
+    "name": "E-mini Dow Futures",
+    "exchange": "CBOT",
+    "category": "Equity Index",
+    "tickSize": 1.0,
+    "pointValue": 5
+  },
+  {
+    "symbol": "RTY",
+    "name": "E-mini Russell 2000 Futures",
+    "exchange": "CME",
+    "category": "Equity Index",
+    "tickSize": 0.1,
+    "pointValue": 50
+  },
+  {
+    "symbol": "CL",
+    "name": "Crude Oil Futures",
+    "exchange": "NYMEX",
+    "category": "Energy",
+    "tickSize": 0.01,
+    "pointValue": 1000
+  },
+  {
+    "symbol": "NG",
+    "name": "Natural Gas Futures",
+    "exchange": "NYMEX",
+    "category": "Energy",
+    "tickSize": 0.001,
+    "pointValue": 10000
+  },
+  {
+    "symbol": "RB",
+    "name": "Gasoline Futures",
+    "exchange": "NYMEX",
+    "category": "Energy",
+    "tickSize": 0.0001,
+    "pointValue": 42000
+  },
+  {
+    "symbol": "HO",
+    "name": "Heating Oil Futures",
+    "exchange": "NYMEX",
+    "category": "Energy",
+    "tickSize": 0.0001,
+    "pointValue": 42000
+  },
+  {
+    "symbol": "GC",
+    "name": "Gold Futures",
+    "exchange": "COMEX",
+    "category": "Metals",
+    "tickSize": 0.1,
+    "pointValue": 100
+  },
+  {
+    "symbol": "SI",
+    "name": "Silver Futures",
+    "exchange": "COMEX",
+    "category": "Metals",
+    "tickSize": 0.005,
+    "pointValue": 5000
+  },
+  {
+    "symbol": "HG",
+    "name": "Copper Futures",
+    "exchange": "COMEX",
+    "category": "Metals",
+    "tickSize": 0.0005,
+    "pointValue": 25000
+  },
+  {
+    "symbol": "PL",
+    "name": "Platinum Futures",
+    "exchange": "NYMEX",
+    "category": "Metals",
+    "tickSize": 0.1,
+    "pointValue": 50
+  },
+  {
+    "symbol": "PA",
+    "name": "Palladium Futures",
+    "exchange": "NYMEX",
+    "category": "Metals",
+    "tickSize": 0.05,
+    "pointValue": 100
+  },
+  {
+    "symbol": "ZC",
+    "name": "Corn Futures",
+    "exchange": "CBOT",
+    "category": "Agriculture",
+    "tickSize": 0.25,
+    "pointValue": 50
+  },
+  {
+    "symbol": "ZS",
+    "name": "Soybeans Futures",
+    "exchange": "CBOT",
+    "category": "Agriculture",
+    "tickSize": 0.25,
+    "pointValue": 50
+  },
+  {
+    "symbol": "ZW",
+    "name": "Wheat Futures",
+    "exchange": "CBOT",
+    "category": "Agriculture",
+    "tickSize": 0.25,
+    "pointValue": 50
+  },
+  {
+    "symbol": "ZM",
+    "name": "Soybean Meal Futures",
+    "exchange": "CBOT",
+    "category": "Agriculture",
+    "tickSize": 0.1,
+    "pointValue": 100
+  },
+  {
+    "symbol": "ZO",
+    "name": "Oats Futures",
+    "exchange": "CBOT",
+    "category": "Agriculture",
+    "tickSize": 0.25,
+    "pointValue": 50
+  },
+  {
+    "symbol": "LE",
+    "name": "Live Cattle Futures",
+    "exchange": "CME",
+    "category": "Livestock",
+    "tickSize": 0.025,
+    "pointValue": 400
+  },
+  {
+    "symbol": "GF",
+    "name": "Feeder Cattle Futures",
+    "exchange": "CME",
+    "category": "Livestock",
+    "tickSize": 0.025,
+    "pointValue": 500
+  },
+  {
+    "symbol": "HE",
+    "name": "Lean Hogs Futures",
+    "exchange": "CME",
+    "category": "Livestock",
+    "tickSize": 0.025,
+    "pointValue": 400
+  },
+  {
+    "symbol": "ZN",
+    "name": "10-Year Treasury Note Futures",
+    "exchange": "CBOT",
+    "category": "Interest Rates",
+    "tickSize": 0.015625,
+    "pointValue": 1000
+  },
+  {
+    "symbol": "ZB",
+    "name": "30-Year Treasury Bond Futures",
+    "exchange": "CBOT",
+    "category": "Interest Rates",
+    "tickSize": 0.03125,
+    "pointValue": 1000
+  },
+  {
+    "symbol": "ZF",
+    "name": "5-Year Treasury Note Futures",
+    "exchange": "CBOT",
+    "category": "Interest Rates",
+    "tickSize": 0.0078125,
+    "pointValue": 1000
+  },
+  {
+    "symbol": "ZT",
+    "name": "2-Year Treasury Note Futures",
+    "exchange": "CBOT",
+    "category": "Interest Rates",
+    "tickSize": 0.00390625,
+    "pointValue": 2000
+  },
+  {
+    "symbol": "6E",
+    "name": "Euro FX Futures",
+    "exchange": "CME",
+    "category": "Currency",
+    "tickSize": 0.00005,
+    "pointValue": 125000
+  },
+  {
+    "symbol": "6J",
+    "name": "Japanese Yen Futures",
+    "exchange": "CME",
+    "category": "Currency",
+    "tickSize": 0.0000005,
+    "pointValue": 12500000
+  },
+  {
+    "symbol": "6B",
+    "name": "British Pound Futures",
+    "exchange": "CME",
+    "category": "Currency",
+    "tickSize": 0.0001,
+    "pointValue": 62500
+  },
+  {
+    "symbol": "6A",
+    "name": "Australian Dollar Futures",
+    "exchange": "CME",
+    "category": "Currency",
+    "tickSize": 0.0001,
+    "pointValue": 100000
+  },
+  {
+    "symbol": "6C",
+    "name": "Canadian Dollar Futures",
+    "exchange": "CME",
+    "category": "Currency",
+    "tickSize": 0.00005,
+    "pointValue": 100000
+  },
+  {
+    "symbol": "6S",
+    "name": "Swiss Franc Futures",
+    "exchange": "CME",
+    "category": "Currency",
+    "tickSize": 0.0001,
+    "pointValue": 125000
+  },
+  {
+    "symbol": "VX",
+    "name": "VIX Futures",
+    "exchange": "CFE",
+    "category": "Volatility",
+    "tickSize": 0.05,
+    "pointValue": 1000
+  }
+]

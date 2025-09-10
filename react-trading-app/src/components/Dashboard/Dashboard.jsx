@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   FaSignOutAlt, 
@@ -18,6 +18,7 @@ import './Dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout, isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -33,39 +34,20 @@ const Dashboard = () => {
 
   const navItems = [
     {
+      icon: <FaChartBar />,
+      label: 'Dashboard',
+      path: '/dashboard',
+      active: location.pathname === '/dashboard'
+    },
+    {
       icon: <FaChartLine />,
       label: 'Strategies',
       path: '/strategies',
-      active: true
-    },
-    {
-      icon: <FaChartBar />,
-      label: 'Indicators',
-      path: '/indicators'
-    },
-    {
-      icon: <FaRobot />,
-      label: 'Automation',
-      path: '/automation'
-    },
-    {
-      icon: <FaDollarSign />,
-      label: 'Portfolio',
-      path: '/portfolio'
-    },
-    {
-      icon: <FaCog />,
-      label: 'Settings',
-      path: '/settings'
+      active: location.pathname === '/strategies'
     }
   ];
 
   const quickActions = [
-    {
-      icon: <FaRocket />,
-      title: 'Create Strategy',
-      description: 'Build a new trading strategy with our advanced tools'
-    },
     {
       icon: <FaBolt />,
       title: 'Live Trading',
@@ -80,6 +62,11 @@ const Dashboard = () => {
       icon: <FaChartBar />,
       title: 'Performance',
       description: 'Analyze your trading performance and metrics'
+    },
+    {
+      icon: <FaRobot />,
+      title: 'Trading Analytics',
+      description: 'View detailed analytics and trading insights'
     }
   ];
 
@@ -116,16 +103,27 @@ const Dashboard = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
           >
             <div className="user-avatar">
-              {user.username.charAt(0).toUpperCase()}
+              <FaUser />
             </div>
             <div>
-              <div>{user.username}</div>
               <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>
                 {user.provider.toUpperCase()}
               </div>
             </div>
           </motion.div>
           
+          <motion.button 
+            className="settings-button"
+            onClick={() => navigate('/settings')}
+            initial={{ x: 20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <FaCog />
+          </motion.button>
+
           <motion.button 
             className="logout-button"
             onClick={handleLogout}
@@ -166,6 +164,8 @@ const Dashboard = () => {
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ duration: 0.3, delay: 0.1 * index }}
                   whileHover={{ x: 5 }}
+                  onClick={() => navigate(item.path)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <span className="nav-icon">{item.icon}</span>
                   {item.label}
@@ -186,7 +186,7 @@ const Dashboard = () => {
               transition={{ duration: 0.6, delay: 0.3 }}
             >
               <h1 className="welcome-title">
-                Welcome Back, {user.username}!
+                Welcome Back!
               </h1>
               <p className="welcome-text">
                 Your trading system is ready. Monitor your strategies, analyze performance, 

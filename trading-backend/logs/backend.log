@@ -1,13 +1,8 @@
-[0;35m⚡ Starting Trading Backend System...[0m
-[0;35m=====================================[0m
-[0;34m🧹 Cleaning up backend ports...[0m
-[1;33m🔍 Checking for processes on port 8000...[0m
-[0;32m✅ Port 8000 is already free[0m
-[1;33m🔍 Checking for processes on port 5000...[0m
-[0;32m✅ Port 5000 is already free[0m
-[0;34m🔍 Checking dependencies...[0m
-[0;32m✅ Node.js v18.20.8 detected[0m
-[0;32m✅ npm 10.8.2 detected[0m
-[0;32m✅ Dependencies already installed[0m
-[0;31m❌ src directory not found[0m
-[1;33m💡 This doesn't appear to be a valid backend project[0m
+
+> trading-backend@1.0.0 start
+> node simple-backend.js
+
+✅ Found existing contracts file with 57 contracts
+🚀 Backend running on http://localhost:8000
+📄 Contracts cached in: /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableContracts.json
+✅ Connected to PostgreSQL database
