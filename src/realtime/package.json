@@ -1,0 +1,28 @@
+{
+  "name": "realtime-trading-data",
+  "version": "1.0.0",
+  "description": "Real-time trading data utilities with multi-provider support",
+  "main": "index.js",
+  "scripts": {
+    "start": "node realTimeBarData.js",
+    "help": "node realTimeBarData.js --help",
+    "test-topstepx": "node realTimeBarData.js --provider topstepx --symbol F.US.MNQ --resolution 100T",
+    "test-alphaticks": "node realTimeBarData.js --provider alphaticks --symbol F.US.MNQ --resolution 100T"
+  },
+  "dependencies": {
+    "@microsoft/signalr": "^8.0.0",
+    "axios": "^1.6.0"
+  },
+  "keywords": [
+    "trading",
+    "realtime",
+    "signalr",
+    "websocket",
+    "market-data"
+  ],
+  "author": "Trading System",
+  "license": "MIT"
+}
+
+
+

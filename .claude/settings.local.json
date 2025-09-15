@@ -23,7 +23,11 @@
       "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_9g6A2P/**)",
       "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_2p6Rsm/**)",
       "Bash(docker-compose up:*)",
-      "Bash(PGPASSWORD=techanalysis2024 psql -h localhost -p 5432 -U techuser -d techanalysis -c \"ALTER TABLE strategies DROP CONSTRAINT strategies_contract_symbol_fkey;\")"
+      "Bash(PGPASSWORD=techanalysis2024 psql -h localhost -p 5432 -U techuser -d techanalysis -c \"ALTER TABLE strategies DROP CONSTRAINT strategies_contract_symbol_fkey;\")",
+      "Read(//Users/tejasvihegde/Desktop/**)",
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_daOHDt/**)",
+      "Bash(PORT=3001 npm start)",
+      "Bash(npx eslint:*)"
     ],
     "deny": [],
     "ask": []

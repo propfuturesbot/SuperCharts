@@ -378,6 +378,21 @@
   animation: slideIn 0.3s ease;
 }
 
+/* Auth Type Selector */
+.auth-type-selector {
+  margin-bottom: 20px !important;
+  padding: 15px;
+  background: rgba(0, 212, 255, 0.05);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.auth-type-selector:hover {
+  background: rgba(0, 212, 255, 0.08);
+  border-color: rgba(0, 212, 255, 0.25);
+}
+
 /* Remember Me Section */
 .remember-section {
   margin-bottom: 15px !important;

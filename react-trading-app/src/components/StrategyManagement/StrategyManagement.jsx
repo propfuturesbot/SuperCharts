@@ -58,8 +58,17 @@ const StrategyManagement = () => {
           strategy_type: 'candlestick',
           contract_symbol: 'NQ',
           contract_name: 'E-mini Nasdaq-100 Futures',
+          product_id: 'F.US.NQ',
           timeframe: '5m',
           status: 'active',
+          // Chart-specific settings for testing
+          chart_type: 'candlestick',
+          brick_size: null,
+          chart_config: {
+            resolution: '5',
+            chartType: 'candlestick',
+            indicators: []
+          },
           indicators: [{ name: 'sma', display_name: 'SMA', parameters: { period: 20 } }],
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -70,12 +79,43 @@ const StrategyManagement = () => {
           strategy_type: 'heiken_ashi',
           contract_symbol: 'ES',
           contract_name: 'E-mini S&P 500 Futures',
+          product_id: 'F.US.ES',
           timeframe: '15m',
           status: 'inactive',
+          // Chart-specific settings for testing
+          chart_type: 'heiken_ashi',
+          brick_size: null,
+          chart_config: {
+            resolution: '15',
+            chartType: 'heiken_ashi',
+            indicators: []
+          },
           indicators: [
             { name: 'ema', display_name: 'EMA', parameters: { period: 50 } },
             { name: 'macd', display_name: 'MACD', parameters: {} }
           ],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: '3',
+          name: 'Renko Breakout Strategy',
+          strategy_type: 'renko',
+          contract_symbol: 'YM',
+          contract_name: 'E-mini Dow Jones Futures',
+          product_id: 'F.US.YM',
+          timeframe: '10',
+          status: 'inactive',
+          // Chart-specific settings for testing Renko
+          chart_type: 'renko',
+          brick_size: 5.0,
+          chart_config: {
+            resolution: '10',
+            chartType: 'renko',
+            brickSize: 5.0,
+            indicators: []
+          },
+          indicators: [],
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }
@@ -173,9 +213,21 @@ const StrategyManagement = () => {
     }
   };
 
-  const handleStrategyCreated = (newStrategy) => {
-    setStrategies([...strategies, newStrategy]);
+  const handleStrategySaved = (strategyData) => {
+    if (isEditMode && selectedStrategy?.id) {
+      // Update existing strategy
+      console.log('Updating existing strategy in list:', selectedStrategy.id);
+      setStrategies(strategies.map(s => 
+        s.id === selectedStrategy.id ? strategyData : s
+      ));
+    } else {
+      // Create new strategy
+      console.log('Adding new strategy to list');
+      setStrategies([...strategies, strategyData]);
+    }
     setIsWizardOpen(false);
+    setIsEditMode(false);
+    setSelectedStrategy(null);
   };
 
   const getStrategyIcon = (type) => {
@@ -426,20 +478,6 @@ const StrategyManagement = () => {
         )}
       </AnimatePresence>
 
-      {/* Debug Info */}
-      {isWizardOpen && (
-        <div style={{
-          position: 'fixed',
-          top: '10px',
-          right: '10px',
-          background: 'red',
-          color: 'white',
-          padding: '10px',
-          zIndex: 9999
-        }}>
-          Wizard Open: {isWizardOpen.toString()}
-        </div>
-      )}
 
       {/* Strategy Creation Wizard */}
       <StrategyCreationWizard
@@ -449,7 +487,7 @@ const StrategyManagement = () => {
           setIsEditMode(false);
           setSelectedStrategy(null);
         }}
-        onStrategyCreated={handleStrategyCreated}
+        onStrategyCreated={handleStrategySaved}
         editMode={isEditMode}
         strategy={selectedStrategy}
       />

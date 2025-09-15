@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Real-Time Streaming</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1a1a1a;
+            color: #ddd;
+            padding: 20px;
+        }
+        #status {
+            padding: 10px;
+            background: #333;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        #status.connected {
+            background: #2e7d32;
+        }
+        #log {
+            background: #222;
+            padding: 10px;
+            border-radius: 5px;
+            height: 400px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            background: #333;
+            border-radius: 3px;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Real-Time Streaming Test</h1>
+
+    <div id="status">Disconnected</div>
+
+    <div class="controls">
+        <button onclick="connect()">Connect</button>
+        <button onclick="subscribe()">Subscribe to /MNQ</button>
+        <button onclick="disconnect()">Disconnect</button>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <div id="log"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@6.0.0/dist/browser/signalr.min.js"></script>
+    <script>
+        let connection = null;
+        let messageCount = 0;
+
+        function log(message, data = null) {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const timestamp = new Date().toLocaleTimeString();
+            entry.innerHTML = `[${timestamp}] ${message}`;
+            if (data) {
+                entry.innerHTML += `<br><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+            logDiv.insertBefore(entry, logDiv.firstChild);
+
+            // Keep only last 50 entries
+            while (logDiv.children.length > 50) {
+                logDiv.removeChild(logDiv.lastChild);
+            }
+        }
+
+        function updateStatus(text, isConnected) {
+            const status = document.getElementById('status');
+            status.textContent = text;
+            if (isConnected) {
+                status.classList.add('connected');
+            } else {
+                status.classList.remove('connected');
+            }
+        }
+
+        async function connect() {
+            try {
+                // Get auth token from localStorage (set by the React app)
+                const token = localStorage.getItem('auth_token');
+                const provider = localStorage.getItem('provider') || 'topstepx';
+
+                if (!token) {
+                    log('ERROR: No auth token found. Please login through the main app first.');
+                    return;
+                }
+
+                // Provider endpoint
+                const endpoint = provider === 'topstepx'
+                    ? 'https://md-api.topstepx.com'
+                    : 'https://md-api.topstep.com';
+
+                const hubUrl = `${endpoint}/hubs/chart`;
+
+                log(`Connecting to ${hubUrl}...`);
+                updateStatus('Connecting...', false);
+
+                connection = new signalR.HubConnectionBuilder()
+                    .withUrl(`${hubUrl}?access_token=${token}`, {
+                        skipNegotiation: true,
+                        transport: signalR.HttpTransportType.WebSockets
+                    })
+                    .configureLogging(signalR.LogLevel.Information)
+                    .withAutomaticReconnect()
+                    .build();
+
+                // Setup event handlers
+                connection.on("RealTimeBar", (symbol, resolution, bar) => {
+                    messageCount++;
+                    log(`[${messageCount}] RealTimeBar: ${symbol} @ ${resolution}`, bar);
+                });
+
+                connection.onreconnecting(() => {
+                    log('Reconnecting...');
+                    updateStatus('Reconnecting...', false);
+                });
+
+                connection.onreconnected(() => {
+                    log('Reconnected!');
+                    updateStatus('Connected', true);
+                });
+
+                connection.onclose(() => {
+                    log('Connection closed');
+                    updateStatus('Disconnected', false);
+                });
+
+                // Start connection
+                await connection.start();
+                log('Connected successfully!');
+                updateStatus('Connected', true);
+
+            } catch (error) {
+                log('ERROR: Failed to connect', error);
+                updateStatus('Connection Failed', false);
+            }
+        }
+
+        async function subscribe() {
+            if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
+                log('ERROR: Not connected. Please connect first.');
+                return;
+            }
+
+            try {
+                const symbol = 'F.US.MNQ';  // Or '/MNQ' depending on provider
+                const resolution = '1';      // 1 minute
+
+                await connection.invoke("SubscribeBars", symbol, resolution);
+                log(`Subscribed to ${symbol} with resolution ${resolution}`);
+            } catch (error) {
+                log('ERROR: Failed to subscribe', error);
+            }
+        }
+
+        async function disconnect() {
+            if (connection) {
+                try {
+                    await connection.stop();
+                    log('Disconnected');
+                    updateStatus('Disconnected', false);
+                    connection = null;
+                } catch (error) {
+                    log('ERROR: Failed to disconnect', error);
+                }
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            messageCount = 0;
+            log('Log cleared');
+        }
+
+        // Initial log message
+        log('Test page loaded. Click "Connect" to start.');
+    </script>
+</body>
+</html>

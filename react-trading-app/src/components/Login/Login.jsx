@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaUser, FaKey, FaServer, FaEye, FaEyeSlash, FaExclamationCircle, FaCheckCircle, FaTrash } from 'react-icons/fa';
+import { FaUser, FaKey, FaLock, FaServer, FaEye, FaEyeSlash, FaExclamationCircle, FaCheckCircle, FaTrash } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 import { PROVIDERS } from '../../config/providers';
 import authService from '../../services/auth.service';
@@ -14,6 +14,7 @@ const Login = () => {
   const [formData, setFormData] = useState({
     username: '',
     apiKey: '',
+    password: '',
     provider: 'topstepx'
   });
   
@@ -23,6 +24,7 @@ const Login = () => {
   const [success, setSuccess] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [hasSavedCredentials, setHasSavedCredentials] = useState(false);
+  const [usePassword, setUsePassword] = useState(false);
 
   useEffect(() => {
     // Redirect if already authenticated
@@ -38,9 +40,11 @@ const Login = () => {
       if (savedCredentials) {
         setFormData({
           username: savedCredentials.username,
-          apiKey: savedCredentials.apiKey,
+          apiKey: savedCredentials.apiKey || '',
+          password: savedCredentials.password || '',
           provider: savedCredentials.provider
         });
+        setUsePassword(savedCredentials.usePassword || false);
         setRememberMe(true);
         setHasSavedCredentials(true);
         setSuccess('Saved credentials loaded successfully!');
@@ -90,7 +94,7 @@ const Login = () => {
     e.preventDefault();
     
     // Validation
-    if (!formData.username || !formData.apiKey) {
+    if (!formData.username || (!formData.apiKey && !usePassword) || (!formData.password && usePassword)) {
       setError('Please fill in all fields');
       return;
     }
@@ -100,7 +104,8 @@ const Login = () => {
     setSuccess('');
 
     try {
-      const result = await login(formData.username, formData.apiKey, formData.provider, rememberMe);
+      const credential = usePassword ? formData.password : formData.apiKey;
+      const result = await login(formData.username, credential, formData.provider, rememberMe, usePassword);
       
       if (result.success) {
         setSuccess('Login successful! Redirecting...');
@@ -122,9 +127,11 @@ const Login = () => {
     setFormData({
       username: '',
       apiKey: '',
+      password: '',
       provider: 'topstepx'
     });
     setRememberMe(false);
+    setUsePassword(false);
     setHasSavedCredentials(false);
     setSuccess('Saved credentials cleared successfully!');
     setTimeout(() => setSuccess(''), 3000);
@@ -188,26 +195,46 @@ const Login = () => {
               />
             </motion.div>
 
+            {/* Authentication Type Selector */}
             <motion.div 
-              className="form-group"
+              className="form-group auth-type-selector"
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
+              <label className="remember-checkbox">
+                <input
+                  type="checkbox"
+                  checked={usePassword}
+                  onChange={(e) => setUsePassword(e.target.checked)}
+                  disabled={loading}
+                />
+                <span className="checkmark"></span>
+                Use password instead
+              </label>
+            </motion.div>
+
+            {/* Conditional Field - API Key or Password */}
+            <motion.div 
+              className="form-group"
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
               <label className="form-label">
-                <FaKey />
-                API Key
+                {usePassword ? <FaLock /> : <FaKey />}
+                {usePassword ? 'Password' : 'API Key'}
               </label>
               <div className="input-wrapper">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  name="apiKey"
+                  name={usePassword ? 'password' : 'apiKey'}
                   className="form-input"
-                  placeholder="Enter your API key"
-                  value={formData.apiKey}
+                  placeholder={usePassword ? 'Enter your password' : 'Enter your API key'}
+                  value={usePassword ? formData.password : formData.apiKey}
                   onChange={handleChange}
                   disabled={loading}
-                  autoComplete="current-password"
+                  autoComplete={usePassword ? 'current-password' : 'current-password'}
                 />
                 <button
                   type="button"
@@ -224,7 +251,7 @@ const Login = () => {
               className="form-group"
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.6 }}
+              transition={{ delay: 0.7 }}
             >
               <label className="form-label">
                 <FaServer />
@@ -250,7 +277,7 @@ const Login = () => {
               className="form-group remember-section"
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.7 }}
+              transition={{ delay: 0.8 }}
             >
               <div className="remember-controls">
                 <label className="remember-checkbox">
@@ -304,10 +331,10 @@ const Login = () => {
             <motion.button
               type="submit"
               className="submit-button"
-              disabled={loading || !formData.username || !formData.apiKey}
+              disabled={loading || !formData.username || (!usePassword && !formData.apiKey) || (usePassword && !formData.password)}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.7 }}
+              transition={{ delay: 0.9 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >

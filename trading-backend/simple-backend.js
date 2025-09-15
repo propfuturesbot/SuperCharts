@@ -14,8 +14,17 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// TopStep Authentication
-const TOPSTEP_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjE5NDY5OSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL3NpZCI6IjYzYzBjYTZhLWQxYTgtNDBjNS04MWViLWY1YTA0NGQ0ZjU0NiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJzdW1vbmV5MSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6InVzZXIiLCJtc2QiOiJDTUVHUk9VUF9UT0IiLCJtZmEiOiJ2ZXJpZmllZCIsImV4cCI6MTc1ODA2MzYzNH0.HRx9bQw0GfM3pGfyTmtfusdPx6kW3wLp5k-HyByyLjs';
+// Provider Configuration
+const PROVIDER_CONFIG = {
+  topstep: {
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjE5NDY5OSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL3NpZCI6IjYzYzBjYTZhLWQxYTgtNDBjNS04MWViLWY1YTA0NGQ0ZjU0NiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJzdW1vbmV5MSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6InVzZXIiLCJtc2QiOiJDTUVHUk9VUF9UT0IiLCJtZmEiOiJ2ZXJpZmllZCIsImV4cCI6MTc1ODA2MzYzNH0.HRx9bQw0GfM3pGfyTmtfusdPx6kW3wLp5k-HyByyLjs',
+    apiUrl: 'https://userapi.topstepx.com/UserContract/active/nonprofesional'
+  }
+  // Add other providers here as needed
+};
+
+// Current provider (configurable)
+const CURRENT_PROVIDER = 'topstep';
 
 // PostgreSQL Database connection
 const pool = new Pool({
@@ -39,39 +48,162 @@ pool.connect((err, client, release) => {
 const CONTRACTS_FILE = path.join(__dirname, 'tradableContracts.json');
 const STRATEGIES_FILE = path.join(__dirname, 'strategies.json');
 
-// Fetch contracts from TopStep and cache them
-async function loadContracts() {
+// Fetch contracts from provider and cache them
+async function loadContracts(provider = CURRENT_PROVIDER) {
   try {
-    console.log('Loading contracts from TopStep API...');
+    const providerConfig = PROVIDER_CONFIG[provider];
+    if (!providerConfig) {
+      throw new Error(`Unknown provider: ${provider}`);
+    }
+
+    console.log(`Loading contracts from ${provider.toUpperCase()} API...`);
     
-    const response = await axios.get('https://userapi.topstepx.com/UserContract/active/nonprofesional', {
-      headers: { 'Authorization': `Bearer ${TOPSTEP_TOKEN}` }
+    const response = await axios.get(providerConfig.apiUrl, {
+      headers: { 'Authorization': `Bearer ${providerConfig.token}` }
     });
 
     const contracts = response.data.map(contract => ({
-      symbol: contract.productName.replace('/', ''),
+      // Core identification fields
+      product_id: contract.productId,
+      product_name: contract.productName,
+      contract_id: contract.contractId,
+      contract_name: contract.contractName,
+      symbol: contract.productName ? contract.productName.replace('/', '') : '',
       name: contract.description,
+      description: contract.description,
       exchange: contract.exchange,
       category: 'Futures',
-      contract_id: contract.contractId,
-      product_name: contract.productName,
-      contract_name: contract.contractName,
+      
+      // Pricing and tick information
       tick_value: contract.tickValue,
       tick_size: contract.tickSize,
       point_value: contract.pointValue,
+      decimal_places: contract.decimalPlaces,
+      price_scale: contract.priceScale,
+      min_move: contract.minMove,
+      min_move2: contract.minMove2,
+      fractional_price: contract.fractionalPrice,
+      
+      // Fee information
+      exchange_fee: contract.exchangeFee,
+      regulatory_fee: contract.regulatoryFee,
+      commission_fee: contract.commissionFee,
       total_fees: contract.totalFees,
-      description: contract.description,
-      disabled: contract.disabled
+      
+      // Status and configuration
+      disabled: contract.disabled,
+      is_professional: contract.isProfessional,
+      
+      // Metadata
+      provider: provider,
+      last_updated: new Date().toISOString()
     }));
 
     // Save to file
     fs.writeFileSync(CONTRACTS_FILE, JSON.stringify(contracts, null, 2));
-    console.log(`✅ Saved ${contracts.length} contracts to ${CONTRACTS_FILE}`);
+    console.log(`✅ Saved ${contracts.length} contracts from ${provider.toUpperCase()} to ${CONTRACTS_FILE}`);
     
     return contracts;
   } catch (error) {
-    console.error('❌ Failed to load contracts from TopStep:', error.message);
+    console.error(`❌ Failed to load contracts from ${provider.toUpperCase()}:`, error.message);
     throw error;
+  }
+}
+
+// Contract lookup method - find product_id by contract name variations
+function lookupContractProductId(contractName) {
+  try {
+    if (!fs.existsSync(CONTRACTS_FILE)) {
+      throw new Error('Contracts file not found. Please ensure contracts are loaded first.');
+    }
+    
+    const contracts = JSON.parse(fs.readFileSync(CONTRACTS_FILE, 'utf8'));
+    
+    // Clean and normalize the input contract name
+    const cleanContractName = contractName.trim().toUpperCase();
+    
+    // Try multiple matching strategies
+    for (const contract of contracts) {
+      // Strategy 1: Direct match with product_name (e.g., "/MNQ")
+      if (contract.product_name && contract.product_name.toUpperCase() === cleanContractName) {
+        return {
+          success: true,
+          product_id: contract.product_id,
+          matched_field: 'product_name',
+          matched_value: contract.product_name,
+          contract_info: contract
+        };
+      }
+      
+      // Strategy 2: Match with product_name without leading slash (e.g., "MNQ" matches "/MNQ")
+      if (contract.product_name && contract.product_name.replace('/', '').toUpperCase() === cleanContractName) {
+        return {
+          success: true,
+          product_id: contract.product_id,
+          matched_field: 'product_name',
+          matched_value: contract.product_name,
+          contract_info: contract
+        };
+      }
+      
+      // Strategy 3: Match with symbol (e.g., "MNQ")
+      if (contract.symbol && contract.symbol.toUpperCase() === cleanContractName) {
+        return {
+          success: true,
+          product_id: contract.product_id,
+          matched_field: 'symbol',
+          matched_value: contract.symbol,
+          contract_info: contract
+        };
+      }
+      
+      // Strategy 4: Match with contract_name (e.g., "MNQU25")
+      if (contract.contract_name && contract.contract_name.toUpperCase() === cleanContractName) {
+        return {
+          success: true,
+          product_id: contract.product_id,
+          matched_field: 'contract_name',
+          matched_value: contract.contract_name,
+          contract_info: contract
+        };
+      }
+      
+      // Strategy 5: Match with exchange field (e.g., "/MNQ")
+      if (contract.exchange && contract.exchange.toUpperCase() === cleanContractName) {
+        return {
+          success: true,
+          product_id: contract.product_id,
+          matched_field: 'exchange',
+          matched_value: contract.exchange,
+          contract_info: contract
+        };
+      }
+      
+      // Strategy 6: Handle variations like "MNQ1!" by matching base symbol
+      const baseSymbol = cleanContractName.replace(/[0-9!]+$/, ''); // Remove trailing numbers and !
+      if (contract.symbol && contract.symbol.toUpperCase() === baseSymbol) {
+        return {
+          success: true,
+          product_id: contract.product_id,
+          matched_field: 'symbol_base',
+          matched_value: contract.symbol,
+          contract_info: contract
+        };
+      }
+    }
+    
+    // No match found
+    return {
+      success: false,
+      error: `Contract not found for: ${contractName}`,
+      searched_term: cleanContractName
+    };
+    
+  } catch (error) {
+    return {
+      success: false,
+      error: `Error looking up contract: ${error.message}`
+    };
   }
 }
 
@@ -95,6 +227,81 @@ app.get('/api/contracts', (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Contract lookup API - find product_id by contract name
+app.get('/api/contracts/lookup/:contractName', (req, res) => {
+  try {
+    const { contractName } = req.params;
+    
+    if (!contractName) {
+      return res.status(400).json({
+        success: false,
+        error: 'Contract name parameter is required'
+      });
+    }
+    
+    const result = lookupContractProductId(contractName);
+    
+    if (result.success) {
+      res.json({
+        success: true,
+        product_id: result.product_id,
+        matched_field: result.matched_field,
+        matched_value: result.matched_value,
+        contract_info: result.contract_info
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: result.error,
+        searched_term: result.searched_term
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+// Bulk contract lookup API - find multiple product_ids
+app.post('/api/contracts/lookup', (req, res) => {
+  try {
+    const { contractNames } = req.body;
+    
+    if (!Array.isArray(contractNames)) {
+      return res.status(400).json({
+        success: false,
+        error: 'contractNames must be an array'
+      });
+    }
+    
+    const results = contractNames.map(contractName => {
+      const result = lookupContractProductId(contractName);
+      return {
+        input: contractName,
+        ...result
+      };
+    });
+    
+    const successful = results.filter(r => r.success);
+    const failed = results.filter(r => !r.success);
+    
+    res.json({
+      success: true,
+      total: results.length,
+      successful: successful.length,
+      failed: failed.length,
+      results: results
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
   }
 });
 
@@ -273,7 +480,7 @@ async function initializeServer() {
       const contracts = JSON.parse(fs.readFileSync(CONTRACTS_FILE, 'utf8'));
       console.log(`✅ Found existing contracts file with ${contracts.length} contracts`);
     } else {
-      console.log('📥 No existing contracts file found, fetching from TopStep...');
+      console.log(`📥 No existing contracts file found, fetching from ${CURRENT_PROVIDER.toUpperCase()}...`);
       await loadContracts();
     }
     

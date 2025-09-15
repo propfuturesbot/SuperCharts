@@ -10,24 +10,43 @@ class AuthService {
     this.rememberCredentials = localStorage.getItem('remember_credentials') === 'true';
   }
 
-  async login(username, apiKey, provider = 'topstepx', rememberMe = false) {
+  async login(username, credential, provider = 'topstepx', rememberMe = false, usePassword = false) {
     try {
       const config = getProviderConfig(provider);
-      const response = await axios.post(
-        `${config.api_endpoint}/api/Auth/loginKey`,
-        {
-          userName: username,
-          apiKey: apiKey
-        },
-        {
-          headers: {
-            'accept': 'text/plain',
-            'Content-Type': 'application/json'
+      let response;
+      
+      if (usePassword) {
+        // Use password authentication with the new endpoint
+        response = await axios.post(
+          'https://userapi.topstepx.com/Login',
+          {
+            userName: username,
+            password: credential
+          },
+          {
+            headers: {
+              'content-type': 'application/json'
+            }
           }
-        }
-      );
+        );
+      } else {
+        // Use API key authentication (existing method)
+        response = await axios.post(
+          `${config.api_endpoint}/api/Auth/loginKey`,
+          {
+            userName: username,
+            apiKey: credential
+          },
+          {
+            headers: {
+              'accept': 'text/plain',
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+      }
 
-      if (response.data.success) {
+      if (response.data.success || response.data.token) {
         this.token = response.data.token;
         this.username = username;
         this.provider = provider;
@@ -44,8 +63,13 @@ class AuthService {
         if (rememberMe) {
           localStorage.setItem('saved_username', username);
           localStorage.setItem('saved_provider', provider);
-          // Encode API key for basic obfuscation (not security, just visual)
-          localStorage.setItem('saved_api_key', btoa(apiKey));
+          localStorage.setItem('saved_auth_type', usePassword ? 'password' : 'apikey');
+          // Encode credential for basic obfuscation (not security, just visual)
+          if (usePassword) {
+            localStorage.setItem('saved_password', btoa(credential));
+          } else {
+            localStorage.setItem('saved_api_key', btoa(credential));
+          }
           localStorage.setItem('credentials_saved_at', Date.now().toString());
         } else {
           // Clear saved credentials if remember me is unchecked
@@ -138,18 +162,31 @@ class AuthService {
 
     const username = localStorage.getItem('saved_username');
     const provider = localStorage.getItem('saved_provider');
+    const authType = localStorage.getItem('saved_auth_type') || 'apikey';
     const encodedApiKey = localStorage.getItem('saved_api_key');
+    const encodedPassword = localStorage.getItem('saved_password');
 
-    if (username && provider && encodedApiKey) {
+    if (username && provider) {
       try {
-        return {
-          username,
-          provider,
-          apiKey: atob(encodedApiKey), // Decode the API key
-          hasApiKey: true
-        };
+        if (authType === 'password' && encodedPassword) {
+          return {
+            username,
+            provider,
+            password: atob(encodedPassword),
+            usePassword: true,
+            hasCredential: true
+          };
+        } else if (authType === 'apikey' && encodedApiKey) {
+          return {
+            username,
+            provider,
+            apiKey: atob(encodedApiKey),
+            usePassword: false,
+            hasCredential: true
+          };
+        }
       } catch (error) {
-        console.warn('Failed to decode saved API key');
+        console.warn('Failed to decode saved credentials');
         this.clearSavedCredentials();
         return null;
       }
@@ -163,6 +200,8 @@ class AuthService {
     localStorage.removeItem('saved_username');
     localStorage.removeItem('saved_provider');
     localStorage.removeItem('saved_api_key');
+    localStorage.removeItem('saved_password');
+    localStorage.removeItem('saved_auth_type');
     localStorage.removeItem('credentials_saved_at');
   }
 

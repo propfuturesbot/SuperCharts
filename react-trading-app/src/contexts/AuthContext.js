@@ -27,11 +27,11 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (username, apiKey, provider, rememberMe = false) => {
+  const login = async (username, credential, provider, rememberMe = false, usePassword = false) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await authService.login(username, apiKey, provider, rememberMe);
+      const result = await authService.login(username, credential, provider, rememberMe, usePassword);
       setUser({
         username: result.username,
         provider: result.provider
