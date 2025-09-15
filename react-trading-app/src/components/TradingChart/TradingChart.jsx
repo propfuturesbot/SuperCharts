@@ -265,8 +265,10 @@ const TradingChart = ({
       // Validate all data before setting on chart
       const validatedData = transformedData.map(validateChartData).filter(Boolean);
       if (validatedData.length > 0) {
-        candleSeriesRef.current.setData(validatedData);
-        console.log(`Set ${validatedData.length} validated bars on chart (${transformedData.length - validatedData.length} invalid filtered)`);
+        // CRITICAL FIX: Always sort data before setting to chart
+        const sortedData = validatedData.sort((a, b) => a.time - b.time);
+        candleSeriesRef.current.setData(sortedData);
+        console.log(`Set ${sortedData.length} validated bars on chart (${transformedData.length - sortedData.length} invalid filtered)`);
       } else {
         console.warn('No valid data after validation');
         return;
@@ -328,8 +330,17 @@ const TradingChart = ({
                 // Validate and update chart with completed bar
                 const validatedBar = validateChartData(completedBar);
                 if (validatedBar) {
-                  candleSeriesRef.current?.update(validatedBar);
-                  setRawData(prevData => mergeRealtimeUpdate(prevData, completedBar));
+                  // CRITICAL FIX: Update raw data state and rebuild complete dataset
+                  setRawData(prevData => {
+                    const updatedData = mergeRealtimeUpdate(prevData, completedBar);
+                    // Always sort to prevent chart crashes
+                    const sortedData = updatedData.sort((a, b) => a.time - b.time);
+                    // Set complete sorted dataset to chart
+                    if (candleSeriesRef.current) {
+                      candleSeriesRef.current.setData(sortedData);
+                    }
+                    return sortedData;
+                  });
                 }
               }
               return accumulator;
@@ -338,6 +349,8 @@ const TradingChart = ({
             // Update raw data
             setRawData(prevData => {
               const updatedData = mergeRealtimeUpdate(prevData, bar);
+              // CRITICAL: Always sort data before updating chart
+              const sortedData = updatedData.sort((a, b) => a.time - b.time);
 
               // Transform based on chart type
               if (chartType === CHART_TYPES.HEIKEN_ASHI) {
@@ -346,9 +359,14 @@ const TradingChart = ({
                   if (haBar) {
                     const validatedHABar = validateChartData(haBar);
                     if (validatedHABar) {
-                      candleSeriesRef.current?.update(validatedHABar);
+                      const updatedHAData = mergeRealtimeUpdate(prev, haBar);
+                      const sortedHAData = updatedHAData.sort((a, b) => a.time - b.time);
+                      // Set complete sorted HA dataset to chart
+                      if (candleSeriesRef.current) {
+                        candleSeriesRef.current.setData(sortedHAData);
+                      }
+                      return sortedHAData;
                     }
-                    return mergeRealtimeUpdate(prev, haBar);
                   }
                   return prev;
                 });
@@ -356,26 +374,35 @@ const TradingChart = ({
                 setRenkoState(prevState => {
                   const { newBricks, updatedState } = updateRenkoRealtime(bar, prevState, brickSize);
                   if (newBricks.length > 0) {
-                    newBricks.forEach(brick => {
-                      // Validate brick data before updating
-                      const validatedBrick = validateChartData(brick);
-                      if (validatedBrick) {
-                        candleSeriesRef.current?.update(validatedBrick);
-                      }
-                    });
-                    setRenkoData(prev => [...prev, ...newBricks]);
+                    // Validate all bricks and update Renko data
+                    const validBricks = newBricks
+                      .map(brick => validateChartData(brick))
+                      .filter(brick => brick !== null);
+
+                    if (validBricks.length > 0) {
+                      setRenkoData(prev => {
+                        const updatedRenko = [...prev, ...validBricks];
+                        const sortedRenko = updatedRenko.sort((a, b) => a.time - b.time);
+                        // Set complete sorted Renko dataset to chart
+                        if (candleSeriesRef.current) {
+                          candleSeriesRef.current.setData(sortedRenko);
+                        }
+                        return sortedRenko;
+                      });
+                    }
                   }
                   return updatedState;
                 });
               } else {
                 // Regular candlestick update - validate data first
                 const validatedBar = validateChartData(bar);
-                if (validatedBar) {
-                  candleSeriesRef.current?.update(validatedBar);
+                if (validatedBar && candleSeriesRef.current) {
+                  // CRITICAL FIX: Set complete sorted dataset instead of calling update()
+                  candleSeriesRef.current.setData(sortedData);
                 }
               }
 
-              return updatedData;
+              return sortedData;
             });
           }
         },

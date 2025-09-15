@@ -274,9 +274,12 @@ const TradingChart = ({ productId, resolution, chartType = 'candlestick' }) => {
         console.log(`Filtered data: ${validData.length} valid bars out of ${data.length}`);
         
         if (validData.length > 0) {
-          candleSeries.setData(validData);
-          setHistoricalData(validData);
-          
+          // CRITICAL: Always sort data before setting to chart
+          const sortedData = validData.sort((a, b) => a.time - b.time);
+
+          candleSeries.setData(sortedData);
+          setHistoricalData(sortedData);
+
           // Fit content to show all data
           chart.timeScale().fitContent();
           
@@ -402,14 +405,40 @@ const TradingChart = ({ productId, resolution, chartType = 'candlestick' }) => {
       };
 
       // Validate update data
-      if (isNaN(update.time) || isNaN(update.open) || isNaN(update.high) || 
+      if (isNaN(update.time) || isNaN(update.open) || isNaN(update.high) ||
           isNaN(update.low) || isNaN(update.close)) {
         return;
       }
 
-      // Update chart
-      candleSeries.update(update);
-      
+      // CRITICAL FIX: Update React state properly and ensure data is sorted
+      setHistoricalData(currentData => {
+        if (currentData.length === 0) {
+          // First bar
+          const newData = [update];
+          candleSeries.setData(newData);
+          return newData;
+        }
+
+        const lastBar = currentData[currentData.length - 1];
+        let updatedData;
+
+        if (update.time === lastBar.time) {
+          // Update existing bar (same timestamp)
+          updatedData = [...currentData.slice(0, -1), update];
+        } else {
+          // New bar (different timestamp)
+          updatedData = [...currentData, update];
+        }
+
+        // CRITICAL: Always sort to prevent chart crashes
+        updatedData.sort((a, b) => a.time - b.time);
+
+        // Update the chart with the entire sorted dataset
+        candleSeries.setData(updatedData);
+
+        return updatedData;
+      });
+
       console.log('Chart updated with real-time bar:', update);
 
     } catch (error) {

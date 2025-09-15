@@ -1,0 +1,46 @@
+const calculateIndicator = (type, data, period = 14) => {
+  if (!data || data.length === 0) return [];
+
+  // Wait for indicators to be loaded
+  if (!window.indicators) {
+    console.warn('Indicators not loaded yet');
+    return [];
+  }
+
+  const closePrices = data.map(bar => bar.close);
+  const highPrices = data.map(bar => bar.high);
+  const lowPrices = data.map(bar => bar.low);
+  const openPrices = data.map(bar => bar.open);
+
+  try {
+    switch (type) {
+      case 'SMA':
+        return window.indicators.sma(closePrices, { period });
+      case 'EMA':
+        return window.indicators.ema(closePrices, { period });
+      case 'RSI':
+        return window.indicators.rsi(closePrices, { period });
+      case 'BollingerBands':
+        const bbResult = window.indicators.bollingerBands(closePrices, { period, multiplier: 2 });
+        return {
+          upper: bbResult.upperBand,
+          middle: bbResult.middleBand,
+          lower: bbResult.lowerBand
+        };
+      case 'DonchianChannel':
+        const dcResult = window.indicators.donchianChannel(highPrices, lowPrices, { period });
+        return {
+          upper: dcResult.upperChannel,
+          middle: dcResult.middleChannel,
+          lower: dcResult.lowerChannel
+        };
+      default:
+        console.warn('Indicator type not implemented yet:', type);
+        alert(`${type} indicator is not implemented yet. Available indicators: SMA, EMA, RSI, Bollinger Bands, Donchian Channel`);
+        return [];
+    }
+  } catch (error) {
+    console.error('Error calculating indicator:', error);
+    return [];
+  }
+};
