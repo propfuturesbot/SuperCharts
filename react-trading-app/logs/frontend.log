@@ -2,26 +2,19 @@
 > trading-dashboard@0.1.0 start
 > react-scripts start
 
-(node:69598) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(node:28460) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
 (Use `node --trace-deprecation ...` to show where the warning was created)
-(node:69598) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(node:28460) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
 Starting the development server...
 
-Compiled successfully!
-
-You can now view trading-dashboard in the browser.
-
-  Local:            http://localhost:3000
-  On Your Network:  http://192.168.1.15:3000
-
-Note that the development build is not optimized.
-To create a production build, use npm run build.
-
-webpack compiled successfully
-Compiling...
 Compiled with warnings.
 
 [eslint] 
+src/components/StrategyManagement/StrategyCreationWizard.jsx
+  Line 13:3:    'FaSave' is defined but never used             no-unused-vars
+  Line 36:10:   'loading' is assigned a value but never used   no-unused-vars
+  Line 353:17:  'response' is assigned a value but never used  no-unused-vars
+
 src/components/TradingChart/TradingChart.jsx
   Line 3:10:   'FaChartLine' is defined but never used                                                                                                                                                                                                                no-unused-vars
   Line 3:23:   'FaChartBar' is defined but never used                                                                                                                                                                                                                 no-unused-vars
@@ -34,14 +27,23 @@ src/components/TradingChart/TradingChart.jsx
   Line 73:10:  'tickAccumulator' is assigned a value but never used                                                                                                                                                                                                   no-unused-vars
   Line 235:6:  React Hook useCallback has missing dependencies: 'editMode', 'strategyName', 'strategyType', and 'updateChartDisplay'. Either include them or remove the dependency array                                                                              react-hooks/exhaustive-deps
   Line 252:5:  Expected a default case                                                                                                                                                                                                                                default-case
-  Line 298:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
-  Line 428:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
-  Line 501:6:  React Hook useCallback has a missing dependency: 'onResolutionChange'. Either include it or remove the dependency array. If 'onResolutionChange' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+  Line 300:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
+  Line 430:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
+  Line 503:6:  React Hook useCallback has a missing dependency: 'onResolutionChange'. Either include it or remove the dependency array. If 'onResolutionChange' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+src/components/TradingChart/chartTypes/renko.js
+  Line 64:9:   'firstTime' is assigned a value but never used  no-unused-vars
+  Line 126:7:  'direction' is assigned a value but never used  no-unused-vars
 
 Search for the keywords to learn more about each warning.
 To ignore, add // eslint-disable-next-line to the line before.
 
 WARNING in [eslint] 
+src/components/StrategyManagement/StrategyCreationWizard.jsx
+  Line 13:3:    'FaSave' is defined but never used             no-unused-vars
+  Line 36:10:   'loading' is assigned a value but never used   no-unused-vars
+  Line 353:17:  'response' is assigned a value but never used  no-unused-vars
+
 src/components/TradingChart/TradingChart.jsx
   Line 3:10:   'FaChartLine' is defined but never used                                                                                                                                                                                                                no-unused-vars
   Line 3:23:   'FaChartBar' is defined but never used                                                                                                                                                                                                                 no-unused-vars
@@ -54,15 +56,24 @@ src/components/TradingChart/TradingChart.jsx
   Line 73:10:  'tickAccumulator' is assigned a value but never used                                                                                                                                                                                                   no-unused-vars
   Line 235:6:  React Hook useCallback has missing dependencies: 'editMode', 'strategyName', 'strategyType', and 'updateChartDisplay'. Either include them or remove the dependency array                                                                              react-hooks/exhaustive-deps
   Line 252:5:  Expected a default case                                                                                                                                                                                                                                default-case
-  Line 298:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
-  Line 428:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
-  Line 501:6:  React Hook useCallback has a missing dependency: 'onResolutionChange'. Either include it or remove the dependency array. If 'onResolutionChange' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+  Line 300:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
+  Line 430:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
+  Line 503:6:  React Hook useCallback has a missing dependency: 'onResolutionChange'. Either include it or remove the dependency array. If 'onResolutionChange' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+src/components/TradingChart/chartTypes/renko.js
+  Line 64:9:   'firstTime' is assigned a value but never used  no-unused-vars
+  Line 126:7:  'direction' is assigned a value but never used  no-unused-vars
 
 webpack compiled with 1 warning
 Compiling...
 Compiled with warnings.
 
 [eslint] 
+src/components/StrategyManagement/StrategyCreationWizard.jsx
+  Line 13:3:    'FaSave' is defined but never used             no-unused-vars
+  Line 36:10:   'loading' is assigned a value but never used   no-unused-vars
+  Line 353:17:  'response' is assigned a value but never used  no-unused-vars
+
 src/components/TradingChart/TradingChart.jsx
   Line 3:10:   'FaChartLine' is defined but never used                                                                                                                                                                                                                no-unused-vars
   Line 3:23:   'FaChartBar' is defined but never used                                                                                                                                                                                                                 no-unused-vars
@@ -78,11 +89,20 @@ src/components/TradingChart/TradingChart.jsx
   Line 300:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
   Line 430:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
   Line 503:6:  React Hook useCallback has a missing dependency: 'onResolutionChange'. Either include it or remove the dependency array. If 'onResolutionChange' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+src/components/TradingChart/chartTypes/renko.js
+  Line 82:9:   'firstTime' is assigned a value but never used  no-unused-vars
+  Line 163:7:  'direction' is assigned a value but never used  no-unused-vars
 
 Search for the keywords to learn more about each warning.
 To ignore, add // eslint-disable-next-line to the line before.
 
 WARNING in [eslint] 
+src/components/StrategyManagement/StrategyCreationWizard.jsx
+  Line 13:3:    'FaSave' is defined but never used             no-unused-vars
+  Line 36:10:   'loading' is assigned a value but never used   no-unused-vars
+  Line 353:17:  'response' is assigned a value but never used  no-unused-vars
+
 src/components/TradingChart/TradingChart.jsx
   Line 3:10:   'FaChartLine' is defined but never used                                                                                                                                                                                                                no-unused-vars
   Line 3:23:   'FaChartBar' is defined but never used                                                                                                                                                                                                                 no-unused-vars
@@ -98,5 +118,265 @@ src/components/TradingChart/TradingChart.jsx
   Line 300:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
   Line 430:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
   Line 503:6:  React Hook useCallback has a missing dependency: 'onResolutionChange'. Either include it or remove the dependency array. If 'onResolutionChange' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+src/components/TradingChart/chartTypes/renko.js
+  Line 82:9:   'firstTime' is assigned a value but never used  no-unused-vars
+  Line 163:7:  'direction' is assigned a value but never used  no-unused-vars
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/StrategyManagement/StrategyCreationWizard.jsx
+  Line 13:3:    'FaSave' is defined but never used             no-unused-vars
+  Line 36:10:   'loading' is assigned a value but never used   no-unused-vars
+  Line 353:17:  'response' is assigned a value but never used  no-unused-vars
+
+src/components/TradingChart/TradingChart.jsx
+  Line 3:10:   'FaChartLine' is defined but never used                                                                                                                                                                                                                no-unused-vars
+  Line 3:23:   'FaChartBar' is defined but never used                                                                                                                                                                                                                 no-unused-vars
+  Line 3:35:   'FaCubes' is defined but never used                                                                                                                                                                                                                    no-unused-vars
+  Line 12:10:  'calculateHeikenAshi' is defined but never used                                                                                                                                                                                                        no-unused-vars
+  Line 13:10:  'convertToRenko' is defined but never used                                                                                                                                                                                                             no-unused-vars
+  Line 61:10:  'heikenAshiData' is assigned a value but never used                                                                                                                                                                                                    no-unused-vars
+  Line 62:10:  'renkoData' is assigned a value but never used                                                                                                                                                                                                         no-unused-vars
+  Line 65:10:  'renkoState' is assigned a value but never used                                                                                                                                                                                                        no-unused-vars
+  Line 73:10:  'tickAccumulator' is assigned a value but never used                                                                                                                                                                                                   no-unused-vars
+  Line 235:6:  React Hook useCallback has missing dependencies: 'editMode', 'strategyName', 'strategyType', and 'updateChartDisplay'. Either include them or remove the dependency array                                                                              react-hooks/exhaustive-deps
+  Line 252:5:  Expected a default case                                                                                                                                                                                                                                default-case
+  Line 300:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
+  Line 430:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
+  Line 503:6:  React Hook useCallback has a missing dependency: 'onResolutionChange'. Either include it or remove the dependency array. If 'onResolutionChange' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+src/components/TradingChart/chartTypes/renko.js
+  Line 82:9:   'firstTime' is assigned a value but never used  no-unused-vars
+  Line 163:7:  'direction' is assigned a value but never used  no-unused-vars
+
+src/components/TradingChart/utils/dataProcessor.js
+  Line 179:9:  'originalBar' is assigned a value but never used  no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/StrategyManagement/StrategyCreationWizard.jsx
+  Line 13:3:    'FaSave' is defined but never used             no-unused-vars
+  Line 36:10:   'loading' is assigned a value but never used   no-unused-vars
+  Line 353:17:  'response' is assigned a value but never used  no-unused-vars
+
+src/components/TradingChart/TradingChart.jsx
+  Line 3:10:   'FaChartLine' is defined but never used                                                                                                                                                                                                                no-unused-vars
+  Line 3:23:   'FaChartBar' is defined but never used                                                                                                                                                                                                                 no-unused-vars
+  Line 3:35:   'FaCubes' is defined but never used                                                                                                                                                                                                                    no-unused-vars
+  Line 12:10:  'calculateHeikenAshi' is defined but never used                                                                                                                                                                                                        no-unused-vars
+  Line 13:10:  'convertToRenko' is defined but never used                                                                                                                                                                                                             no-unused-vars
+  Line 61:10:  'heikenAshiData' is assigned a value but never used                                                                                                                                                                                                    no-unused-vars
+  Line 62:10:  'renkoData' is assigned a value but never used                                                                                                                                                                                                         no-unused-vars
+  Line 65:10:  'renkoState' is assigned a value but never used                                                                                                                                                                                                        no-unused-vars
+  Line 73:10:  'tickAccumulator' is assigned a value but never used                                                                                                                                                                                                   no-unused-vars
+  Line 235:6:  React Hook useCallback has missing dependencies: 'editMode', 'strategyName', 'strategyType', and 'updateChartDisplay'. Either include them or remove the dependency array                                                                              react-hooks/exhaustive-deps
+  Line 252:5:  Expected a default case                                                                                                                                                                                                                                default-case
+  Line 300:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
+  Line 430:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
+  Line 503:6:  React Hook useCallback has a missing dependency: 'onResolutionChange'. Either include it or remove the dependency array. If 'onResolutionChange' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+src/components/TradingChart/chartTypes/renko.js
+  Line 82:9:   'firstTime' is assigned a value but never used  no-unused-vars
+  Line 163:7:  'direction' is assigned a value but never used  no-unused-vars
+
+src/components/TradingChart/utils/dataProcessor.js
+  Line 179:9:  'originalBar' is assigned a value but never used  no-unused-vars
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/StrategyManagement/StrategyCreationWizard.jsx
+  Line 13:3:    'FaSave' is defined but never used             no-unused-vars
+  Line 36:10:   'loading' is assigned a value but never used   no-unused-vars
+  Line 353:17:  'response' is assigned a value but never used  no-unused-vars
+
+src/components/TradingChart/TradingChart.jsx
+  Line 3:10:   'FaChartLine' is defined but never used                                                                                                                                                                                                                no-unused-vars
+  Line 3:23:   'FaChartBar' is defined but never used                                                                                                                                                                                                                 no-unused-vars
+  Line 3:35:   'FaCubes' is defined but never used                                                                                                                                                                                                                    no-unused-vars
+  Line 12:10:  'calculateHeikenAshi' is defined but never used                                                                                                                                                                                                        no-unused-vars
+  Line 13:10:  'convertToRenko' is defined but never used                                                                                                                                                                                                             no-unused-vars
+  Line 61:10:  'heikenAshiData' is assigned a value but never used                                                                                                                                                                                                    no-unused-vars
+  Line 62:10:  'renkoData' is assigned a value but never used                                                                                                                                                                                                         no-unused-vars
+  Line 65:10:  'renkoState' is assigned a value but never used                                                                                                                                                                                                        no-unused-vars
+  Line 73:10:  'tickAccumulator' is assigned a value but never used                                                                                                                                                                                                   no-unused-vars
+  Line 235:6:  React Hook useCallback has missing dependencies: 'editMode', 'strategyName', 'strategyType', and 'updateChartDisplay'. Either include them or remove the dependency array                                                                              react-hooks/exhaustive-deps
+  Line 252:5:  Expected a default case                                                                                                                                                                                                                                default-case
+  Line 300:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
+  Line 430:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
+  Line 503:6:  React Hook useCallback has a missing dependency: 'onResolutionChange'. Either include it or remove the dependency array. If 'onResolutionChange' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+src/components/TradingChart/chartTypes/renko.js
+  Line 82:9:   'firstTime' is assigned a value but never used  no-unused-vars
+  Line 163:7:  'direction' is assigned a value but never used  no-unused-vars
+
+src/components/TradingChart/utils/dataProcessor.js
+  Line 179:9:  'originalBar' is assigned a value but never used  no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/StrategyManagement/StrategyCreationWizard.jsx
+  Line 13:3:    'FaSave' is defined but never used             no-unused-vars
+  Line 36:10:   'loading' is assigned a value but never used   no-unused-vars
+  Line 353:17:  'response' is assigned a value but never used  no-unused-vars
+
+src/components/TradingChart/TradingChart.jsx
+  Line 3:10:   'FaChartLine' is defined but never used                                                                                                                                                                                                                no-unused-vars
+  Line 3:23:   'FaChartBar' is defined but never used                                                                                                                                                                                                                 no-unused-vars
+  Line 3:35:   'FaCubes' is defined but never used                                                                                                                                                                                                                    no-unused-vars
+  Line 12:10:  'calculateHeikenAshi' is defined but never used                                                                                                                                                                                                        no-unused-vars
+  Line 13:10:  'convertToRenko' is defined but never used                                                                                                                                                                                                             no-unused-vars
+  Line 61:10:  'heikenAshiData' is assigned a value but never used                                                                                                                                                                                                    no-unused-vars
+  Line 62:10:  'renkoData' is assigned a value but never used                                                                                                                                                                                                         no-unused-vars
+  Line 65:10:  'renkoState' is assigned a value but never used                                                                                                                                                                                                        no-unused-vars
+  Line 73:10:  'tickAccumulator' is assigned a value but never used                                                                                                                                                                                                   no-unused-vars
+  Line 235:6:  React Hook useCallback has missing dependencies: 'editMode', 'strategyName', 'strategyType', and 'updateChartDisplay'. Either include them or remove the dependency array                                                                              react-hooks/exhaustive-deps
+  Line 252:5:  Expected a default case                                                                                                                                                                                                                                default-case
+  Line 300:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
+  Line 430:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
+  Line 503:6:  React Hook useCallback has a missing dependency: 'onResolutionChange'. Either include it or remove the dependency array. If 'onResolutionChange' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+src/components/TradingChart/chartTypes/renko.js
+  Line 82:9:   'firstTime' is assigned a value but never used  no-unused-vars
+  Line 163:7:  'direction' is assigned a value but never used  no-unused-vars
+
+src/components/TradingChart/utils/dataProcessor.js
+  Line 179:9:  'originalBar' is assigned a value but never used  no-unused-vars
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/StrategyManagement/StrategyCreationWizard.jsx
+  Line 13:3:    'FaSave' is defined but never used             no-unused-vars
+  Line 36:10:   'loading' is assigned a value but never used   no-unused-vars
+  Line 353:17:  'response' is assigned a value but never used  no-unused-vars
+
+src/components/TradingChart/TradingChart.jsx
+  Line 3:10:   'FaChartLine' is defined but never used                                                                                                                                                                                                                no-unused-vars
+  Line 3:23:   'FaChartBar' is defined but never used                                                                                                                                                                                                                 no-unused-vars
+  Line 3:35:   'FaCubes' is defined but never used                                                                                                                                                                                                                    no-unused-vars
+  Line 12:10:  'calculateHeikenAshi' is defined but never used                                                                                                                                                                                                        no-unused-vars
+  Line 13:10:  'convertToRenko' is defined but never used                                                                                                                                                                                                             no-unused-vars
+  Line 61:10:  'heikenAshiData' is assigned a value but never used                                                                                                                                                                                                    no-unused-vars
+  Line 62:10:  'renkoData' is assigned a value but never used                                                                                                                                                                                                         no-unused-vars
+  Line 65:10:  'renkoState' is assigned a value but never used                                                                                                                                                                                                        no-unused-vars
+  Line 73:10:  'tickAccumulator' is assigned a value but never used                                                                                                                                                                                                   no-unused-vars
+  Line 235:6:  React Hook useCallback has missing dependencies: 'editMode', 'strategyName', 'strategyType', and 'updateChartDisplay'. Either include them or remove the dependency array                                                                              react-hooks/exhaustive-deps
+  Line 252:5:  Expected a default case                                                                                                                                                                                                                                default-case
+  Line 300:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
+  Line 430:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
+  Line 503:6:  React Hook useCallback has a missing dependency: 'onResolutionChange'. Either include it or remove the dependency array. If 'onResolutionChange' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+src/components/TradingChart/chartTypes/renko.js
+  Line 82:9:   'firstTime' is assigned a value but never used  no-unused-vars
+  Line 163:7:  'direction' is assigned a value but never used  no-unused-vars
+
+src/components/TradingChart/utils/dataProcessor.js
+  Line 179:9:  'originalBar' is assigned a value but never used  no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/StrategyManagement/StrategyCreationWizard.jsx
+  Line 13:3:    'FaSave' is defined but never used             no-unused-vars
+  Line 36:10:   'loading' is assigned a value but never used   no-unused-vars
+  Line 353:17:  'response' is assigned a value but never used  no-unused-vars
+
+src/components/TradingChart/TradingChart.jsx
+  Line 3:10:   'FaChartLine' is defined but never used                                                                                                                                                                                                                no-unused-vars
+  Line 3:23:   'FaChartBar' is defined but never used                                                                                                                                                                                                                 no-unused-vars
+  Line 3:35:   'FaCubes' is defined but never used                                                                                                                                                                                                                    no-unused-vars
+  Line 12:10:  'calculateHeikenAshi' is defined but never used                                                                                                                                                                                                        no-unused-vars
+  Line 13:10:  'convertToRenko' is defined but never used                                                                                                                                                                                                             no-unused-vars
+  Line 61:10:  'heikenAshiData' is assigned a value but never used                                                                                                                                                                                                    no-unused-vars
+  Line 62:10:  'renkoData' is assigned a value but never used                                                                                                                                                                                                         no-unused-vars
+  Line 65:10:  'renkoState' is assigned a value but never used                                                                                                                                                                                                        no-unused-vars
+  Line 73:10:  'tickAccumulator' is assigned a value but never used                                                                                                                                                                                                   no-unused-vars
+  Line 235:6:  React Hook useCallback has missing dependencies: 'editMode', 'strategyName', 'strategyType', and 'updateChartDisplay'. Either include them or remove the dependency array                                                                              react-hooks/exhaustive-deps
+  Line 252:5:  Expected a default case                                                                                                                                                                                                                                default-case
+  Line 300:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
+  Line 430:6:  React Hook useCallback has a missing dependency: 'validateChartData'. Either include it or remove the dependency array                                                                                                                                 react-hooks/exhaustive-deps
+  Line 503:6:  React Hook useCallback has a missing dependency: 'onResolutionChange'. Either include it or remove the dependency array. If 'onResolutionChange' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+src/components/TradingChart/chartTypes/renko.js
+  Line 82:9:   'firstTime' is assigned a value but never used  no-unused-vars
+  Line 163:7:  'direction' is assigned a value but never used  no-unused-vars
+
+src/components/TradingChart/utils/dataProcessor.js
+  Line 179:9:  'originalBar' is assigned a value but never used  no-unused-vars
+
+webpack compiled with 1 warning
+Compiling...
+Compiled with warnings.
+
+[eslint] 
+src/components/StrategyManagement/StrategyCreationWizard.jsx
+  Line 13:3:    'FaSave' is defined but never used             no-unused-vars
+  Line 36:10:   'loading' is assigned a value but never used   no-unused-vars
+  Line 353:17:  'response' is assigned a value but never used  no-unused-vars
+
+src/components/TradingChart/TradingChart.jsx
+  Line 3:10:   'FaChartLine' is defined but never used                                                                                                                                                                                                                no-unused-vars
+  Line 3:23:   'FaChartBar' is defined but never used                                                                                                                                                                                                                 no-unused-vars
+  Line 3:35:   'FaCubes' is defined but never used                                                                                                                                                                                                                    no-unused-vars
+  Line 13:10:  'calculateHeikenAshi' is defined but never used                                                                                                                                                                                                        no-unused-vars
+  Line 14:10:  'convertToRenko' is defined but never used                                                                                                                                                                                                             no-unused-vars
+  Line 62:10:  'heikenAshiData' is assigned a value but never used                                                                                                                                                                                                    no-unused-vars
+  Line 63:10:  'renkoData' is assigned a value but never used                                                                                                                                                                                                         no-unused-vars
+  Line 66:10:  'renkoState' is assigned a value but never used                                                                                                                                                                                                        no-unused-vars
+  Line 74:10:  'tickAccumulator' is assigned a value but never used                                                                                                                                                                                                   no-unused-vars
+  Line 192:6:  React Hook useCallback has missing dependencies: 'editMode', 'strategyName', 'strategyType', and 'updateChartDisplay'. Either include them or remove the dependency array                                                                              react-hooks/exhaustive-deps
+  Line 209:5:  Expected a default case                                                                                                                                                                                                                                default-case
+  Line 504:6:  React Hook useCallback has a missing dependency: 'onResolutionChange'. Either include it or remove the dependency array. If 'onResolutionChange' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+src/components/TradingChart/chartTypes/renko.js
+  Line 82:9:   'firstTime' is assigned a value but never used  no-unused-vars
+  Line 163:7:  'direction' is assigned a value but never used  no-unused-vars
+
+src/components/TradingChart/utils/dataProcessor.js
+  Line 179:9:  'originalBar' is assigned a value but never used  no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+WARNING in [eslint] 
+src/components/StrategyManagement/StrategyCreationWizard.jsx
+  Line 13:3:    'FaSave' is defined but never used             no-unused-vars
+  Line 36:10:   'loading' is assigned a value but never used   no-unused-vars
+  Line 353:17:  'response' is assigned a value but never used  no-unused-vars
+
+src/components/TradingChart/TradingChart.jsx
+  Line 3:10:   'FaChartLine' is defined but never used                                                                                                                                                                                                                no-unused-vars
+  Line 3:23:   'FaChartBar' is defined but never used                                                                                                                                                                                                                 no-unused-vars
+  Line 3:35:   'FaCubes' is defined but never used                                                                                                                                                                                                                    no-unused-vars
+  Line 13:10:  'calculateHeikenAshi' is defined but never used                                                                                                                                                                                                        no-unused-vars
+  Line 14:10:  'convertToRenko' is defined but never used                                                                                                                                                                                                             no-unused-vars
+  Line 62:10:  'heikenAshiData' is assigned a value but never used                                                                                                                                                                                                    no-unused-vars
+  Line 63:10:  'renkoData' is assigned a value but never used                                                                                                                                                                                                         no-unused-vars
+  Line 66:10:  'renkoState' is assigned a value but never used                                                                                                                                                                                                        no-unused-vars
+  Line 74:10:  'tickAccumulator' is assigned a value but never used                                                                                                                                                                                                   no-unused-vars
+  Line 192:6:  React Hook useCallback has missing dependencies: 'editMode', 'strategyName', 'strategyType', and 'updateChartDisplay'. Either include them or remove the dependency array                                                                              react-hooks/exhaustive-deps
+  Line 209:5:  Expected a default case                                                                                                                                                                                                                                default-case
+  Line 504:6:  React Hook useCallback has a missing dependency: 'onResolutionChange'. Either include it or remove the dependency array. If 'onResolutionChange' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+src/components/TradingChart/chartTypes/renko.js
+  Line 82:9:   'firstTime' is assigned a value but never used  no-unused-vars
+  Line 163:7:  'direction' is assigned a value but never used  no-unused-vars
+
+src/components/TradingChart/utils/dataProcessor.js
+  Line 179:9:  'originalBar' is assigned a value but never used  no-unused-vars
 
 webpack compiled with 1 warning

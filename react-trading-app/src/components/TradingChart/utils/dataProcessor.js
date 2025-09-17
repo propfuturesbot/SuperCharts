@@ -68,41 +68,57 @@ export const transformDataForChartType = (data, chartType, options = {}) => {
 
 /**
  * Handle tick chart accumulation
+ * Enhanced version from working code with better validation and timestamp handling
  * @param {Object} tickData - Incoming tick data
  * @param {Object} accumulator - Current accumulator state
  * @param {number} ticksPerBar - Ticks required per bar
  * @returns {Object} Updated accumulator and completed bar if any
  */
 export const accumulateTickData = (tickData, accumulator, ticksPerBar) => {
+  // Validate input data
+  if (!tickData) {
+    console.warn('accumulateTickData: no tick data provided');
+    return { accumulator: accumulator || null, completedBar: null };
+  }
+
   const tickPrice = tickData.close || tickData.price;
   const tickVolume = tickData.volume || 1;
   const tickTime = tickData.time;
-  
-  let newAccumulator = { ...accumulator };
-  let completedBar = null;
-  
-  // Initialize accumulator if needed
-  if (!newAccumulator.open) {
-    newAccumulator = {
-      open: tickPrice,
-      high: tickPrice,
-      low: tickPrice,
-      close: tickPrice,
-      volume: 0,
-      time: tickTime,
-      tickCount: 0
-    };
+
+  // Validate tick data
+  if (typeof tickPrice !== 'number' || isNaN(tickPrice) ||
+      typeof tickTime !== 'number' || isNaN(tickTime)) {
+    console.warn('accumulateTickData: invalid tick data', tickData);
+    return { accumulator: accumulator || null, completedBar: null };
   }
-  
-  // Update accumulator
-  newAccumulator.high = Math.max(newAccumulator.high, tickPrice);
-  newAccumulator.low = Math.min(newAccumulator.low, tickPrice);
-  newAccumulator.close = tickPrice;
-  newAccumulator.volume += tickVolume;
-  newAccumulator.tickCount++;
-  
-  // Check if bar is complete
-  if (newAccumulator.tickCount >= ticksPerBar) {
+
+  let newAccumulator = accumulator ? { ...accumulator } : null;
+  let completedBar = null;
+
+  // Determine if we should create a new bar
+  let shouldCreateNewBar = false;
+
+  if (!newAccumulator || !newAccumulator.open) {
+    shouldCreateNewBar = true;
+    console.log(`Tick chart: Starting first bar (${ticksPerBar} ticks per bar)`);
+  } else {
+    // Check if enough ticks have been accumulated
+    if (newAccumulator.tickCount >= ticksPerBar) {
+      shouldCreateNewBar = true;
+      console.log(`Tick chart: ${ticksPerBar} ticks reached, creating new bar`);
+    }
+    // Also create new bar if significant time has passed (more than 30 seconds)
+    else if (newAccumulator.lastTickTime && (tickTime - newAccumulator.lastTickTime) > 30) {
+      shouldCreateNewBar = true;
+      console.log('Tick chart: Time gap detected, creating new bar');
+    }
+  }
+
+  // If we need to create a new bar, finalize the current one first
+  if (shouldCreateNewBar && newAccumulator && newAccumulator.open) {
+    console.log(`Tick chart: Finalizing current bar - ticks: ${newAccumulator.tickCount}/${ticksPerBar}, OHLC: ${newAccumulator.open}/${newAccumulator.high}/${newAccumulator.low}/${newAccumulator.close}`);
+
+    // Finalize current bar as completed
     completedBar = {
       time: newAccumulator.time,
       open: newAccumulator.open,
@@ -111,19 +127,36 @@ export const accumulateTickData = (tickData, accumulator, ticksPerBar) => {
       close: newAccumulator.close,
       volume: newAccumulator.volume
     };
-    
-    // Reset accumulator for next bar
+  }
+
+  // Create new accumulator if needed
+  if (shouldCreateNewBar) {
+    let barTime = newAccumulator && newAccumulator.time ?
+      newAccumulator.time + 1 : tickTime;
+
     newAccumulator = {
       open: tickPrice,
       high: tickPrice,
       low: tickPrice,
       close: tickPrice,
       volume: 0,
-      time: tickTime + 1, // Ensure unique timestamp
-      tickCount: 0
+      time: barTime,
+      tickCount: 0,
+      lastTickTime: null
     };
+    console.log(`Tick chart: Started new bar at time ${new Date(barTime * 1000).toLocaleString()}`);
   }
-  
+
+  // Update the current accumulator with this tick
+  newAccumulator.high = Math.max(newAccumulator.high, tickPrice);
+  newAccumulator.low = Math.min(newAccumulator.low, tickPrice);
+  newAccumulator.close = tickPrice; // Last tick price becomes close
+  newAccumulator.volume += tickVolume;
+  newAccumulator.tickCount++;
+  newAccumulator.lastTickTime = tickTime;
+
+  console.log(`Tick chart: Updated bar ${newAccumulator.tickCount}/${ticksPerBar} - Price: ${tickPrice}, Bar: O:${newAccumulator.open} H:${newAccumulator.high} L:${newAccumulator.low} C:${newAccumulator.close}`);
+
   return {
     accumulator: newAccumulator,
     completedBar
@@ -132,40 +165,84 @@ export const accumulateTickData = (tickData, accumulator, ticksPerBar) => {
 
 /**
  * Process real-time bar update
+ * Enhanced version from working code with robust timestamp handling
  * @param {Object} realtimeBar - Real-time bar data
- * @param {Object} lastBar - Last bar in the chart
  * @returns {Object} Processed bar update
  */
 export const processRealtimeBar = (realtimeBar) => {
-  if (!realtimeBar) return null;
-  
-  // Handle timestamp conversion
-  let timestamp = realtimeBar.time || realtimeBar.t;
-  
-  // Handle different timestamp formats
+  if (!realtimeBar) {
+    console.warn('processRealtimeBar: no bar data provided');
+    return null;
+  }
+
+  // Store the original bar data for debugging
+  const originalBar = { ...realtimeBar };
+  console.log('Raw bar data:', realtimeBar);
+
+  // Handle timestamp conversion with enhanced logic from working code
+  let timestamp;
+
+  // Try timestampUnix first (if it's valid)
   if (realtimeBar.timestampUnix && realtimeBar.timestampUnix > 0) {
     timestamp = realtimeBar.timestampUnix * 1000; // Convert to milliseconds
-  } else if (realtimeBar.timestamp && typeof realtimeBar.timestamp === 'string') {
+  }
+  // If timestampUnix is 0 or invalid, parse the ISO timestamp string
+  else if (realtimeBar.timestamp && typeof realtimeBar.timestamp === 'string') {
     timestamp = new Date(realtimeBar.timestamp).getTime();
   }
-  
-  // Fix overly large timestamps (nanoseconds/microseconds)
-  if (timestamp > 10000000000000000) { // Nanoseconds
+  // Fallback to other timestamp fields
+  else if (realtimeBar.t) {
+    timestamp = realtimeBar.t;
+  }
+  else if (realtimeBar.time) {
+    timestamp = realtimeBar.time;
+  }
+  else {
+    console.warn('No valid timestamp found in bar:', realtimeBar);
+    return null;
+  }
+
+  // Ensure timestamp is a number
+  if (isNaN(timestamp)) {
+    console.warn('Invalid timestamp:', timestamp);
+    return null;
+  }
+
+  // Debug the timestamp conversion
+  console.log('Timestamp conversion debug:', {
+    original: realtimeBar.timestamp,
+    timestampUnix: realtimeBar.timestampUnix,
+    parsed: timestamp,
+    asDate: new Date(timestamp).toLocaleString()
+  });
+
+  // Fix timestamp format - API might be returning microseconds or nanoseconds
+  // Current timestamp should be around 1724000000000 (Aug 2024 in milliseconds)
+
+  if (timestamp > 10000000000000000) { // 17+ digits - likely nanoseconds or wrong format
+    console.log('Timestamp too large, trying division by 1000000 (nanoseconds to milliseconds)');
     timestamp = Math.floor(timestamp / 1000000);
-  } else if (timestamp > 100000000000000) { // Microseconds
+  } else if (timestamp > 100000000000000) { // 15+ digits - likely microseconds
+    console.log('Converting from microseconds to milliseconds');
     timestamp = Math.floor(timestamp / 1000);
-  } else if (timestamp < 946684800000 && timestamp > 946684800) { // Seconds
-    timestamp = timestamp * 1000;
+  } else if (timestamp < 946684800000) { // Less than year 2000 in milliseconds
+    if (timestamp > 946684800) { // Greater than year 2000 in seconds
+      console.log('Converting from seconds to milliseconds');
+      timestamp = timestamp * 1000;
+    }
   }
-  
-  // Additional check for unreasonable timestamps
-  if (timestamp > 2000000000000) { // Year 2033+
+
+  // Additional check - if still not in reasonable range, try more aggressive conversion
+  if (timestamp > 2000000000000) { // If still larger than year 2033
+    console.log('Timestamp still too large, trying additional division by 1000');
     timestamp = Math.floor(timestamp / 1000);
   }
-  
+
+  console.log('Final timestamp:', timestamp, 'as date:', new Date(timestamp).toLocaleString());
+
   const barTime = Math.floor(timestamp / 1000);
-  
-  return {
+
+  const processedBar = {
     time: barTime,
     open: parseFloat(realtimeBar.open || realtimeBar.o),
     high: parseFloat(realtimeBar.high || realtimeBar.h),
@@ -174,36 +251,148 @@ export const processRealtimeBar = (realtimeBar) => {
     volume: parseInt(realtimeBar.volume || realtimeBar.v || realtimeBar.tv || 0),
     isClosed: realtimeBar.isClosed || false
   };
+
+  // Validate the processed bar data
+  if (isNaN(processedBar.time) || isNaN(processedBar.open) || isNaN(processedBar.high) ||
+      isNaN(processedBar.low) || isNaN(processedBar.close)) {
+    console.warn('Invalid bar data after processing, skipping update:', processedBar);
+    return null;
+  }
+
+  // Validate OHLC relationships
+  if (processedBar.high < processedBar.low ||
+      processedBar.high < processedBar.open ||
+      processedBar.high < processedBar.close ||
+      processedBar.low > processedBar.open ||
+      processedBar.low > processedBar.close) {
+    console.warn('Invalid OHLC relationships, skipping update:', processedBar);
+    return null;
+  }
+
+  return processedBar;
 };
 
 /**
  * Merge real-time update with existing data
+ * Enhanced version with better validation and timestamp handling
  * @param {Array} existingData - Existing chart data
  * @param {Object} newBar - New bar to merge
  * @returns {Array} Updated data array
  */
 export const mergeRealtimeUpdate = (existingData, newBar) => {
-  if (!existingData || !newBar) return existingData || [];
-  
+  if (!Array.isArray(existingData)) {
+    console.warn('mergeRealtimeUpdate: existingData is not an array');
+    return [];
+  }
+
+  if (!newBar || typeof newBar.time !== 'number' || isNaN(newBar.time)) {
+    console.warn('mergeRealtimeUpdate: invalid newBar data');
+    return existingData;
+  }
+
   const lastIndex = existingData.length - 1;
   const lastBar = existingData[lastIndex];
-  
+
   if (!lastBar) {
-    return [...existingData, newBar];
+    console.log('Adding first bar to empty dataset');
+    return [newBar];
   }
-  
+
+  // Only update if the bar time is newer than or equal to the last bar time
+  if (newBar.time < lastBar.time) {
+    console.warn('Received old bar data, skipping:', {
+      receivedTime: new Date(newBar.time * 1000).toLocaleString(),
+      lastTime: new Date(lastBar.time * 1000).toLocaleString()
+    });
+    return existingData;
+  }
+
   // If same time, update existing bar
   if (lastBar.time === newBar.time) {
+    console.log('Updating existing bar at time:', new Date(newBar.time * 1000).toLocaleString());
     const updatedData = [...existingData];
     updatedData[lastIndex] = newBar;
     return updatedData;
   }
-  
+
   // If new time, add new bar
   if (newBar.time > lastBar.time) {
+    console.log('Adding new bar at time:', new Date(newBar.time * 1000).toLocaleString());
     return [...existingData, newBar];
   }
-  
-  // If old time, ignore
+
+  // Fallback
   return existingData;
+};
+
+/**
+ * Validate chart data to ensure proper format for LightweightCharts
+ * Enhanced validation function from working code
+ * @param {Object} data - Chart data to validate
+ * @returns {Object|null} Validated data or null if invalid
+ */
+export const validateChartData = (data) => {
+  if (!data || typeof data !== 'object') {
+    console.warn('Invalid chart data: not an object', data);
+    return null;
+  }
+
+  // Ensure time is a number (not an object)
+  let time = data.time;
+  if (typeof time === 'object' && time !== null) {
+    // If time is an object, try to extract a numeric value
+    time = time.valueOf ? time.valueOf() : Date.now() / 1000;
+  }
+  time = Math.floor(Number(time));
+
+  // Validate OHLC values
+  const open = Number(data.open);
+  const high = Number(data.high);
+  const low = Number(data.low);
+  const close = Number(data.close);
+  const volume = Number(data.volume || 0);
+
+  // Check for valid numbers
+  if (isNaN(time) || isNaN(open) || isNaN(high) || isNaN(low) || isNaN(close)) {
+    console.warn('Invalid chart data: NaN values', { time, open, high, low, close });
+    return null;
+  }
+
+  // Check OHLC relationships
+  if (high < low || high < open || high < close || low > open || low > close) {
+    console.warn('Invalid OHLC relationships', { open, high, low, close });
+    return null;
+  }
+
+  return {
+    time,
+    open,
+    high,
+    low,
+    close,
+    volume
+  };
+};
+
+/**
+ * Get ticks per bar based on resolution
+ * Function from working code for tick chart handling
+ * @param {string} resolution - Chart resolution
+ * @returns {number} Number of ticks per bar
+ */
+export const getTicksPerBar = (resolution) => {
+  if (!resolution || !resolution.endsWith('T')) return 10;
+
+  const tickValue = parseInt(resolution.replace('T', ''));
+
+  // Scale the accumulation based on tick resolution
+  // For smaller resolutions, accumulate fewer individual ticks
+  // For larger resolutions, accumulate more individual ticks
+  switch (tickValue) {
+    case 100: return 5;   // 100T: accumulate 5 individual ticks per bar
+    case 500: return 15;  // 500T: accumulate 15 individual ticks per bar
+    case 1000: return 25; // 1000T: accumulate 25 individual ticks per bar
+    case 5000: return 50; // 5000T: accumulate 50 individual ticks per bar
+    default: return Math.max(5, Math.min(50, Math.floor(tickValue / 20))); // Dynamic scaling
+  }
 };

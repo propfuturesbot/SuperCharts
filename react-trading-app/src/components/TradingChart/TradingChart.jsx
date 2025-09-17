@@ -4,9 +4,10 @@ import { FaChartLine, FaChartBar, FaCubes, FaSave, FaArrowLeft, FaSpinner } from
 
 // Configuration and utilities
 import { getChartOptions, getCandlestickSeriesOptions, CHART_TYPES, DEFAULT_SETTINGS } from './utils/chartConfig';
-import { resolutionConfig, getGroupedResolutions, getTicksPerBar } from './utils/resolutionConfig';
+import { resolutionConfig, getGroupedResolutions } from './utils/resolutionConfig';
+import { getTicksPerBar } from './utils/dataProcessor';
 import { convertSymbolToDisplay, normalizeContractInfo } from './utils/symbolConverter';
-import { transformDataForChartType, accumulateTickData, mergeRealtimeUpdate } from './utils/dataProcessor';
+import { transformDataForChartType, accumulateTickData, mergeRealtimeUpdate, processRealtimeBar, validateChartData } from './utils/dataProcessor';
 
 // Chart type implementations
 import { calculateHeikenAshi, updateHeikenAshiRealtime } from './chartTypes/heikenAshi';
@@ -82,51 +83,7 @@ const TradingChart = ({
   // Get grouped resolutions for UI
   const groupedResolutions = useMemo(() => getGroupedResolutions(), []);
 
-  /**
-   * Validate chart data to ensure proper format for LightweightCharts
-   */
-  const validateChartData = useCallback((data) => {
-    if (!data || typeof data !== 'object') {
-      console.warn('Invalid chart data: not an object', data);
-      return null;
-    }
-
-    // Ensure time is a number (not an object)
-    let time = data.time;
-    if (typeof time === 'object' && time !== null) {
-      // If time is an object, try to extract a numeric value
-      time = time.valueOf ? time.valueOf() : Date.now() / 1000;
-    }
-    time = Math.floor(Number(time));
-
-    // Validate OHLC values
-    const open = Number(data.open);
-    const high = Number(data.high);
-    const low = Number(data.low);
-    const close = Number(data.close);
-    const volume = Number(data.volume || 0);
-
-    // Check for valid numbers
-    if (isNaN(time) || isNaN(open) || isNaN(high) || isNaN(low) || isNaN(close)) {
-      console.warn('Invalid chart data: NaN values', { time, open, high, low, close });
-      return null;
-    }
-
-    // Check OHLC relationships
-    if (high < low || high < open || high < close || low > open || low > close) {
-      console.warn('Invalid OHLC relationships', { open, high, low, close });
-      return null;
-    }
-
-    return {
-      time,
-      open,
-      high,
-      low,
-      close,
-      volume
-    };
-  }, []);
+  // Validation function is now imported from dataProcessor - enhanced version with better error handling
 
   /**
    * Apply strategy settings when component mounts or strategyType changes
@@ -262,13 +219,20 @@ const TradingChart = ({
     
     // Update chart
     if (transformedData.length > 0) {
-      // Validate all data before setting on chart
+      // CRITICAL FIX: Validate all data before setting on chart
       const validatedData = transformedData.map(validateChartData).filter(Boolean);
       if (validatedData.length > 0) {
-        // CRITICAL FIX: Always sort data before setting to chart
+        // CRITICAL FIX: Always sort data before setting to chart - this prevents null value errors
         const sortedData = validatedData.sort((a, b) => a.time - b.time);
-        candleSeriesRef.current.setData(sortedData);
-        console.log(`Set ${sortedData.length} validated bars on chart (${transformedData.length - sortedData.length} invalid filtered)`);
+
+        try {
+          candleSeriesRef.current.setData(sortedData);
+          console.log(`✅ Set ${sortedData.length} validated bars on chart (${transformedData.length - sortedData.length} invalid filtered)`);
+        } catch (chartError) {
+          console.error('❌ Error setting data to chart:', chartError);
+          console.error('Sample data that failed:', sortedData.slice(0, 3));
+          return;
+        }
       } else {
         console.warn('No valid data after validation');
         return;
@@ -313,19 +277,26 @@ const TradingChart = ({
       console.log('Setting up real-time connection...');
 
       await realtimeConnection.initialize({
-        onData: (bar, resolution) => {
-          // Handle real-time data inline to avoid circular dependency
+        onData: (rawBar, resolution) => {
+          // Handle real-time data with enhanced validation and processing
           if (resolution !== currentResolution) {
             console.log('Ignoring bar for different resolution:', resolution, 'vs', currentResolution);
             return;
           }
 
-          console.log('Real-time bar received:', bar);
+          console.log('🔄 Real-time bar received:', rawBar);
+
+          // Process the raw bar data with enhanced validation
+          const processedBar = processRealtimeBar(rawBar);
+          if (!processedBar) {
+            console.warn('❌ Failed to process real-time bar, skipping');
+            return;
+          }
 
           // Handle tick chart accumulation
           if (currentResolution.endsWith('T')) {
             setTickAccumulator(prev => {
-              const { accumulator, completedBar } = accumulateTickData(bar, prev, ticksPerBar);
+              const { accumulator, completedBar } = accumulateTickData(processedBar, prev, ticksPerBar);
               if (completedBar) {
                 // Validate and update chart with completed bar
                 const validatedBar = validateChartData(completedBar);
@@ -333,11 +304,17 @@ const TradingChart = ({
                   // CRITICAL FIX: Update raw data state and rebuild complete dataset
                   setRawData(prevData => {
                     const updatedData = mergeRealtimeUpdate(prevData, completedBar);
-                    // Always sort to prevent chart crashes
+                    // CRITICAL: Always sort to prevent chart crashes
                     const sortedData = updatedData.sort((a, b) => a.time - b.time);
+
                     // Set complete sorted dataset to chart
                     if (candleSeriesRef.current) {
-                      candleSeriesRef.current.setData(sortedData);
+                      try {
+                        candleSeriesRef.current.setData(sortedData);
+                        console.log('✅ Updated tick chart with completed bar');
+                      } catch (chartError) {
+                        console.error('❌ Error updating tick chart:', chartError);
+                      }
                     }
                     return sortedData;
                   });
@@ -346,24 +323,30 @@ const TradingChart = ({
               return accumulator;
             });
           } else {
-            // Update raw data
+            // Update raw data for time-based charts
             setRawData(prevData => {
-              const updatedData = mergeRealtimeUpdate(prevData, bar);
+              const updatedData = mergeRealtimeUpdate(prevData, processedBar);
               // CRITICAL: Always sort data before updating chart
               const sortedData = updatedData.sort((a, b) => a.time - b.time);
 
               // Transform based on chart type
               if (chartType === CHART_TYPES.HEIKEN_ASHI) {
                 setHeikenAshiData(prev => {
-                  const haBar = updateHeikenAshiRealtime(bar, prev, updatedData);
+                  const haBar = updateHeikenAshiRealtime(processedBar, prev, updatedData);
                   if (haBar) {
                     const validatedHABar = validateChartData(haBar);
                     if (validatedHABar) {
                       const updatedHAData = mergeRealtimeUpdate(prev, haBar);
                       const sortedHAData = updatedHAData.sort((a, b) => a.time - b.time);
+
                       // Set complete sorted HA dataset to chart
                       if (candleSeriesRef.current) {
-                        candleSeriesRef.current.setData(sortedHAData);
+                        try {
+                          candleSeriesRef.current.setData(sortedHAData);
+                          console.log('✅ Updated Heiken Ashi chart');
+                        } catch (chartError) {
+                          console.error('❌ Error updating HA chart:', chartError);
+                        }
                       }
                       return sortedHAData;
                     }
@@ -372,7 +355,7 @@ const TradingChart = ({
                 });
               } else if (chartType === CHART_TYPES.RENKO) {
                 setRenkoState(prevState => {
-                  const { newBricks, updatedState } = updateRenkoRealtime(bar, prevState, brickSize);
+                  const { newBricks, updatedState } = updateRenkoRealtime(processedBar, prevState, brickSize);
                   if (newBricks.length > 0) {
                     // Validate all bricks and update Renko data
                     const validBricks = newBricks
@@ -383,9 +366,15 @@ const TradingChart = ({
                       setRenkoData(prev => {
                         const updatedRenko = [...prev, ...validBricks];
                         const sortedRenko = updatedRenko.sort((a, b) => a.time - b.time);
+
                         // Set complete sorted Renko dataset to chart
                         if (candleSeriesRef.current) {
-                          candleSeriesRef.current.setData(sortedRenko);
+                          try {
+                            candleSeriesRef.current.setData(sortedRenko);
+                            console.log(`✅ Updated Renko chart with ${validBricks.length} new bricks`);
+                          } catch (chartError) {
+                            console.error('❌ Error updating Renko chart:', chartError);
+                          }
                         }
                         return sortedRenko;
                       });
@@ -395,10 +384,15 @@ const TradingChart = ({
                 });
               } else {
                 // Regular candlestick update - validate data first
-                const validatedBar = validateChartData(bar);
+                const validatedBar = validateChartData(processedBar);
                 if (validatedBar && candleSeriesRef.current) {
-                  // CRITICAL FIX: Set complete sorted dataset instead of calling update()
-                  candleSeriesRef.current.setData(sortedData);
+                  try {
+                    // CRITICAL FIX: Set complete sorted dataset instead of calling update()
+                    candleSeriesRef.current.setData(sortedData);
+                    console.log('✅ Updated candlestick chart');
+                  } catch (chartError) {
+                    console.error('❌ Error updating candlestick chart:', chartError);
+                  }
                 }
               }
 
@@ -476,8 +470,15 @@ const TradingChart = ({
     // Reset tick accumulator
     setTickAccumulator(null);
 
-    // Clear chart
-    candleSeriesRef.current?.setData([]);
+    // Clear chart safely
+    if (candleSeriesRef.current) {
+      try {
+        candleSeriesRef.current.setData([]);
+        console.log('✅ Chart data cleared for resolution change');
+      } catch (error) {
+        console.error('❌ Error clearing chart data:', error);
+      }
+    }
 
     // Ensure chart maintains proper size after resolution change
     if (chartRef.current && chartContainerRef.current) {
