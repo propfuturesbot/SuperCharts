@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Real-Time Trading Charts</title>
+    <title>TopStepX Real-Time Charts</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -164,19 +164,13 @@
             <optgroup label="Trend Indicators">
               <option value="SMA">Simple Moving Average (SMA)</option>
               <option value="EMA">Exponential Moving Average (EMA)</option>
-              <option value="DEMA">Double Exponential Moving Average (DEMA)</option>
-              <option value="TEMA">Triple Exponential Moving Average (TEMA)</option>
             </optgroup>
             <optgroup label="Momentum Indicators">
               <option value="RSI">Relative Strength Index (RSI)</option>
-              <option value="MACD">MACD</option>
-              <option value="Stochastic">Stochastic Oscillator</option>
-              <option value="Williams">Williams %R</option>
             </optgroup>
             <optgroup label="Volatility Indicators">
               <option value="BollingerBands">Bollinger Bands</option>
               <option value="DonchianChannel">Donchian Channel</option>
-              <option value="ATR">Average True Range (ATR)</option>
             </optgroup>
           </select>
         </div>
@@ -195,7 +189,6 @@
 
     <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@6.0.0/dist/browser/signalr.min.js"></script>
-    <script src="browser-auth.js"></script>
     <script>
       // Simple manual implementation of common indicators
       window.indicators = {
@@ -307,6 +300,6 @@
         }
       };
     </script>
-    <script src="index_wrapper.js"></script>
+    <script src="index.js"></script>
   </body>
 </html>

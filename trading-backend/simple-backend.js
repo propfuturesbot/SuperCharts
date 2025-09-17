@@ -4,6 +4,7 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const { Pool } = require('pg');
+const { spawn } = require('child_process');
 
 const app = express();
 const port = 8000;
@@ -13,6 +14,9 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+
+// Serve static files from src/realtime directory
+app.use('/chart-assets', express.static(path.join(__dirname, '../src/realtime')));
 
 // Provider Configuration
 const PROVIDER_CONFIG = {
@@ -440,13 +444,68 @@ app.patch('/api/strategies/:id', async (req, res) => {
   }
 });
 
+// Update strategy (PUT) - full update
+app.put('/api/strategies/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      name,
+      strategy_type,
+      contract_symbol,
+      contract_name,
+      timeframe,
+      webhook_url,
+      webhook_payload,
+      chart_type,
+      brick_size,
+      chart_config
+    } = req.body;
+
+    const result = await pool.query(`
+      UPDATE strategies
+      SET name = $1, strategy_type = $2, contract_symbol = $3, contract_name = $4,
+          timeframe = $5, webhook_url = $6, webhook_payload = $7,
+          chart_type = $8, brick_size = $9, chart_config = $10,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $11
+      RETURNING *
+    `, [
+      name, strategy_type, contract_symbol, contract_name,
+      timeframe, webhook_url,
+      webhook_payload ? JSON.stringify(webhook_payload) : null,
+      chart_type, brick_size,
+      chart_config ? JSON.stringify(chart_config) : null,
+      id
+    ]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Strategy not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Strategy updated successfully',
+      data: result.rows[0]
+    });
+  } catch (error) {
+    console.error('❌ Error updating strategy:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Delete strategy
 app.delete('/api/strategies/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
     const result = await pool.query(`
-      DELETE FROM strategies 
+      DELETE FROM strategies
       WHERE id = $1
       RETURNING *
     `, [id]);
@@ -465,9 +524,116 @@ app.delete('/api/strategies/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Error deleting strategy:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Serve the TradingView chart files
+app.get('/api/chart', (req, res) => {
+  try {
+    const htmlPath = path.join(__dirname, '../src/realtime/index.html');
+    if (!fs.existsSync(htmlPath)) {
+      return res.status(404).json({
+        success: false,
+        error: 'Chart HTML file not found'
+      });
+    }
+
+    // Read the HTML file and modify the script src to use the correct path
+    let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+
+    // Replace the relative path with the full path to the static assets
+    htmlContent = htmlContent.replace(
+      'src="index.js"',
+      'src="/chart-assets/index.js"'
+    );
+
+    // Add a small script to handle the loading order issue
+    const loadingScript = `
+      <script>
+        // Temporarily disable the onchange handlers until index.js loads
+        document.addEventListener('DOMContentLoaded', function() {
+          const selects = document.querySelectorAll('select[onchange]');
+          selects.forEach(select => {
+            const originalHandler = select.getAttribute('onchange');
+            select.removeAttribute('onchange');
+            select.setAttribute('data-original-onchange', originalHandler);
+          });
+        });
+
+        // Re-enable handlers after index.js loads
+        window.addEventListener('load', function() {
+          setTimeout(() => {
+            const selects = document.querySelectorAll('select[data-original-onchange]');
+            selects.forEach(select => {
+              const originalHandler = select.getAttribute('data-original-onchange');
+              select.setAttribute('onchange', originalHandler);
+              select.removeAttribute('data-original-onchange');
+            });
+          }, 100);
+        });
+      </script>
+    `;
+
+    // Insert the loading script before the closing head tag
+    htmlContent = htmlContent.replace('</head>', loadingScript + '</head>');
+
+    // Set proper content type
+    res.setHeader('Content-Type', 'text/html');
+    res.send(htmlContent);
+  } catch (error) {
+    console.error('❌ Error serving chart HTML:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Launch TradingView chart in browser
+app.post('/api/launch-chart', (req, res) => {
+  try {
+    const chartUrl = `http://localhost:${port}/api/chart`;
+
+    // Launch in default browser based on platform
+    let command;
+    const args = [chartUrl];
+
+    switch (process.platform) {
+      case 'darwin': // macOS
+        command = 'open';
+        break;
+      case 'win32': // Windows
+        command = 'start';
+        args.unshift('');
+        break;
+      default: // Linux and others
+        command = 'xdg-open';
+        break;
+    }
+
+    const child = spawn(command, args, {
+      detached: true,
+      stdio: 'ignore'
+    });
+
+    child.unref();
+
+    console.log(`🚀 Launched chart in browser: ${chartUrl}`);
+
+    res.json({
+      success: true,
+      message: 'Chart launched in browser successfully',
+      url: chartUrl
+    });
+  } catch (error) {
+    console.error('❌ Error launching chart:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });

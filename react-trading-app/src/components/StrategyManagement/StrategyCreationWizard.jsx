@@ -15,7 +15,6 @@ import {
 } from 'react-icons/fa';
 import axios from 'axios';
 import tradovateContracts from '../../data/tradovate_contracts.json';
-import TradingChart from '../TradingChart/TradingChart';
 import './StrategyCreationWizard.css';
 
 const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode = false, strategy = null }) => {
@@ -35,7 +34,6 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showFullPageChart, setShowFullPageChart] = useState(false);
 
   const strategyTypes = [
     {
@@ -293,7 +291,6 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
       }
       
       // Open full page chart instead of going to step 4
-      setShowFullPageChart(true);
       return;
     }
     setError('');
@@ -332,7 +329,6 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
       // Chart-specific settings
       chart_type: formData.strategyType, // Store the chart type for restoration
       brick_size: formData.strategyType === 'renko' ? parseFloat(formData.brickSize) : null,
-      // Chart configuration from TradingChart component (if available)
       chart_config: chartData ? {
         resolution: chartData.resolution,
         chartType: chartData.chartType,
@@ -393,7 +389,6 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
       }
       
       onStrategyCreated(updatedStrategy);
-      setShowFullPageChart(false);
       onClose();
     } catch (error) {
       console.error('Error in strategy save process:', error);
@@ -413,7 +408,7 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
       setError('Please enter a valid webhook URL');
       return;
     }
-    
+
     try {
       const testPayload = JSON.parse(formData.webhookPayload);
       await axios.post(formData.webhookUrl, testPayload);
@@ -424,6 +419,31 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
       } else {
         setError('Webhook test failed: ' + error.message);
       }
+    }
+  };
+
+  const launchChart = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.post('http://localhost:8000/api/launch-chart');
+      console.log('Chart launched successfully:', response.data);
+    } catch (error) {
+      console.error('Error launching chart:', error);
+      setError('Failed to launch chart: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateStrategyClick = async () => {
+    if (editMode) {
+      // First save the strategy, then launch the chart
+      await handleSaveStrategy();
+      // Launch the chart
+      await launchChart();
+    } else {
+      // For new strategies, just launch the chart without saving
+      await launchChart();
     }
   };
 
@@ -680,30 +700,21 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
               Next <FaArrowRight />
             </button>
           ) : (
-            <button className="wizard-btn chart-btn" onClick={handleNext}>
-              <FaChartLine /> {editMode ? 'Edit Chart' : 'View Chart'}
+            <button className="wizard-btn save-btn" onClick={handleUpdateStrategyClick}>
+              {editMode ? (
+                <>
+                  <FaSave /> Update Strategy
+                </>
+              ) : (
+                <>
+                  <FaChartLine /> Configure Chart
+                </>
+              )}
             </button>
           )}
         </div>
       </motion.div>
 
-      {/* Trading Chart Component */}
-      <TradingChart
-        isOpen={showFullPageChart}
-        onClose={() => setShowFullPageChart(false)}
-        onSave={handleSaveStrategy}
-        onResolutionChange={handleResolutionChange}
-        productId={formData.contractProductId}
-        resolution={formData.timeframe}
-        strategyType={formData.strategyType}
-        strategyName={formData.strategyName}
-        contractInfo={formData.contract}
-        fullscreen={true}
-        // Strategy-specific settings
-        strategyBrickSize={formData.brickSize}
-        strategyConfig={editMode && strategy?.chart_config ? strategy.chart_config : null}
-        editMode={editMode}
-      />
     </div>
   );
 };

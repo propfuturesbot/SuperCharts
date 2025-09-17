@@ -1,7 +1,4 @@
-// Authentication and provider configuration will be loaded dynamically
-let ACCESS_TOKEN = null;
-let CURRENT_PROVIDER = 'topstepx';
-let PROVIDER_CONFIG = null;
+const ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjE5NDY5OSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL3NpZCI6IjcxZTBhY2EwLWMxYzgtNGRiZC1iNjBhLWU0YjY0MTRkNTgzOSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJzdW1vbmV5MSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6InVzZXIiLCJtc2QiOiJDTUVHUk9VUF9UT0IiLCJtZmEiOiJ2ZXJpZmllZCIsImV4cCI6MTc1ODcyMzkxN30.CSfE9e-soJNxLU_4UyXS2KUWw-Dy6tyNW7u8vUByBfI";
 
 let chart = null;
 let candleSeries = null;
@@ -90,24 +87,13 @@ const resolutionConfig = {
 
 const getHistoricalData = async (resolution, countback, symbol = "%2FMNQ") => {
   try {
-    if (!ACCESS_TOKEN) {
-      console.error('No access token available for historical data request');
-      return [];
-    }
-
-    if (!PROVIDER_CONFIG) {
-      console.error('No provider configuration available for historical data request');
-      return [];
-    }
-
     const now = Math.floor(Date.now() / 1000);
     const from = now - (86400 * 7); // 7 days ago
     const to = now;
     
-    const url = `${PROVIDER_CONFIG.chartapi_endpoint}/History/v2?Symbol=${symbol}&Resolution=${resolution}&Countback=${countback}&From=${from}&To=${to}&SessionId=extended&Live=false`;
+    const url = `https://chartapi.topstepx.com/History/v2?Symbol=${symbol}&Resolution=${resolution}&Countback=${countback}&From=${from}&To=${to}&SessionId=extended&Live=false`;
     
-    console.log('Fetching historical data from:', PROVIDER_CONFIG.name);
-    console.log('URL:', url);
+    console.log('Fetching historical data:', url);
     
     const res = await fetch(url, {
       headers: {
@@ -262,28 +248,12 @@ const initializeChart = () => {
 
 const setupRealTimeConnection = async () => {
   try {
-    if (!ACCESS_TOKEN) {
-      console.error('No access token available for real-time connection');
-      updateStatus('Authentication Required', false);
-      return;
-    }
-
-    if (!PROVIDER_CONFIG) {
-      console.error('No provider configuration available for real-time connection');
-      updateStatus('Configuration Error', false);
-      return;
-    }
-
     if (connection && connection.state === signalR.HubConnectionState.Connected) {
       await connection.stop();
     }
     
-    const chartApiUrl = `${PROVIDER_CONFIG.chartapi_endpoint}/hubs/chart`;
-    console.log('Connecting to SignalR hub:', chartApiUrl);
-    console.log('Using provider:', PROVIDER_CONFIG.name);
-    
     connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${chartApiUrl}?access_token=${ACCESS_TOKEN}`, {
+      .withUrl(`https://chartapi.topstepx.com/hubs/chart?access_token=${ACCESS_TOKEN}`, {
         skipNegotiation: true,
         transport: signalR.HttpTransportType.WebSockets
       })
@@ -880,63 +850,21 @@ const changeResolution = async (resolution) => {
   }
 };
 
-// Initialize authentication and provider configuration
-const initializeAuth = async () => {
-  console.log('🔐 Initializing authentication...');
-  
-  try {
-    if (!window.browserAuth) {
-      throw new Error('Browser authentication module not loaded');
-    }
-
-    // Get current provider
-    CURRENT_PROVIDER = window.browserAuth.getCurrentProvider();
-    PROVIDER_CONFIG = window.browserAuth.getProviderConfig(CURRENT_PROVIDER);
-    
-    console.log(`🏢 Provider: ${PROVIDER_CONFIG.name} (${CURRENT_PROVIDER})`);
-
-    // Get authentication token
-    ACCESS_TOKEN = await window.browserAuth.getAuthToken();
-    
-    if (!ACCESS_TOKEN) {
-      throw new Error('Failed to obtain authentication token');
-    }
-
-    console.log('✅ Authentication successful');
-    console.log(`👤 User: ${window.browserAuth.getCurrentUsername() || 'Unknown'}`);
-    
-    return true;
-  } catch (error) {
-    console.error('❌ Authentication failed:', error);
-    updateStatus('Authentication Failed', false);
-    return false;
-  }
-};
-
 const main = async () => {
-  console.log('=== Initializing Trading Chart Application ===');
+  console.log('=== Initializing application ===');
   
   // Check if required libraries are loaded
   if (typeof LightweightCharts === 'undefined') {
     console.error('LightweightCharts library not loaded!');
-    updateStatus('Library Error: LightweightCharts', false);
     return;
   }
   
   if (typeof signalR === 'undefined') {
     console.error('SignalR library not loaded!');
-    updateStatus('Library Error: SignalR', false);
     return;
   }
   
-  console.log('📚 All required libraries loaded successfully');
-
-  // Initialize authentication and provider configuration
-  const authSuccess = await initializeAuth();
-  if (!authSuccess) {
-    console.error('Failed to initialize authentication');
-    return;
-  }
+  console.log('All required libraries loaded successfully');
   
   // Initialize the chart
   console.log('Initializing chart...');
@@ -1896,13 +1824,12 @@ const changeChartType = (chartType) => {
     renkoBrickSizeDiv.style.display = 'none';
   }
   
-  // Update the chart title based on type and provider
-  const providerName = PROVIDER_CONFIG ? PROVIDER_CONFIG.name : 'Trading';
-  let title = `/MNQ Real-Time Chart - ${providerName}`;
+  // Update the chart title based on type
+  let title = '/MNQ Real-Time Chart';
   if (chartType === 'heikenashi') {
-    title = `/MNQ Heiken Ashi Chart - ${providerName}`;
+    title = '/MNQ Heiken Ashi Chart';
   } else if (chartType === 'renko') {
-    title = `/MNQ Renko Chart (${currentBrickSize}) - ${providerName}`;
+    title = `/MNQ Renko Chart (${currentBrickSize})`;
   }
   document.querySelector('h1').textContent = title;
   
@@ -1951,8 +1878,7 @@ const updateRenkoBrickSize = () => {
     console.log('Updated brick size to:', currentBrickSize);
     
     // Update chart title
-    const providerName = PROVIDER_CONFIG ? PROVIDER_CONFIG.name : 'Trading';
-    document.querySelector('h1').textContent = `/MNQ Renko Chart (${currentBrickSize}) - ${providerName}`;
+    document.querySelector('h1').textContent = `/MNQ Renko Chart (${currentBrickSize})`;
     
     // Reset Renko state when changing brick size
     renkoState = {

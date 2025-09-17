@@ -6,3 +6,27 @@
 🚀 Backend running on http://localhost:8000
 📄 Contracts cached in: /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableContracts.json
 ✅ Connected to PostgreSQL database
+❌ Error updating strategy: error: column "chart_type" of relation "strategies" does not exist
+    at /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/simple-backend.js:464:20 {
+  length: 136,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '185',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'analyze.c',
+  line: '2515',
+  routine: 'transformUpdateTargetList'
+}
+🚀 Launched chart in browser: http://localhost:8000/api/chart
+🚀 Launched chart in browser: http://localhost:8000/api/chart
