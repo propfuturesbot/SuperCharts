@@ -88,7 +88,7 @@ The codebase is organized into distinct modules with clear separation of concern
 ## Realtime Indicator Calculation (Critical Implementation Details)
 
 ### Overview
-The realtime charting application (`src/realtime/index.js`) supports three chart types (Candlestick, Heiken Ashi, Renko) with live indicator updates. Proper implementation requires careful handling of data transformations and update timing.
+The realtime charting application (`src/realtime/index.js`) supports four chart types (Candlestick, Heiken Ashi, Renko, Tick Charts) with live indicator updates. Proper implementation requires careful handling of data transformations and update timing.
 
 ### Key Architecture Decisions
 
@@ -96,6 +96,8 @@ The realtime charting application (`src/realtime/index.js`) supports three chart
 - **`historicalData`**: Raw candlestick data (always maintained as source of truth)
 - **`heikenAshiData`**: Transformed Heiken Ashi bars
 - **`renkoData`**: Renko bricks calculated from price movements
+- **`tickAccumulator`**: Current accumulating tick bar for tick charts
+- **`tickCount`**: Number of ticks accumulated in current bar
 - Indicators MUST calculate on the appropriate transformed data for each chart type
 
 #### 2. Indicator Update Function
@@ -160,6 +162,15 @@ const updateIndicators = (newBarData, isNewRenkoBrick = false) => {
 - Pass `isNewRenkoBrick = true` to updateIndicators()
 - Prevents indicator distortion from tick-by-tick updates
 
+##### Tick Charts
+- Updates based on tick accumulation (e.g., 100T, 500T, 1000T, 5000T)
+- Uses `handleTickChartUpdate()` for special processing
+- Accumulates individual ticks into bars using `tickAccumulator`
+- Updates indicators when:
+  - New tick bar is completed (`shouldCreateNewBar = true`)
+  - Current bar is updated with new tick data
+- Special handling for Heiken Ashi and Renko on tick data
+
 #### 4. Critical Implementation Points
 
 ##### Time Alignment
@@ -211,6 +222,40 @@ const changeChartType = (chartType) => {
 }
 ```
 
+##### Tick Chart Special Handling
+Tick charts require special processing in `handleTickChartUpdate()`:
+```javascript
+const handleTickChartUpdate = (update, bar) => {
+  // 1. Accumulate ticks into bars
+  if (shouldCreateNewBar && tickAccumulator) {
+    // Add completed bar to historicalData
+    const completedBar = { ...currentBar };
+    historicalData.push(completedBar);
+
+    // Update indicators for completed tick bar
+    updateIndicators(completedBar, false);
+  } else {
+    // Update indicators with current accumulating bar
+    updateIndicators(currentBarData, false);
+  }
+
+  // 2. Special handling for chart types on tick data
+  if (currentChartType === 'heikenashi') {
+    // Update heikenAshiData array
+    if (shouldCreateNewBar) {
+      heikenAshiData.push(haBar);
+    } else {
+      heikenAshiData[heikenAshiData.length - 1] = haBar;
+    }
+  } else if (currentChartType === 'renko') {
+    // Update indicators when new Renko bricks form
+    if (newBricks.length > 0) {
+      updateIndicators(currentBarData, true);
+    }
+  }
+}
+```
+
 ### Common Pitfalls to Avoid
 
 1. **Using wrong data source**: Never calculate Renko indicators on candlestick data
@@ -218,6 +263,8 @@ const changeChartType = (chartType) => {
 3. **Excessive Renko updates**: Only update when bricks form, not on every tick
 4. **Missing HA maintenance**: Must update heikenAshiData array in realtime
 5. **Forgetting chart switches**: Must recalculate indicators when chart type changes
+6. **Tick chart indicator gaps**: Must call updateIndicators() in handleTickChartUpdate()
+7. **Missing tick accumulation**: Must maintain historicalData for tick charts
 
 ### Testing Checklist
 
@@ -225,6 +272,11 @@ const changeChartType = (chartType) => {
 - [ ] Indicators update in realtime for Heiken Ashi charts
 - [ ] Indicators update only on new bricks for Renko charts
 - [ ] No distortion or jumping in Renko indicators
+- [ ] Indicators update in realtime for tick charts (100T, 500T, 1000T, 5000T)
+- [ ] Tick chart indicators update both during bar accumulation and on completion
+- [ ] Heiken Ashi tick charts maintain correct heikenAshiData array
+- [ ] Renko tick charts only update indicators on new brick formation
 - [ ] Indicators recalculate when switching chart types
 - [ ] Indicators recalculate when changing Renko brick size
 - [ ] Time alignment is correct for all chart types
+- [ ] No missing indicator updates when switching to/from tick charts

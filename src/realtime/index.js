@@ -603,15 +603,17 @@ const handleTickChartUpdate = (update, bar) => {
   };
   
   // If using Heiken Ashi, calculate HA values for tick data
-  if (currentChartType === 'heikenashi' && heikenAshiData.length > 0) {
-    const lastHACandle = heikenAshiData[heikenAshiData.length - 1];
-    
+  if (currentChartType === 'heikenashi') {
+    const lastHACandle = heikenAshiData.length > 0 ? heikenAshiData[heikenAshiData.length - 1] : null;
+
     const haClose = (currentBarData.open + currentBarData.high + currentBarData.low + currentBarData.close) / 4;
-    const haOpen = (lastHACandle.open + lastHACandle.close) / 2;
+    const haOpen = lastHACandle ?
+      (lastHACandle.open + lastHACandle.close) / 2 :
+      (currentBarData.open + currentBarData.close) / 2;
     const haHigh = Math.max(currentBarData.high, haOpen, haClose);
     const haLow = Math.min(currentBarData.low, haOpen, haClose);
-    
-    currentBarData = {
+
+    const haBar = {
       time: currentBarData.time,
       open: haOpen,
       high: haHigh,
@@ -619,6 +621,20 @@ const handleTickChartUpdate = (update, bar) => {
       close: haClose,
       volume: currentBarData.volume
     };
+
+    // Update heikenAshiData array
+    if (shouldCreateNewBar && heikenAshiData.length > 0) {
+      // Add new HA bar when tick bar is completed
+      heikenAshiData.push(haBar);
+    } else if (heikenAshiData.length > 0) {
+      // Update current HA bar
+      heikenAshiData[heikenAshiData.length - 1] = haBar;
+    } else {
+      // First HA bar
+      heikenAshiData.push(haBar);
+    }
+
+    currentBarData = haBar;
   } else if (currentChartType === 'renko') {
     // Handle Renko for tick data
     try {
@@ -634,7 +650,10 @@ const handleTickChartUpdate = (update, bar) => {
             console.error('Error updating tick Renko brick:', brickError, brick);
           }
         });
-        
+
+        // Update indicators when new Renko bricks are formed
+        updateIndicators(currentBarData, true);
+
         console.log(`Tick chart: Added ${newBricks.length} new Renko brick(s)`);
         return; // Don't update with regular currentBarData
       }
@@ -650,7 +669,25 @@ const handleTickChartUpdate = (update, bar) => {
   try {
     // Update the chart with current bar
     candleSeries.update(currentBarData);
-    
+
+    // Update historical data for indicator calculations
+    if (shouldCreateNewBar && tickAccumulator) {
+      // Add completed bar to historical data
+      const completedBar = { ...currentBar };
+      const existingIndex = historicalData.findIndex(bar => bar.time === completedBar.time);
+      if (existingIndex !== -1) {
+        historicalData[existingIndex] = completedBar;
+      } else {
+        historicalData.push(completedBar);
+      }
+
+      // Update indicators for completed tick bar
+      updateIndicators(completedBar, false);
+    } else {
+      // Update indicators with current accumulating bar
+      updateIndicators(currentBarData, false);
+    }
+
   } catch (error) {
     console.error('Error updating tick chart:', error);
     console.error('Failed bar data:', currentBarData);
