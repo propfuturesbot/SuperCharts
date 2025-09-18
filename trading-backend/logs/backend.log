@@ -6,19 +6,53 @@
 🚀 Backend running on http://localhost:8000
 📄 Contracts cached in: /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableContracts.json
 ✅ Connected to PostgreSQL database
-📊 Loading saved strategy: a15969b2-8ca1-47ec-9f78-082dc2f12f10
-Failed to parse saved webhook_payload for chart config: SyntaxError: Unexpected token o in JSON at position 1
-    at JSON.parse (<anonymous>)
-    at /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/simple-backend.js:1585:36
-    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+📊 Update strategy request: {
+  id: '9887d6ce-9751-47ef-9a78-a648fff5a614',
+  chart_config: null,
+  chart_type: 'candlestick',
+  brick_size: null,
+  hasWebhookPayload: true
+}
+📊 Using minimal webhook payload (no chart configuration)
+📊 Loading saved strategy: 9887d6ce-9751-47ef-9a78-a648fff5a614
+📊 Loaded saved strategy configuration: {
+  strategyType: 'candlestick',
+  timeframe: '15',
+  brickSize: '0.25',
+  contractSymbol: 'MNQ',
+  strategyName: 'Test Strategy with Indicators',
+  indicators: [],
+  strategyId: '9887d6ce-9751-47ef-9a78-a648fff5a614',
+  isExistingStrategy: true
+}
+🚀 Launched chart in browser: http://localhost:8000/api/chart
+📊 With configuration: {
+  strategyType: 'candlestick',
+  timeframe: '15',
+  brickSize: '0.25',
+  contractSymbol: 'MNQ',
+  strategyName: 'Test Strategy with Indicators',
+  indicators: [],
+  strategyId: '9887d6ce-9751-47ef-9a78-a648fff5a614',
+  isExistingStrategy: true
+}
+📊 Update strategy request: {
+  id: 'd40ec77f-c3e7-4175-8be5-5667e07aab6f',
+  chart_config: null,
+  chart_type: 'candlestick',
+  brick_size: null,
+  hasWebhookPayload: true
+}
+📊 Using minimal webhook payload (no chart configuration)
+📊 Loading saved strategy: d40ec77f-c3e7-4175-8be5-5667e07aab6f
 📊 Loaded saved strategy configuration: {
   strategyType: 'candlestick',
   timeframe: '100T',
   brickSize: '0.25',
   contractSymbol: 'MNQ',
-  strategyName: 'MNQ1234',
+  strategyName: 'MNQscalper',
   indicators: [],
-  strategyId: 'a15969b2-8ca1-47ec-9f78-082dc2f12f10',
+  strategyId: 'd40ec77f-c3e7-4175-8be5-5667e07aab6f',
   isExistingStrategy: true
 }
 🚀 Launched chart in browser: http://localhost:8000/api/chart
@@ -27,24 +61,56 @@ Failed to parse saved webhook_payload for chart config: SyntaxError: Unexpected 
   timeframe: '100T',
   brickSize: '0.25',
   contractSymbol: 'MNQ',
-  strategyName: 'MNQ1234',
+  strategyName: 'MNQscalper',
   indicators: [],
-  strategyId: 'a15969b2-8ca1-47ec-9f78-082dc2f12f10',
+  strategyId: 'd40ec77f-c3e7-4175-8be5-5667e07aab6f',
   isExistingStrategy: true
 }
-📊 Loading saved strategy: a15969b2-8ca1-47ec-9f78-082dc2f12f10
-Failed to parse saved webhook_payload for chart config: SyntaxError: Unexpected token o in JSON at position 1
-    at JSON.parse (<anonymous>)
-    at /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/simple-backend.js:1585:36
-    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+📊 Update strategy request: {
+  id: 'd40ec77f-c3e7-4175-8be5-5667e07aab6f',
+  chart_config: {
+    resolution: '100T',
+    chartType: 'candlestick',
+    brickSize: '0.25',
+    indicators: [ [Object] ],
+    timestamp: '2025-09-18T19:55:26.798Z'
+  },
+  chart_type: 'candlestick',
+  brick_size: 0.25,
+  hasWebhookPayload: false
+}
+📊 Using minimal webhook payload (no chart configuration)
+📊 Update strategy request: {
+  id: 'd40ec77f-c3e7-4175-8be5-5667e07aab6f',
+  chart_config: {
+    resolution: '100T',
+    chartType: 'candlestick',
+    brickSize: '0.25',
+    indicators: [ [Object] ],
+    timestamp: '2025-09-18T19:55:28.902Z'
+  },
+  chart_type: 'candlestick',
+  brick_size: 0.25,
+  hasWebhookPayload: false
+}
+📊 Using minimal webhook payload (no chart configuration)
+📊 Update strategy request: {
+  id: 'd40ec77f-c3e7-4175-8be5-5667e07aab6f',
+  chart_config: null,
+  chart_type: 'candlestick',
+  brick_size: null,
+  hasWebhookPayload: true
+}
+📊 Using minimal webhook payload (no chart configuration)
+📊 Loading saved strategy: d40ec77f-c3e7-4175-8be5-5667e07aab6f
 📊 Loaded saved strategy configuration: {
   strategyType: 'candlestick',
   timeframe: '100T',
   brickSize: '0.25',
   contractSymbol: 'MNQ',
-  strategyName: 'MNQ1234',
+  strategyName: 'MNQscalper',
   indicators: [],
-  strategyId: 'a15969b2-8ca1-47ec-9f78-082dc2f12f10',
+  strategyId: 'd40ec77f-c3e7-4175-8be5-5667e07aab6f',
   isExistingStrategy: true
 }
 🚀 Launched chart in browser: http://localhost:8000/api/chart
@@ -53,86 +119,85 @@ Failed to parse saved webhook_payload for chart config: SyntaxError: Unexpected 
   timeframe: '100T',
   brickSize: '0.25',
   contractSymbol: 'MNQ',
-  strategyName: 'MNQ1234',
+  strategyName: 'MNQscalper',
   indicators: [],
-  strategyId: 'a15969b2-8ca1-47ec-9f78-082dc2f12f10',
+  strategyId: 'd40ec77f-c3e7-4175-8be5-5667e07aab6f',
   isExistingStrategy: true
 }
-📊 Loading saved strategy: a15969b2-8ca1-47ec-9f78-082dc2f12f10
-Failed to parse saved webhook_payload for chart config: SyntaxError: Unexpected token o in JSON at position 1
-    at JSON.parse (<anonymous>)
-    at /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/simple-backend.js:1585:36
-    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+📊 Saving chart strategy: {
+  name: 'Test Strategy with SMA',
+  strategy_type: 'candlestick',
+  contract_symbol: 'MNQ',
+  timeframe: '15',
+  chart_config: { indicators: [ [Object] ] }
+}
+📊 Saving indicators separately: [ { type: 'SMA', period: 20 } ]
+📊 Loading saved strategy: 472b02cb-017f-4a56-b555-6d8182bf6b6b
+📊 Loading strategy with indicators: [ { type: 'SMA', period: 20 } ]
 📊 Loaded saved strategy configuration: {
   strategyType: 'candlestick',
-  timeframe: '100T',
+  timeframe: '15',
   brickSize: '0.25',
   contractSymbol: 'MNQ',
-  strategyName: 'MNQ1234',
-  indicators: [],
-  strategyId: 'a15969b2-8ca1-47ec-9f78-082dc2f12f10',
+  strategyName: 'Test Strategy with SMA',
+  indicators: [ { type: 'SMA', period: 20 } ],
+  strategyId: '472b02cb-017f-4a56-b555-6d8182bf6b6b',
   isExistingStrategy: true
 }
 🚀 Launched chart in browser: http://localhost:8000/api/chart
 📊 With configuration: {
   strategyType: 'candlestick',
-  timeframe: '100T',
+  timeframe: '15',
   brickSize: '0.25',
   contractSymbol: 'MNQ',
-  strategyName: 'MNQ1234',
-  indicators: [],
-  strategyId: 'a15969b2-8ca1-47ec-9f78-082dc2f12f10',
+  strategyName: 'Test Strategy with SMA',
+  indicators: [ { type: 'SMA', period: 20 } ],
+  strategyId: '472b02cb-017f-4a56-b555-6d8182bf6b6b',
   isExistingStrategy: true
 }
-📊 Loading saved strategy: 6c606bd2-3f94-4eb5-9004-9c390ec424f1
-Failed to parse saved webhook_payload for chart config: SyntaxError: Unexpected token o in JSON at position 1
-    at JSON.parse (<anonymous>)
-    at /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/simple-backend.js:1585:36
-    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+📊 Update strategy request: {
+  id: 'd40ec77f-c3e7-4175-8be5-5667e07aab6f',
+  chart_config: { indicators: [ [Object], [Object] ] },
+  chart_type: 'candlestick',
+  brick_size: 0.25,
+  hasWebhookPayload: false
+}
+📊 Using minimal webhook payload (no chart configuration)
+📊 Update strategy request: {
+  id: '472b02cb-017f-4a56-b555-6d8182bf6b6b',
+  chart_config: null,
+  chart_type: 'candlestick',
+  brick_size: null,
+  hasWebhookPayload: true
+}
+📊 Using minimal webhook payload (no chart configuration)
+📊 Loading saved strategy: 472b02cb-017f-4a56-b555-6d8182bf6b6b
 📊 Loaded saved strategy configuration: {
   strategyType: 'candlestick',
-  timeframe: '100T',
+  timeframe: '15',
   brickSize: '0.25',
   contractSymbol: 'MNQ',
-  strategyName: 'MNQ-SupremeScalper',
+  strategyName: 'Test Strategy with SMA',
   indicators: [],
-  strategyId: '6c606bd2-3f94-4eb5-9004-9c390ec424f1',
+  strategyId: '472b02cb-017f-4a56-b555-6d8182bf6b6b',
   isExistingStrategy: true
 }
 🚀 Launched chart in browser: http://localhost:8000/api/chart
 📊 With configuration: {
   strategyType: 'candlestick',
-  timeframe: '100T',
+  timeframe: '15',
   brickSize: '0.25',
   contractSymbol: 'MNQ',
-  strategyName: 'MNQ-SupremeScalper',
+  strategyName: 'Test Strategy with SMA',
   indicators: [],
-  strategyId: '6c606bd2-3f94-4eb5-9004-9c390ec424f1',
+  strategyId: '472b02cb-017f-4a56-b555-6d8182bf6b6b',
   isExistingStrategy: true
 }
-📊 Loading saved strategy: a15969b2-8ca1-47ec-9f78-082dc2f12f10
-Failed to parse saved webhook_payload for chart config: SyntaxError: Unexpected token o in JSON at position 1
-    at JSON.parse (<anonymous>)
-    at /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/simple-backend.js:1585:36
-    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
-📊 Loaded saved strategy configuration: {
-  strategyType: 'candlestick',
-  timeframe: '100T',
-  brickSize: '0.25',
-  contractSymbol: 'MNQ',
-  strategyName: 'MNQ1234',
-  indicators: [],
-  strategyId: 'a15969b2-8ca1-47ec-9f78-082dc2f12f10',
-  isExistingStrategy: true
+📊 Update strategy request: {
+  id: 'd40ec77f-c3e7-4175-8be5-5667e07aab6f',
+  chart_config: { indicators: [ [Object] ] },
+  chart_type: undefined,
+  brick_size: undefined,
+  hasWebhookPayload: false
 }
-🚀 Launched chart in browser: http://localhost:8000/api/chart
-📊 With configuration: {
-  strategyType: 'candlestick',
-  timeframe: '100T',
-  brickSize: '0.25',
-  contractSymbol: 'MNQ',
-  strategyName: 'MNQ1234',
-  indicators: [],
-  strategyId: 'a15969b2-8ca1-47ec-9f78-082dc2f12f10',
-  isExistingStrategy: true
-}
+📊 Using minimal webhook payload (no chart configuration)

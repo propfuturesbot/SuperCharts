@@ -2055,11 +2055,13 @@ const updateRenkoBrickSize = () => {
   }
 };
 
-// Make functions available globally
+// Make functions and variables available globally
 window.addIndicator = addIndicator;
 window.changeResolution = changeResolution;
 window.changeChartType = changeChartType;
 window.updateRenkoBrickSize = updateRenkoBrickSize;
+window.activeIndicators = activeIndicators;
+window.indicatorSeries = indicatorSeries;
 
 // Start the application when DOM is ready
 if (document.readyState === 'loading') {

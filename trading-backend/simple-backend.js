@@ -461,28 +461,68 @@ app.put('/api/strategies/:id', async (req, res) => {
       chart_config
     } = req.body;
 
-    // If chart configuration is provided, embed it in webhook_payload
+    console.log('📊 Update strategy request:', {
+      id,
+      chart_config: chart_config,
+      chart_type,
+      brick_size,
+      hasWebhookPayload: !!webhook_payload
+    });
+
+    // Handle webhook payload and chart configuration
     let finalWebhookPayload = webhook_payload;
 
-    if (chart_type || brick_size || chart_config) {
-      const enhancedPayload = {
-        chart_configuration: {
-          chart_type: chart_type || strategy_type,
-          brick_size: brick_size,
-          timeframe: timeframe,
-          ...chart_config
-        },
-        original_payload: webhook_payload || {}
-      };
-      finalWebhookPayload = enhancedPayload;
+    // Check if webhook_payload already has nested structure and extract the actual original payload
+    let actualOriginalPayload = {};
+    if (webhook_payload && typeof webhook_payload === 'object') {
+      // If webhook_payload already has chart_configuration, extract the deepest original_payload
+      if (webhook_payload.original_payload) {
+        // Navigate to the deepest original_payload that doesn't contain another original_payload
+        let current = webhook_payload.original_payload;
+        while (current && current.original_payload) {
+          current = current.original_payload;
+        }
+        // If current has useful data (not just chart_configuration), use it
+        if (current && Object.keys(current).some(key => key !== 'chart_configuration')) {
+          actualOriginalPayload = current;
+        }
+      } else if (!webhook_payload.chart_configuration) {
+        // If webhook_payload doesn't have our structure, it's the actual payload
+        actualOriginalPayload = webhook_payload;
+      }
+    }
+
+    // Don't save chart configuration in webhook payload - indicators should be saved separately
+    finalWebhookPayload = actualOriginalPayload || null;
+    console.log('📊 Using minimal webhook payload (no chart configuration)');
+
+    // Extract indicators for separate storage, but preserve existing ones if none provided
+    let indicators = chart_config?.indicators || null;
+    console.log('📊 UPDATE - Chart config received:', chart_config);
+    console.log('📊 UPDATE - Extracted indicators:', indicators);
+
+    // If no indicators provided but strategy exists, preserve existing indicators
+    if (!indicators) {
+      try {
+        const existingResult = await pool.query('SELECT indicators FROM strategies WHERE id = $1', [id]);
+        if (existingResult.rows.length > 0 && existingResult.rows[0].indicators) {
+          const existingIndicators = typeof existingResult.rows[0].indicators === 'string'
+            ? JSON.parse(existingResult.rows[0].indicators)
+            : existingResult.rows[0].indicators;
+          indicators = existingIndicators;
+          console.log('📊 UPDATE - Preserving existing indicators:', indicators);
+        }
+      } catch (e) {
+        console.warn('Failed to retrieve existing indicators:', e);
+      }
     }
 
     const result = await pool.query(`
       UPDATE strategies
       SET name = $1, strategy_type = $2, contract_symbol = $3, contract_name = $4,
-          timeframe = $5, webhook_url = $6, webhook_payload = $7,
+          timeframe = $5, webhook_url = $6, webhook_payload = $7, indicators = $8,
           updated_at = CURRENT_TIMESTAMP
-      WHERE id = $8
+      WHERE id = $9
       RETURNING *
     `, [
       name,
@@ -492,6 +532,7 @@ app.put('/api/strategies/:id', async (req, res) => {
       timeframe,
       webhook_url,
       finalWebhookPayload ? JSON.stringify(finalWebhookPayload) : null,
+      indicators ? JSON.stringify(indicators) : null,
       id
     ]);
 
@@ -835,21 +876,86 @@ app.get('/api/chart', (req, res) => {
                 });
               }
 
-              // Restore saved indicators if available
-              if (window.CHART_CONFIG.indicators && window.CHART_CONFIG.indicators.length > 0) {
-                setTimeout(() => {
+              // Set up indicator restoration
+              window.restoreIndicators = function() {
+                console.log('Restoring indicators...');
+                if (window.CHART_CONFIG.indicators && window.CHART_CONFIG.indicators.length > 0) {
+                  console.log('Found saved indicators to restore:', window.CHART_CONFIG.indicators);
+
                   window.CHART_CONFIG.indicators.forEach(indicator => {
                     console.log('Restoring indicator:', indicator);
-                    // Try to add the indicator - this might need adjustment based on the actual implementation
+
                     if (window.addIndicator && typeof window.addIndicator === 'function') {
                       try {
-                        window.addIndicator(indicator);
+                        // Handle new format with type and period
+                        if (indicator.type && indicator.period) {
+                          console.log(\`Restoring \${indicator.type} with period \${indicator.period}\`);
+
+                          // Temporarily set the indicators select to the correct type
+                          const indicatorSelect = document.getElementById('indicators');
+                          if (indicatorSelect) {
+                            indicatorSelect.value = indicator.type;
+                          }
+
+                          // Override the prompt to return the saved period
+                          const originalPrompt = window.prompt;
+                          window.prompt = function(message, defaultValue) {
+                            if (message.includes('period')) {
+                              return indicator.period.toString();
+                            }
+                            return originalPrompt.call(this, message, defaultValue);
+                          };
+
+                          // Add the indicator
+                          window.addIndicator(indicator.type);
+
+                          // Restore original prompt
+                          window.prompt = originalPrompt;
+
+                          console.log(\`Successfully restored \${indicator.type} indicator with period \${indicator.period}\`);
+                        } else if (typeof indicator === 'string') {
+                          // Handle old format (just indicator name)
+                          window.addIndicator(indicator);
+                          console.log(\`Successfully restored \${indicator} indicator\`);
+                        }
                       } catch (e) {
                         console.warn('Failed to restore indicator:', indicator, e);
                       }
+                    } else {
+                      console.warn('addIndicator function not available');
                     }
                   });
-                }, 3000);
+                } else {
+                  console.log('No saved indicators to restore');
+                }
+              };
+
+              // Try to restore indicators multiple times with increasing delays
+              if (window.CHART_CONFIG.indicators && window.CHART_CONFIG.indicators.length > 0) {
+                console.log('Will attempt to restore', window.CHART_CONFIG.indicators.length, 'indicators');
+
+                // Also add a continuous check until addIndicator is available
+                let attempts = 0;
+                const checkAndRestore = function() {
+                  attempts++;
+                  console.log('Indicator restoration attempt #' + attempts);
+
+                  if (window.addIndicator && typeof window.addIndicator === 'function') {
+                    console.log('addIndicator function is now available, restoring indicators...');
+                    window.restoreIndicators();
+                  } else {
+                    console.log('addIndicator function not yet available, will try again...');
+                    if (attempts < 10) {
+                      setTimeout(checkAndRestore, 1000);
+                    } else {
+                      console.warn('Gave up waiting for addIndicator function after 10 attempts');
+                    }
+                  }
+                };
+
+                setTimeout(checkAndRestore, 2000);
+                setTimeout(() => window.restoreIndicators(), 4000);
+                setTimeout(() => window.restoreIndicators(), 6000);
               }
             }, 2000);
           }, 1500);
@@ -859,20 +965,72 @@ app.get('/api/chart', (req, res) => {
             const chartTypeSelect = document.getElementById('chartType');
             const resolutionSelect = document.getElementById('resolution');
             const brickSizeInput = document.getElementById('brickSize');
-            const indicatorSelect = document.getElementById('indicators');
 
-            // Get active indicators (this might need adjustment based on the actual implementation)
-            const activeIndicators = [];
-            const indicatorTags = document.querySelectorAll('.indicator-tag');
-            indicatorTags.forEach(tag => {
-              activeIndicators.push(tag.textContent.trim());
-            });
+            // Get active indicators from the actual activeIndicators Map
+            const activeIndicatorsList = [];
+
+            // Method 1: Try to get from the global activeIndicators Map
+            if (window.activeIndicators && window.activeIndicators.size > 0) {
+              console.log('Found activeIndicators Map with', window.activeIndicators.size, 'indicators');
+              window.activeIndicators.forEach((config, type) => {
+                console.log('Adding indicator to save:', type, 'with period', config.period);
+                activeIndicatorsList.push({
+                  type: type,
+                  period: config.period
+                });
+              });
+            } else {
+              console.log('No active indicators found in window.activeIndicators, trying other methods...');
+
+              // Method 2: Try to get from the indicator tags in the DOM
+              const indicatorTags = document.querySelectorAll('.indicator-tag span, .indicator-tag');
+              console.log('Found', indicatorTags.length, 'indicator tags');
+              indicatorTags.forEach(tag => {
+                const text = tag.textContent.trim();
+                // Parse "SMA (20)" format
+                const match = text.match(/(\w+)\s*\((\d+)\)/);
+                if (match) {
+                  console.log('Found indicator tag:', match[1], 'with period', match[2]);
+                  activeIndicatorsList.push({
+                    type: match[1],
+                    period: parseInt(match[2])
+                  });
+                }
+              });
+
+              // Method 3: Check if we have saved indicators in CHART_CONFIG
+              if (activeIndicatorsList.length === 0 && window.CHART_CONFIG && window.CHART_CONFIG.indicators) {
+                console.log('Using saved indicators from CHART_CONFIG:', window.CHART_CONFIG.indicators);
+                window.CHART_CONFIG.indicators.forEach(indicator => {
+                  if (indicator.type && indicator.period) {
+                    activeIndicatorsList.push({
+                      type: indicator.type,
+                      period: indicator.period
+                    });
+                  }
+                });
+              }
+
+              // Method 4: Try to get from indicatorSeries Map
+              if (activeIndicatorsList.length === 0 && window.indicatorSeries && window.indicatorSeries.size > 0) {
+                console.log('Found indicatorSeries Map with', window.indicatorSeries.size, 'series');
+                window.indicatorSeries.forEach((series, type) => {
+                  // Try to extract period from series data or configuration
+                  console.log('Found indicator series:', type);
+                  // For now, add with default period (this could be improved)
+                  activeIndicatorsList.push({
+                    type: type,
+                    period: 14 // Default period
+                  });
+                });
+              }
+            }
 
             const config = {
               chartType: chartTypeSelect ? chartTypeSelect.value : 'candlestick',
               resolution: resolutionSelect ? resolutionSelect.value : '15',
               brickSize: brickSizeInput ? brickSizeInput.value : '0.25',
-              indicators: activeIndicators,
+              indicators: activeIndicatorsList,
               strategyName: window.CHART_CONFIG.strategyName || 'Unnamed Strategy',
               contractSymbol: window.CHART_CONFIG.contractSymbol || '/MNQ',
               timestamp: new Date().toISOString()
@@ -893,7 +1051,7 @@ app.get('/api/chart', (req, res) => {
                 contract_symbol: chartConfig.contractSymbol,
                 timeframe: chartConfig.resolution,
                 chart_type: chartConfig.chartType,
-                brick_size: parseFloat(chartConfig.brickSize),
+                brick_size: parseFloat(chartConfig.brickSize) || null,
                 chart_config: {
                   chartType: chartConfig.chartType,
                   resolution: chartConfig.resolution,
@@ -902,7 +1060,7 @@ app.get('/api/chart', (req, res) => {
                   timestamp: chartConfig.timestamp
                 },
                 webhook_url: null,
-                webhook_payload: null
+                webhook_payload: null  // Let backend handle the structure
               };
 
               console.log('Saving strategy:', strategyData);
@@ -951,19 +1109,10 @@ app.get('/api/chart', (req, res) => {
                 return;
               }
 
-              // Create enhanced payload with chart configuration
-              const enhancedPayload = {
-                chart_configuration: {
-                  chart_type: chartConfig.chartType,
-                  brick_size: chartConfig.brickSize,
-                  timeframe: chartConfig.resolution,
-                  resolution: chartConfig.resolution,
-                  indicators: chartConfig.indicators,
-                  timestamp: chartConfig.timestamp
-                },
-                original_payload: {}
-              };
+              console.log('Chart config collected:', chartConfig);
+              console.log('Indicators to save:', chartConfig.indicators);
 
+              // Only include chart_config if there are indicators or other chart-specific settings to save
               const strategyData = {
                 name: chartConfig.strategyName,
                 strategy_type: chartConfig.chartType,
@@ -971,8 +1120,21 @@ app.get('/api/chart', (req, res) => {
                 contract_name: chartConfig.contractSymbol,
                 timeframe: chartConfig.resolution,
                 webhook_url: null,
-                webhook_payload: enhancedPayload
+                webhook_payload: null
               };
+
+              // Only add chart config if there are indicators
+              if (chartConfig.indicators && chartConfig.indicators.length > 0) {
+                strategyData.chart_type = chartConfig.chartType;
+                strategyData.brick_size = parseFloat(chartConfig.brickSize) || null;
+                strategyData.chart_config = {
+                  resolution: chartConfig.resolution,
+                  chartType: chartConfig.chartType,
+                  brickSize: chartConfig.brickSize,
+                  indicators: chartConfig.indicators,
+                  timestamp: chartConfig.timestamp
+                };
+              }
 
               console.log('Updating strategy:', strategyId, strategyData);
 
@@ -1464,24 +1626,23 @@ app.post('/api/save-chart-strategy', async (req, res) => {
 
     console.log('📊 Saving chart strategy:', req.body);
 
-    // Create a comprehensive webhook payload that includes chart configuration
-    const enhancedPayload = {
-      chart_configuration: {
-        chart_type: chart_type || strategy_type,
-        brick_size: brick_size,
-        timeframe: timeframe,
-        ...chart_config
-      },
-      original_payload: webhook_payload || {}
-    };
+    // Extract indicators for separate storage
+    const indicators = chart_config?.indicators || null;
+    console.log('📊 Chart config received:', chart_config);
+    console.log('📊 Extracted indicators:', indicators);
+    if (indicators) {
+      console.log('📊 Saving indicators separately:', indicators);
+    } else {
+      console.log('📊 No indicators to save');
+    }
 
     const result = await pool.query(`
       INSERT INTO strategies (
         name, strategy_type, contract_symbol, contract_name,
-        timeframe, webhook_url, webhook_payload,
+        timeframe, webhook_url, webhook_payload, indicators,
         status, created_by
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, 'inactive', 'chart')
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'inactive', 'chart')
       RETURNING *
     `, [
       name,
@@ -1490,7 +1651,8 @@ app.post('/api/save-chart-strategy', async (req, res) => {
       contract_symbol, // using contract_symbol for both
       timeframe,
       webhook_url,
-      JSON.stringify(enhancedPayload)
+      webhook_payload ? JSON.stringify(webhook_payload) : null,
+      indicators ? JSON.stringify(indicators) : null
     ]);
 
     res.json({
@@ -1515,7 +1677,7 @@ app.get('/api/strategy/:id/chart-config', async (req, res) => {
 
     const result = await pool.query(`
       SELECT id, name, strategy_type, contract_symbol, timeframe,
-             webhook_payload, status, created_at, updated_at
+             webhook_payload, indicators, status, created_at, updated_at
       FROM strategies
       WHERE id = $1
     `, [id]);
@@ -1529,23 +1691,32 @@ app.get('/api/strategy/:id/chart-config', async (req, res) => {
 
     const strategy = result.rows[0];
 
-    // Extract chart configuration from webhook_payload
+    // Get indicators from separate column
     let chartConfig = {};
-    if (strategy.webhook_payload) {
+    let strategyIndicators = [];
+
+    if (strategy.indicators) {
       try {
-        const payload = JSON.parse(strategy.webhook_payload);
-        if (payload.chart_configuration) {
-          chartConfig = payload.chart_configuration;
-        }
+        // indicators might already be an object (PostgreSQL JSON type) or a string
+        strategyIndicators = typeof strategy.indicators === 'string'
+          ? JSON.parse(strategy.indicators)
+          : strategy.indicators;
+
+        console.log('📊 Found indicators in database:', strategyIndicators);
       } catch (e) {
-        console.warn('Failed to parse webhook_payload for chart config:', e);
+        console.warn('Failed to parse indicators:', e);
       }
     }
 
+    // Build chart config with indicators
+    chartConfig = {
+      indicators: strategyIndicators
+    };
+
     // Add extracted chart config to strategy object
     strategy.chart_config = chartConfig;
-    strategy.chart_type = chartConfig.chart_type || strategy.strategy_type;
-    strategy.brick_size = chartConfig.brick_size;
+    strategy.chart_type = strategy.strategy_type;
+    strategy.brick_size = null;
 
     res.json({
       success: true,
@@ -1570,7 +1741,7 @@ app.post('/api/launch-chart', async (req, res) => {
       try {
         const result = await pool.query(`
           SELECT id, name, strategy_type, contract_symbol, timeframe,
-                 webhook_payload, status
+                 webhook_payload, indicators, status
           FROM strategies
           WHERE id = $1
         `, [req.body.strategyId]);
@@ -1579,26 +1750,29 @@ app.post('/api/launch-chart', async (req, res) => {
           const strategy = result.rows[0];
           let chartConfig = {};
 
-          // Extract chart configuration from webhook_payload
-          if (strategy.webhook_payload) {
+          // Extract indicators from separate column
+          let strategyIndicators = [];
+          if (strategy.indicators) {
             try {
-              const payload = JSON.parse(strategy.webhook_payload);
-              if (payload.chart_configuration) {
-                chartConfig = payload.chart_configuration;
-              }
+              // indicators might already be an object (PostgreSQL JSON type) or a string
+              strategyIndicators = typeof strategy.indicators === 'string'
+                ? JSON.parse(strategy.indicators)
+                : strategy.indicators;
+
+              console.log('📊 Loading strategy with indicators:', strategyIndicators);
             } catch (e) {
-              console.warn('Failed to parse saved webhook_payload for chart config:', e);
+              console.warn('Failed to parse saved indicators:', e);
             }
           }
 
           // Use saved configuration
           currentChartConfig = {
-            strategyType: chartConfig.chart_type || strategy.strategy_type || 'candlestick',
-            timeframe: chartConfig.resolution || chartConfig.timeframe || strategy.timeframe || '15',
-            brickSize: chartConfig.brick_size || '0.25',
+            strategyType: strategy.strategy_type || 'candlestick',
+            timeframe: strategy.timeframe || '100T',
+            brickSize: '0.25',
             contractSymbol: strategy.contract_symbol || '/MNQ',
             strategyName: strategy.name || 'Saved Strategy',
-            indicators: chartConfig.indicators || [],
+            indicators: strategyIndicators,
             strategyId: strategy.id,
             isExistingStrategy: true
           };
@@ -1619,7 +1793,7 @@ app.post('/api/launch-chart', async (req, res) => {
         // Fall back to default configuration
         currentChartConfig = {
           strategyType: 'candlestick',
-          timeframe: '15',
+          timeframe: '100T',
           brickSize: '0.25',
           contractSymbol: '/MNQ',
           strategyName: 'Default'
@@ -1629,7 +1803,7 @@ app.post('/api/launch-chart', async (req, res) => {
       // Store the configuration from the request body (new strategy)
       currentChartConfig = {
         strategyType: req.body?.strategyType || 'candlestick',
-        timeframe: req.body?.timeframe || '15',
+        timeframe: req.body?.timeframe || '100T',
         brickSize: req.body?.brickSize || '0.25',
         contractSymbol: req.body?.contractSymbol || '/MNQ',
         strategyName: req.body?.strategyName || 'Default',
