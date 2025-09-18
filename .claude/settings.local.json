@@ -28,7 +28,11 @@
       "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_daOHDt/**)",
       "Bash(PORT=3001 npm start)",
       "Bash(npx eslint:*)",
-      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_azHbKE/**)"
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_azHbKE/**)",
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_dRn7KD/**)",
+      "Bash(PGPASSWORD=techanalysis2024 psql -h localhost -p 5432 -U techuser -d techanalysis -c \"\\d strategies\")",
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_lrwqdm/**)",
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_CNnAKo/**)"
     ],
     "deny": [],
     "ask": []

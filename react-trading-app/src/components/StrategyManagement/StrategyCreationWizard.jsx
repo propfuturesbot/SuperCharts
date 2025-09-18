@@ -422,10 +422,29 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
     }
   };
 
-  const launchChart = async () => {
+  const launchChart = async (strategyId = null) => {
     try {
       setLoading(true);
-      const response = await axios.post('http://localhost:8000/api/launch-chart');
+
+      let chartConfig;
+
+      if (strategyId) {
+        // Launching a saved strategy
+        chartConfig = { strategyId };
+        console.log('Launching saved strategy:', strategyId);
+      } else {
+        // Launching with current form configuration
+        chartConfig = {
+          strategyType: formData.strategyType,
+          timeframe: formData.timeframe,
+          brickSize: formData.brickSize,
+          contractSymbol: formData.contract?.symbol || '/MNQ',
+          strategyName: formData.strategyName
+        };
+        console.log('Launching chart with config:', chartConfig);
+      }
+
+      const response = await axios.post('http://localhost:8000/api/launch-chart', chartConfig);
       console.log('Chart launched successfully:', response.data);
     } catch (error) {
       console.error('Error launching chart:', error);
@@ -436,11 +455,10 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
   };
 
   const handleUpdateStrategyClick = async () => {
-    if (editMode) {
-      // First save the strategy, then launch the chart
+    if (editMode && strategy?.id) {
+      // For existing strategies: save first, then launch with the strategy ID
       await handleSaveStrategy();
-      // Launch the chart
-      await launchChart();
+      await launchChart(strategy.id);
     } else {
       // For new strategies, just launch the chart without saving
       await launchChart();
