@@ -498,29 +498,29 @@ const handleRealTimeBar = (bar) => {
           }
           
           // Update indicators with new data (use original data for indicators)
-          updateIndicators(update);
-          
+          updateIndicators(update, false);
+
           // Check for trading signals (use original data for signals)
           checkRealtimeSignal(update);
         } else if (barTime === lastBarTime) {
           // Update existing bar
           candleSeries.update(displayUpdate);
           currentBar = { ...update };
-          
+
           // Update Heiken Ashi data if using HA
           if (currentChartType === 'heikenashi' && heikenAshiData.length > 0) {
             heikenAshiData[heikenAshiData.length - 1] = displayUpdate;
           }
-          
+
           // Update indicators with updated bar data (use original data)
-          updateIndicators(update);
-          
+          updateIndicators(update, false);
+
           // Check for trading signals (use original data)
           checkRealtimeSignal(update);
         }
-      } else if (currentChartType === 'renko') {
-        // For Renko, always update indicators and signals with original data
-        updateIndicators(update);
+      } else if (currentChartType === 'renko' && isNewRenkoBrick) {
+        // For Renko, only update indicators when a new brick is created
+        updateIndicators(update, true);
         checkRealtimeSignal(update);
       }
     }
@@ -1032,7 +1032,17 @@ const addIndicator = (indicatorType) => {
   const periodNum = parseInt(period) || 14;
   
   try {
-    const indicatorValues = calculateIndicator(indicatorType, historicalData, periodNum);
+    // Use the appropriate data based on chart type
+    let dataForIndicator = historicalData;
+    if (currentChartType === 'renko' && renkoData && renkoData.length > 0) {
+      dataForIndicator = renkoData;
+      console.log('Using Renko data for indicator calculation');
+    } else if (currentChartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
+      dataForIndicator = heikenAshiData;
+      console.log('Using Heiken Ashi data for indicator calculation');
+    }
+
+    const indicatorValues = calculateIndicator(indicatorType, dataForIndicator, periodNum);
     
     if (!indicatorValues || indicatorValues.length === 0) {
       alert('Failed to calculate indicator values');
@@ -1061,7 +1071,17 @@ const addIndicator = (indicatorType) => {
 };
 
 const displayIndicator = (type, values, period) => {
-  if (!chart || !historicalData) return;
+  if (!chart) return;
+
+  // Determine which data to use for time alignment
+  let dataForDisplay = historicalData;
+  if (currentChartType === 'renko' && renkoData && renkoData.length > 0) {
+    dataForDisplay = renkoData;
+  } else if (currentChartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
+    dataForDisplay = heikenAshiData;
+  }
+
+  if (!dataForDisplay || dataForDisplay.length === 0) return;
   
   const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF'];
   const colorIndex = indicatorSeries.size % colors.length;
@@ -1091,17 +1111,17 @@ const displayIndicator = (type, values, period) => {
       });
       
       const upperData = values.upper.map((value, index) => ({
-        time: historicalData[index + (historicalData.length - values.upper.length)]?.time,
+        time: dataForDisplay[index + (dataForDisplay.length - values.upper.length)]?.time,
         value: value
       })).filter(item => item.time && !isNaN(item.value));
-      
+
       const middleData = values.middle.map((value, index) => ({
-        time: historicalData[index + (historicalData.length - values.middle.length)]?.time,
+        time: dataForDisplay[index + (dataForDisplay.length - values.middle.length)]?.time,
         value: value
       })).filter(item => item.time && !isNaN(item.value));
-      
+
       const lowerData = values.lower.map((value, index) => ({
-        time: historicalData[index + (historicalData.length - values.lower.length)]?.time,
+        time: dataForDisplay[index + (dataForDisplay.length - values.lower.length)]?.time,
         value: value
       })).filter(item => item.time && !isNaN(item.value));
       
@@ -1123,7 +1143,7 @@ const displayIndicator = (type, values, period) => {
       
       // Map indicator values to chart data
       const indicatorData = values.map((value, index) => ({
-        time: historicalData[index + (historicalData.length - values.length)]?.time,
+        time: dataForDisplay[index + (dataForDisplay.length - values.length)]?.time,
         value: value
       })).filter(item => item.time && !isNaN(item.value));
       
@@ -1138,10 +1158,10 @@ const displayIndicator = (type, values, period) => {
   }
 };
 
-const updateIndicators = (newBarData) => {
+const updateIndicators = (newBarData, isNewRenkoBrick = false) => {
   if (activeIndicators.size === 0 || !historicalData) return;
-  
-  // Update historical data with the new bar
+
+  // Update historical data with the new bar for candlestick
   if (newBarData) {
     const existingIndex = historicalData.findIndex(bar => bar.time === newBarData.time);
     if (existingIndex !== -1) {
@@ -1149,38 +1169,73 @@ const updateIndicators = (newBarData) => {
     } else {
       historicalData.push(newBarData);
     }
+
+    // Update Heiken Ashi data if needed
+    if (currentChartType === 'heikenashi') {
+      const haBar = calculateHeikenAshiBar(
+        newBarData,
+        heikenAshiData.length > 0 ? heikenAshiData[heikenAshiData.length - 1] : null
+      );
+
+      if (haBar) {
+        const existingHAIndex = heikenAshiData.findIndex(bar => bar.time === haBar.time);
+        if (existingHAIndex !== -1) {
+          heikenAshiData[existingHAIndex] = haBar;
+        } else {
+          heikenAshiData.push(haBar);
+        }
+      }
+    }
   }
-  
+
+  // Only update indicators if:
+  // 1. For candlestick/heikenashi: always update
+  // 2. For renko: only update when a new brick is formed (not on every tick)
+  if (currentChartType === 'renko' && !isNewRenkoBrick) {
+    return; // Skip indicator update for Renko if no new brick
+  }
+
+  // Use the appropriate data based on chart type
+  let dataForIndicator = historicalData;
+  if (currentChartType === 'renko' && renkoData && renkoData.length > 0) {
+    dataForIndicator = renkoData;
+  } else if (currentChartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
+    dataForIndicator = heikenAshiData;
+  }
+
   // Recalculate and update all active indicators
   activeIndicators.forEach((config, type) => {
     try {
-      const newValues = calculateIndicator(type, historicalData, config.period);
+      const newValues = calculateIndicator(type, dataForIndicator, config.period);
       if (newValues && newValues.length > 0) {
-        
+
+        // Get the latest time from the appropriate data source
+        const latestTime = dataForIndicator[dataForIndicator.length - 1]?.time;
+
         // Update the series data
         if ((type === 'BollingerBands' || type === 'DonchianChannel') && newValues.upper) {
           const upperSeries = indicatorSeries.get(`${type}_upper`);
           const middleSeries = indicatorSeries.get(`${type}_middle`);
           const lowerSeries = indicatorSeries.get(`${type}_lower`);
-          
-          if (upperSeries && middleSeries && lowerSeries) {
+
+          if (upperSeries && middleSeries && lowerSeries && latestTime) {
             const latestIndex = newValues.upper.length - 1;
-            const latestTime = historicalData[historicalData.length - 1]?.time;
-            
-            if (latestTime) {
-              upperSeries.update({ time: latestTime, value: newValues.upper[latestIndex] });
-              middleSeries.update({ time: latestTime, value: newValues.middle[latestIndex] });
-              lowerSeries.update({ time: latestTime, value: newValues.lower[latestIndex] });
-            }
+
+            // Update the latest point
+            upperSeries.update({ time: latestTime, value: newValues.upper[latestIndex] });
+            middleSeries.update({ time: latestTime, value: newValues.middle[latestIndex] });
+            lowerSeries.update({ time: latestTime, value: newValues.lower[latestIndex] });
+
+            console.log(`Updated ${type} indicator - time: ${latestTime}, upper: ${newValues.upper[latestIndex]}`);
           }
         } else if (Array.isArray(newValues)) {
           const series = indicatorSeries.get(type);
-          if (series) {
+          if (series && latestTime) {
             const latestValue = newValues[newValues.length - 1];
-            const latestTime = historicalData[historicalData.length - 1]?.time;
-            
-            if (latestTime && !isNaN(latestValue)) {
+
+            if (!isNaN(latestValue)) {
               series.update({ time: latestTime, value: latestValue });
+              console.log(`Updated ${type} indicator - time: ${latestTime}, value: ${latestValue}`);
             }
           }
         }
@@ -1716,18 +1771,18 @@ const updateRenkoWithNewBar = (newBar, brickSize) => {
 // Heiken Ashi calculation functions
 const calculateHeikenAshi = (data) => {
   if (!data || data.length === 0) return [];
-  
+
   const haData = [];
   let prevHACandle = null;
-  
+
   for (let i = 0; i < data.length; i++) {
     const candle = data[i];
     let haCandle = {};
-    
+
     // Calculate Heiken Ashi values
     // HA-Close = (Open + High + Low + Close) / 4
     haCandle.close = (candle.open + candle.high + candle.low + candle.close) / 4;
-    
+
     // For the first candle
     if (i === 0 || !prevHACandle) {
       // HA-Open = (Open + Close) / 2
@@ -1736,13 +1791,13 @@ const calculateHeikenAshi = (data) => {
       // HA-Open = (Previous HA-Open + Previous HA-Close) / 2
       haCandle.open = (prevHACandle.open + prevHACandle.close) / 2;
     }
-    
+
     // HA-High = Max(High, HA-Open, HA-Close)
     haCandle.high = Math.max(candle.high, haCandle.open, haCandle.close);
-    
+
     // HA-Low = Min(Low, HA-Open, HA-Close)
     haCandle.low = Math.min(candle.low, haCandle.open, haCandle.close);
-    
+
     // Copy time and volume from original candle
     haCandle.time = candle.time;
     haCandle.volume = candle.volume;
@@ -1752,6 +1807,36 @@ const calculateHeikenAshi = (data) => {
   }
   
   return haData;
+};
+
+// Calculate a single Heiken Ashi bar for realtime updates
+const calculateHeikenAshiBar = (candle, prevHACandle) => {
+  if (!candle) return null;
+
+  let haCandle = {};
+
+  // HA-Close = (Open + High + Low + Close) / 4
+  haCandle.close = (candle.open + candle.high + candle.low + candle.close) / 4;
+
+  if (!prevHACandle) {
+    // HA-Open = (Open + Close) / 2
+    haCandle.open = (candle.open + candle.close) / 2;
+  } else {
+    // HA-Open = (Previous HA-Open + Previous HA-Close) / 2
+    haCandle.open = (prevHACandle.open + prevHACandle.close) / 2;
+  }
+
+  // HA-High = Max(High, HA-Open, HA-Close)
+  haCandle.high = Math.max(candle.high, haCandle.open, haCandle.close);
+
+  // HA-Low = Min(Low, HA-Open, HA-Close)
+  haCandle.low = Math.min(candle.low, haCandle.open, haCandle.close);
+
+  // Copy time and volume from original candle
+  haCandle.time = candle.time;
+  haCandle.volume = candle.volume;
+
+  return haCandle;
 };
 
 const updateChartData = () => {
@@ -1841,17 +1926,25 @@ const changeChartType = (chartType) => {
     // Clear and redraw all indicators
     const tempIndicators = new Map(activeIndicators);
     clearAllIndicators();
-    
+
     tempIndicators.forEach((config, type) => {
-      // Always use original data for indicators, not Renko or HA data
-      const dataToUse = historicalData;
+      // Use the appropriate data based on chart type
+      let dataToUse = historicalData;
+      if (chartType === 'renko' && renkoData && renkoData.length > 0) {
+        dataToUse = renkoData;
+        console.log('Recalculating indicators for Renko data');
+      } else if (chartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
+        dataToUse = heikenAshiData;
+        console.log('Recalculating indicators for Heiken Ashi data');
+      }
+
       const indicatorValues = calculateIndicator(type, dataToUse, config.period);
       if (indicatorValues && indicatorValues.length > 0) {
         displayIndicator(type, indicatorValues, config.period);
         activeIndicators.set(type, { period: config.period, values: indicatorValues });
       }
     });
-    
+
     updateActiveIndicatorsDisplay();
   }
 };
@@ -1892,6 +1985,28 @@ const updateRenkoBrickSize = () => {
     if (currentChartType === 'renko') {
       try {
         updateChartData();
+
+        // Recalculate indicators with new Renko data
+        if (activeIndicators.size > 0 && renkoData && renkoData.length > 0) {
+          const tempIndicators = new Map(activeIndicators);
+
+          // Clear existing indicator series
+          indicatorSeries.forEach((series, key) => {
+            if (chart) {
+              chart.removeSeries(series);
+            }
+          });
+          indicatorSeries.clear();
+
+          // Recalculate and redisplay indicators
+          tempIndicators.forEach((config, type) => {
+            const indicatorValues = calculateIndicator(type, renkoData, config.period);
+            if (indicatorValues && indicatorValues.length > 0) {
+              displayIndicator(type, indicatorValues, config.period);
+              activeIndicators.set(type, { period: config.period, values: indicatorValues });
+            }
+          });
+        }
       } catch (error) {
         console.error('Error updating Renko chart:', error);
         alert('Error updating chart. Please try a different brick size.');

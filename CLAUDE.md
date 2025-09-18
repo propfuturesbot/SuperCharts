@@ -84,3 +84,147 @@ The codebase is organized into distinct modules with clear separation of concern
 - NaN values indicate insufficient data for calculation
 - Strategies use Action enum: BUY = 1, SELL = -1, HOLD = 0
 - All exported functions have JSDoc documentation
+
+## Realtime Indicator Calculation (Critical Implementation Details)
+
+### Overview
+The realtime charting application (`src/realtime/index.js`) supports three chart types (Candlestick, Heiken Ashi, Renko) with live indicator updates. Proper implementation requires careful handling of data transformations and update timing.
+
+### Key Architecture Decisions
+
+#### 1. Data Layer Separation
+- **`historicalData`**: Raw candlestick data (always maintained as source of truth)
+- **`heikenAshiData`**: Transformed Heiken Ashi bars
+- **`renkoData`**: Renko bricks calculated from price movements
+- Indicators MUST calculate on the appropriate transformed data for each chart type
+
+#### 2. Indicator Update Function
+```javascript
+const updateIndicators = (newBarData, isNewRenkoBrick = false) => {
+  // 1. Always update historicalData (source of truth)
+  if (newBarData) {
+    const existingIndex = historicalData.findIndex(bar => bar.time === newBarData.time);
+    if (existingIndex !== -1) {
+      historicalData[existingIndex] = newBarData;
+    } else {
+      historicalData.push(newBarData);
+    }
+  }
+
+  // 2. Update transformed data for Heiken Ashi
+  if (currentChartType === 'heikenashi') {
+    const haBar = calculateHeikenAshiBar(newBarData,
+      heikenAshiData.length > 0 ? heikenAshiData[heikenAshiData.length - 1] : null);
+    // Update or append haBar to heikenAshiData
+  }
+
+  // 3. Control update frequency for Renko
+  if (currentChartType === 'renko' && !isNewRenkoBrick) {
+    return; // Skip indicator update if no new brick
+  }
+
+  // 4. Select correct data source
+  let dataForIndicator = historicalData;
+  if (currentChartType === 'renko' && renkoData.length > 0) {
+    dataForIndicator = renkoData;
+  } else if (currentChartType === 'heikenashi' && heikenAshiData.length > 0) {
+    dataForIndicator = heikenAshiData;
+  }
+
+  // 5. Use dataForIndicator for BOTH calculation AND time alignment
+  const latestTime = dataForIndicator[dataForIndicator.length - 1]?.time;
+  // Update indicator series with latestTime, not historicalData time
+}
+```
+
+#### 3. Chart Type Specific Behaviors
+
+##### Candlestick Charts
+- Updates on every tick
+- Uses raw `historicalData`
+- No transformation needed
+
+##### Heiken Ashi Charts
+- Updates on every tick
+- Requires `calculateHeikenAshiBar()` for single bar calculation
+- Formula:
+  ```
+  HA-Close = (Open + High + Low + Close) / 4
+  HA-Open = (Previous HA-Open + Previous HA-Close) / 2
+  HA-High = Max(High, HA-Open, HA-Close)
+  HA-Low = Min(Low, HA-Open, HA-Close)
+  ```
+
+##### Renko Charts
+- Updates ONLY when new bricks form
+- Pass `isNewRenkoBrick = true` to updateIndicators()
+- Prevents indicator distortion from tick-by-tick updates
+
+#### 4. Critical Implementation Points
+
+##### Time Alignment
+**WRONG:**
+```javascript
+const latestTime = historicalData[historicalData.length - 1]?.time;
+series.update({ time: latestTime, value: indicatorValue });
+```
+
+**CORRECT:**
+```javascript
+const latestTime = dataForIndicator[dataForIndicator.length - 1]?.time;
+series.update({ time: latestTime, value: indicatorValue });
+```
+
+##### Data Source Selection in addIndicator()
+```javascript
+let dataForIndicator = historicalData;
+if (currentChartType === 'renko' && renkoData.length > 0) {
+  dataForIndicator = renkoData;
+} else if (currentChartType === 'heikenashi' && heikenAshiData.length > 0) {
+  dataForIndicator = heikenAshiData;
+}
+const indicatorValues = calculateIndicator(type, dataForIndicator, period);
+```
+
+##### Chart Type Switching
+When user switches chart types, indicators must be recalculated:
+```javascript
+const changeChartType = (chartType) => {
+  // ... update chart display ...
+
+  if (activeIndicators.size > 0) {
+    const tempIndicators = new Map(activeIndicators);
+    clearAllIndicators();
+
+    tempIndicators.forEach((config, type) => {
+      let dataToUse = historicalData;
+      if (chartType === 'renko' && renkoData.length > 0) {
+        dataToUse = renkoData;
+      } else if (chartType === 'heikenashi' && heikenAshiData.length > 0) {
+        dataToUse = heikenAshiData;
+      }
+
+      const indicatorValues = calculateIndicator(type, dataToUse, config.period);
+      // Redisplay indicators...
+    });
+  }
+}
+```
+
+### Common Pitfalls to Avoid
+
+1. **Using wrong data source**: Never calculate Renko indicators on candlestick data
+2. **Time misalignment**: Always use time from the data source being displayed
+3. **Excessive Renko updates**: Only update when bricks form, not on every tick
+4. **Missing HA maintenance**: Must update heikenAshiData array in realtime
+5. **Forgetting chart switches**: Must recalculate indicators when chart type changes
+
+### Testing Checklist
+
+- [ ] Indicators update in realtime for candlestick charts
+- [ ] Indicators update in realtime for Heiken Ashi charts
+- [ ] Indicators update only on new bricks for Renko charts
+- [ ] No distortion or jumping in Renko indicators
+- [ ] Indicators recalculate when switching chart types
+- [ ] Indicators recalculate when changing Renko brick size
+- [ ] Time alignment is correct for all chart types

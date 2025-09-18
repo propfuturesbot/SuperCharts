@@ -6,14 +6,20 @@
 🚀 Backend running on http://localhost:8000
 📄 Contracts cached in: /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableContracts.json
 ✅ Connected to PostgreSQL database
-📊 Chart configuration received: {
+📊 Loading saved strategy: a15969b2-8ca1-47ec-9f78-082dc2f12f10
+Failed to parse saved webhook_payload for chart config: SyntaxError: Unexpected token o in JSON at position 1
+    at JSON.parse (<anonymous>)
+    at /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/simple-backend.js:1585:36
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+📊 Loaded saved strategy configuration: {
   strategyType: 'candlestick',
   timeframe: '100T',
   brickSize: '0.25',
   contractSymbol: 'MNQ',
   strategyName: 'MNQ1234',
   indicators: [],
-  isExistingStrategy: false
+  strategyId: 'a15969b2-8ca1-47ec-9f78-082dc2f12f10',
+  isExistingStrategy: true
 }
 🚀 Launched chart in browser: http://localhost:8000/api/chart
 📊 With configuration: {
@@ -23,24 +29,8 @@
   contractSymbol: 'MNQ',
   strategyName: 'MNQ1234',
   indicators: [],
-  isExistingStrategy: false
-}
-📊 Saving chart strategy: {
-  name: 'MNQ1234',
-  strategy_type: 'candlestick',
-  contract_symbol: 'MNQ',
-  timeframe: '100T',
-  chart_type: 'candlestick',
-  brick_size: 0.25,
-  chart_config: {
-    chartType: 'candlestick',
-    resolution: '100T',
-    brickSize: '0.25',
-    indicators: [],
-    timestamp: '2025-09-17T23:59:24.875Z'
-  },
-  webhook_url: null,
-  webhook_payload: null
+  strategyId: 'a15969b2-8ca1-47ec-9f78-082dc2f12f10',
+  isExistingStrategy: true
 }
 📊 Loading saved strategy: a15969b2-8ca1-47ec-9f78-082dc2f12f10
 Failed to parse saved webhook_payload for chart config: SyntaxError: Unexpected token o in JSON at position 1
