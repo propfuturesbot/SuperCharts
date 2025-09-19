@@ -21,6 +21,34 @@ const getAccessToken = async () => {
   return ACCESS_TOKEN;
 };
 
+// Get contract from URL parameters or chart configuration or use default
+const getContractFromURL = () => {
+  // First check if we have a chart configuration from the strategy wizard
+  if (window.CHART_CONFIG && window.CHART_CONFIG.contractSymbol) {
+    const configContract = window.CHART_CONFIG.contractSymbol.replace(/^\//, '');
+    console.log('📊 Using contract from chart config:', configContract);
+    return configContract;
+  }
+
+  // Otherwise check URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const contract = urlParams.get('contract') || urlParams.get('symbol') || 'MNQ';
+  console.log('📊 Using contract from URL/default:', contract);
+  return contract;
+};
+
+// Convert contract symbol to API format (e.g., ES -> F.US.ES, /ES -> F.US.ES)
+const formatContractSymbol = (symbol) => {
+  // Remove leading slash if present
+  const cleanSymbol = symbol.replace(/^\//, '');
+  // Add F.US. prefix for API
+  return `F.US.${cleanSymbol}`;
+};
+
+// Get current contract
+const CURRENT_CONTRACT = getContractFromURL();
+const API_CONTRACT_SYMBOL = formatContractSymbol(CURRENT_CONTRACT);
+
 let chart = null;
 let candleSeries = null;
 let connection = null;
@@ -76,37 +104,41 @@ const getTicksPerBar = (resolution) => {
 
 const resolutionConfig = {
   // Tick-based resolutions
-  '100T': { countback: 50, displayName: '100 Ticks', symbol: 'F.US.MNQ' },
-  '500T': { countback: 50, displayName: '500 Ticks', symbol: 'F.US.MNQ' },
-  '1000T': { countback: 50, displayName: '1000 Ticks', symbol: 'F.US.MNQ' },
-  '5000T': { countback: 50, displayName: '5000 Ticks', symbol: 'F.US.MNQ' },
-  
+  '100T': { countback: 50, displayName: '100 Ticks', symbol: API_CONTRACT_SYMBOL },
+  '500T': { countback: 50, displayName: '500 Ticks', symbol: API_CONTRACT_SYMBOL },
+  '1000T': { countback: 50, displayName: '1000 Ticks', symbol: API_CONTRACT_SYMBOL },
+  '5000T': { countback: 50, displayName: '5000 Ticks', symbol: API_CONTRACT_SYMBOL },
+
   // Second-based resolutions
-  '1S': { countback: 500, displayName: '1 Second', symbol: 'F.US.MNQ' },
-  '5S': { countback: 500, displayName: '5 Seconds', symbol: 'F.US.MNQ' },
-  '10S': { countback: 500, displayName: '10 Seconds', symbol: 'F.US.MNQ' },
-  '15S': { countback: 500, displayName: '15 Seconds', symbol: 'F.US.MNQ' },
-  '20S': { countback: 500, displayName: '20 Seconds', symbol: 'F.US.MNQ' },
-  '30S': { countback: 500, displayName: '30 Seconds', symbol: 'F.US.MNQ' },
-  
+  '1S': { countback: 500, displayName: '1 Second', symbol: API_CONTRACT_SYMBOL },
+  '5S': { countback: 500, displayName: '5 Seconds', symbol: API_CONTRACT_SYMBOL },
+  '10S': { countback: 500, displayName: '10 Seconds', symbol: API_CONTRACT_SYMBOL },
+  '15S': { countback: 500, displayName: '15 Seconds', symbol: API_CONTRACT_SYMBOL },
+  '20S': { countback: 500, displayName: '20 Seconds', symbol: API_CONTRACT_SYMBOL },
+  '30S': { countback: 500, displayName: '30 Seconds', symbol: API_CONTRACT_SYMBOL },
+
   // Minute-based resolutions
-  '1': { countback: 500, displayName: '1 Minute', symbol: 'F.US.MNQ' },
-  '2': { countback: 500, displayName: '2 Minutes', symbol: 'F.US.MNQ' },
-  '3': { countback: 500, displayName: '3 Minutes', symbol: 'F.US.MNQ' },
-  '4': { countback: 500, displayName: '4 Minutes', symbol: 'F.US.MNQ' },
-  '5': { countback: 500, displayName: '5 Minutes', symbol: 'F.US.MNQ' },
-  '10': { countback: 500, displayName: '10 Minutes', symbol: 'F.US.MNQ' },
-  '15': { countback: 500, displayName: '15 Minutes', symbol: 'F.US.MNQ' },
-  '20': { countback: 500, displayName: '20 Minutes', symbol: 'F.US.MNQ' },
-  '30': { countback: 500, displayName: '30 Minutes', symbol: 'F.US.MNQ' },
-  '45': { countback: 500, displayName: '45 Minutes', symbol: 'F.US.MNQ' },
-  '60': { countback: 500, displayName: '1 Hour', symbol: 'F.US.MNQ' },
-  '1D': { countback: 326, displayName: '1 Day', symbol: 'F.US.MNQ' },
-  '1W': { countback: 500, displayName: '1 Week', symbol: 'F.US.MNQ' },
-  '1M': { countback: 500, displayName: '1 Month', symbol: 'F.US.MNQ' }
+  '1': { countback: 500, displayName: '1 Minute', symbol: API_CONTRACT_SYMBOL },
+  '2': { countback: 500, displayName: '2 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '3': { countback: 500, displayName: '3 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '4': { countback: 500, displayName: '4 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '5': { countback: 500, displayName: '5 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '10': { countback: 500, displayName: '10 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '15': { countback: 500, displayName: '15 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '20': { countback: 500, displayName: '20 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '30': { countback: 500, displayName: '30 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '45': { countback: 500, displayName: '45 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '60': { countback: 500, displayName: '1 Hour', symbol: API_CONTRACT_SYMBOL },
+  '1D': { countback: 326, displayName: '1 Day', symbol: API_CONTRACT_SYMBOL },
+  '1W': { countback: 500, displayName: '1 Week', symbol: API_CONTRACT_SYMBOL },
+  '1M': { countback: 500, displayName: '1 Month', symbol: API_CONTRACT_SYMBOL }
 };
 
-const getHistoricalData = async (resolution, countback, symbol = "%2FMNQ") => {
+const getHistoricalData = async (resolution, countback, symbol = null) => {
+  // Use provided symbol or default to current contract
+  if (!symbol) {
+    symbol = `%2F${CURRENT_CONTRACT}`;
+  }
   try {
     const now = Math.floor(Date.now() / 1000);
     const from = now - (86400 * 7); // 7 days ago
@@ -1839,11 +1871,11 @@ const changeChartType = (chartType) => {
   }
   
   // Update the chart title based on type
-  let title = '/MNQ Real-Time Chart';
+  let title = `/${CURRENT_CONTRACT} Real-Time Chart`;
   if (chartType === 'heikenashi') {
-    title = '/MNQ Heiken Ashi Chart';
+    title = `/${CURRENT_CONTRACT} Heiken Ashi Chart`;
   } else if (chartType === 'renko') {
-    title = `/MNQ Renko Chart (${currentBrickSize})`;
+    title = `/${CURRENT_CONTRACT} Renko Chart (${currentBrickSize})`;
   }
   document.querySelector('h1').textContent = title;
   
@@ -1901,7 +1933,7 @@ const updateRenkoBrickSize = () => {
 
     currentBrickSize = newBrickSize;
     // Update chart title
-    document.querySelector('h1').textContent = `/MNQ Renko Chart (${currentBrickSize})`;
+    document.querySelector('h1').textContent = `/${CURRENT_CONTRACT} Renko Chart (${currentBrickSize})`;
     
     // Reset Renko state when changing brick size
     renkoState = {

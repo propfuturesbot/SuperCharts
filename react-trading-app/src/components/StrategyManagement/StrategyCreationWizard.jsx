@@ -438,7 +438,7 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
           strategyType: formData.strategyType,
           timeframe: formData.timeframe,
           brickSize: formData.brickSize,
-          contractSymbol: formData.contract?.symbol || '/MNQ',
+          contractSymbol: formData.contract?.symbol || 'MNQ',
           strategyName: formData.strategyName
         };
         console.log('Launching chart with config:', chartConfig);

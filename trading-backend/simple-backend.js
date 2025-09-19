@@ -2106,7 +2106,7 @@ app.post('/api/launch-chart', async (req, res) => {
         strategyType: req.body?.strategyType || 'candlestick',
         timeframe: req.body?.timeframe || '100T',
         brickSize: req.body?.brickSize || '0.25',
-        contractSymbol: req.body?.contractSymbol || '/MNQ',
+        contractSymbol: req.body?.contractSymbol || 'MNQ',
         strategyName: req.body?.strategyName || 'Default',
         indicators: req.body?.indicators || [],
         isExistingStrategy: false
