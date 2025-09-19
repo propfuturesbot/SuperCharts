@@ -471,7 +471,12 @@ const handleRealTimeBar = (bar) => {
       } else if (currentChartType === 'renko' && isNewRenkoBrick) {
         // For Renko, only update indicators when a new brick is created
         updateIndicators(update, true);
-        checkRealtimeSignal(update);
+
+        // For signals, use the latest Renko brick instead of raw market data
+        const latestRenkoBrick = renkoData[renkoData.length - 1];
+        if (latestRenkoBrick) {
+          checkRealtimeSignal(latestRenkoBrick);
+        }
       }
     }
   } catch (chartError) {
@@ -1321,12 +1326,22 @@ const detectDonchianSignals = (data) => {
 };
 
 const displaySignalsOnChart = () => {
-  if (!candleSeries || !historicalData) return;
-  
+  if (!candleSeries) return;
+
+  // Use the appropriate data source based on chart type
+  let dataForSignals = historicalData;
+  if (currentChartType === 'renko' && renkoData && renkoData.length > 0) {
+    dataForSignals = renkoData;
+  } else if (currentChartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
+    dataForSignals = heikenAshiData;
+  }
+
+  if (!dataForSignals) return;
+
   // Clear existing markers
   candleSeries.setMarkers([]);
-  
-  const signals = detectDonchianSignals(historicalData);
+
+  const signals = detectDonchianSignals(dataForSignals);
   if (signals.length === 0) return;
   
   // Create markers for signals
@@ -1349,20 +1364,28 @@ const displaySignalsOnChart = () => {
 };
 
 const checkRealtimeSignal = (newBar) => {
-  if (!newBar || !historicalData || historicalData.length < 2) return;
-  
+  // Use the appropriate data source based on chart type
+  let dataForSignals = historicalData;
+  if (currentChartType === 'renko' && renkoData && renkoData.length > 0) {
+    dataForSignals = renkoData;
+  } else if (currentChartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
+    dataForSignals = heikenAshiData;
+  }
+
+  if (!newBar || !dataForSignals || dataForSignals.length < 2) return;
+
   const donchianConfig = activeIndicators.get('DonchianChannel');
   if (!donchianConfig || !donchianConfig.values) return;
-  
+
   const { upper, lower } = donchianConfig.values;
   if (!upper || !lower || upper.length === 0) return;
-  
+
   // Get the latest Donchian values
   const latestUpper = upper[upper.length - 1];
   const latestLower = lower[lower.length - 1];
-  
-  // Get previous bar
-  const prevBar = historicalData[historicalData.length - 2];
+
+  // Get previous bar from the appropriate data source
+  const prevBar = dataForSignals[dataForSignals.length - 2];
   if (!prevBar) return;
   
   // Check for buy signal
@@ -1827,6 +1850,11 @@ const changeChartType = (chartType) => {
     });
 
     updateActiveIndicatorsDisplay();
+
+    // Re-display Donchian Channel signals if active
+    if (activeIndicators.has('DonchianChannel')) {
+      displaySignalsOnChart();
+    }
   }
 };
 
@@ -1885,6 +1913,11 @@ const updateRenkoBrickSize = () => {
               activeIndicators.set(type, { period: config.period, values: indicatorValues });
             }
           });
+
+          // Re-display Donchian Channel signals if active
+          if (activeIndicators.has('DonchianChannel')) {
+            displaySignalsOnChart();
+          }
         }
       } catch (error) {
         console.error('Error updating Renko chart:', error);
