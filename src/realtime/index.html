@@ -266,36 +266,36 @@
           }
           
           return {
-            upperBand: upperBand,
-            middleBand: middleBand,
-            lowerBand: lowerBand
+            upper: upperBand,
+            middle: middleBand,
+            lower: lowerBand
           };
         },
         
-        donchianChannel: function(highData, lowData, config) {
-          const period = config.period || 20;
+        donchianChannel: function(data, config) {
+          const period = config.period || 4;
           const upperChannel = [];
           const lowerChannel = [];
           const middleChannel = [];
-          
-          for (let i = period - 1; i < highData.length; i++) {
-            let highest = highData[i];
-            let lowest = lowData[i];
-            
+
+          for (let i = period - 1; i < data.length; i++) {
+            let highest = data[i];
+            let lowest = data[i];
+
             for (let j = 0; j < period; j++) {
-              highest = Math.max(highest, highData[i - j]);
-              lowest = Math.min(lowest, lowData[i - j]);
+              highest = Math.max(highest, data[i - j]);
+              lowest = Math.min(lowest, data[i - j]);
             }
-            
+
             upperChannel.push(highest);
             lowerChannel.push(lowest);
             middleChannel.push((highest + lowest) / 2);
           }
-          
+
           return {
-            upperChannel: upperChannel,
-            middleChannel: middleChannel,
-            lowerChannel: lowerChannel
+            upper: upperChannel,
+            middle: middleChannel,
+            lower: lowerChannel
           };
         }
       };

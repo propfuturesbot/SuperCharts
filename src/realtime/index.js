@@ -917,18 +917,18 @@ const calculateIndicator = (type, data, period = 14) => {
       case 'RSI':
         return window.indicators.rsi(closePrices, { period });
       case 'BollingerBands':
-        const bbResult = window.indicators.bollingerBands(closePrices, { period, multiplier: 2 });
+        const bbResult = window.indicators.bollingerBands(closePrices, { period });
         return {
-          upper: bbResult.upperBand,
-          middle: bbResult.middleBand,
-          lower: bbResult.lowerBand
+          upper: bbResult.upper,
+          middle: bbResult.middle,
+          lower: bbResult.lower
         };
       case 'DonchianChannel':
-        const dcResult = window.indicators.donchianChannel(highPrices, lowPrices, { period });
+        const dcResult = window.indicators.donchianChannel(closePrices, { period });
         return {
-          upper: dcResult.upperChannel,
-          middle: dcResult.middleChannel,
-          lower: dcResult.lowerChannel
+          upper: dcResult.upper,
+          middle: dcResult.middle,
+          lower: dcResult.lower
         };
       default:
         console.warn('Indicator type not implemented yet:', type);
@@ -1129,7 +1129,7 @@ const updateIndicators = (newBarData, isNewRenkoBrick = false) => {
   activeIndicators.forEach((config, type) => {
     try {
       const newValues = calculateIndicator(type, dataForIndicator, config.period);
-      if (newValues && newValues.length > 0) {
+      if (newValues && (newValues.length > 0 || (newValues.upper && newValues.upper.length > 0))) {
 
         // Get the latest time from the appropriate data source
         const latestTime = dataForIndicator[dataForIndicator.length - 1]?.time;
