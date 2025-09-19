@@ -35,7 +35,9 @@
       "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_CNnAKo/**)",
       "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_b8JHtD/**)",
       "Bash(npm run lint)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_589P0X/**)",
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_sAckQm/**)"
     ],
     "deny": [],
     "ask": []

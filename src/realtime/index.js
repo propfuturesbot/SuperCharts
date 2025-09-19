@@ -93,8 +93,6 @@ const getHistoricalData = async (resolution, countback, symbol = "%2FMNQ") => {
     
     const url = `https://chartapi.topstepx.com/History/v2?Symbol=${symbol}&Resolution=${resolution}&Countback=${countback}&From=${from}&To=${to}&SessionId=extended&Live=false`;
     
-    console.log('Fetching historical data:', url);
-    
     const res = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${ACCESS_TOKEN}`,
@@ -109,8 +107,6 @@ const getHistoricalData = async (resolution, countback, symbol = "%2FMNQ") => {
     }
     
     const text = await res.text();
-    console.log('Raw response (first 500 chars):', text.substring(0, 500));
-    
     let data;
     try {
       data = JSON.parse(text);
@@ -126,8 +122,6 @@ const getHistoricalData = async (resolution, countback, symbol = "%2FMNQ") => {
       console.error('Unexpected data format:', data);
       return [];
     }
-    
-    console.log(`Received ${bars.length} bars for resolution ${resolution}`);
     
     if (bars.length === 0) {
       console.warn(`No data received for resolution ${resolution}`);
@@ -162,7 +156,6 @@ const getHistoricalData = async (resolution, countback, symbol = "%2FMNQ") => {
 
     // Fix duplicate timestamps for tick charts by adding incremental seconds
     if (resolution.endsWith('T') && chartData.length > 0) {
-      console.log('Fixing duplicate timestamps for tick chart...');
       let duplicatesFixed = 0;
       
       for (let i = 1; i < chartData.length; i++) {
@@ -171,17 +164,10 @@ const getHistoricalData = async (resolution, countback, symbol = "%2FMNQ") => {
           duplicatesFixed++;
         }
       }
-      
-      console.log(`Fixed ${duplicatesFixed} duplicate timestamps in tick chart historical data`);
-    }
-    
-    console.log(`Processed ${chartData.length} valid bars`);
-    
+}
     if (chartData.length > 0) {
       lastBarTime = chartData[chartData.length - 1].time;
       currentBar = { ...chartData[chartData.length - 1] };
-      console.log('Last bar time:', new Date(lastBarTime * 1000).toLocaleString());
-      console.log('Last bar:', currentBar);
     }
     
     return chartData;
@@ -262,13 +248,6 @@ const setupRealTimeConnection = async () => {
       .build();
     
     connection.on("RealTimeBar", (receivedSymbol, receivedResolution, bar) => {
-      console.log('RealTimeBar received:', {
-        symbol: receivedSymbol,
-        resolution: receivedResolution,
-        bar: bar,
-        currentResolution: currentResolution
-      });
-      
       // Check if this update is for our current resolution
       if (receivedResolution === currentResolution) {
         handleRealTimeBar(bar);
@@ -276,23 +255,19 @@ const setupRealTimeConnection = async () => {
     });
     
     connection.onreconnecting(() => {
-      console.log('Reconnecting to SignalR...');
       updateStatus('Reconnecting...', false);
     });
     
     connection.onreconnected(async () => {
-      console.log('Reconnected to SignalR');
       updateStatus('Connected', true);
       await subscribeToResolution(currentResolution);
     });
     
     connection.onclose(() => {
-      console.log('SignalR connection closed');
       updateStatus('Disconnected', false);
     });
     
     await connection.start();
-    console.log('Connected to SignalR hub successfully');
     updateStatus('Connected', true);
     
     // Subscribe to the current resolution
@@ -309,12 +284,10 @@ const handleRealTimeBar = (bar) => {
     console.warn('Invalid bar received:', bar);
     return;
   }
-  
+
   // Store the original bar data
   const originalBar = { ...bar };
-  
-  console.log('Raw bar data:', bar);
-  
+
   let timestamp;
   
   // Try timestampUnix first (if it's valid)
@@ -342,39 +315,24 @@ const handleRealTimeBar = (bar) => {
     console.warn('Invalid timestamp:', timestamp);
     return;
   }
-  
-  // Debug the timestamp conversion
-  console.log('Timestamp conversion debug:', {
-    original: bar.timestamp,
-    timestampUnix: bar.timestampUnix,
-    parsed: timestamp,
-    asDate: new Date(timestamp).toLocaleString()
-  });
-  
   // Fix timestamp format - API might be returning microseconds or nanoseconds
   // Current timestamp should be around 1724000000000 (Aug 2024 in milliseconds)
   // Your timestamp 1755623700000000 is way too large
   
   if (timestamp > 10000000000000000) { // 17+ digits - likely nanoseconds or wrong format
-    console.log('Timestamp too large, trying division by 1000000 (nanoseconds to milliseconds)');
     timestamp = Math.floor(timestamp / 1000000);
   } else if (timestamp > 100000000000000) { // 15+ digits - likely microseconds
-    console.log('Converting from microseconds to milliseconds');
     timestamp = Math.floor(timestamp / 1000);
   } else if (timestamp < 946684800000) { // Less than year 2000 in milliseconds
     if (timestamp > 946684800) { // Greater than year 2000 in seconds
-      console.log('Converting from seconds to milliseconds');
       timestamp = timestamp * 1000;
     }
   }
   
   // Additional check - if still not in reasonable range, try more aggressive conversion
   if (timestamp > 2000000000000) { // If still larger than year 2033
-    console.log('Timestamp still too large, trying additional division by 1000');
     timestamp = Math.floor(timestamp / 1000);
   }
-  
-  console.log('Final timestamp:', timestamp, 'as date:', new Date(timestamp).toLocaleString());
   
   const barTime = Math.floor(timestamp / 1000);
   const update = {
@@ -392,14 +350,6 @@ const handleRealTimeBar = (bar) => {
     console.warn('Invalid bar data, skipping update:', update);
     return;
   }
-  
-  console.log('Processing bar update:', {
-    barTime: new Date(barTime * 1000).toLocaleString(),
-    lastBarTime: lastBarTime ? new Date(lastBarTime * 1000).toLocaleString() : 'none',
-    isClosed: bar.isClosed,
-    update
-  });
-  
   // Validate OHLC relationships
   if (update.high < update.low || 
       update.high < update.open || 
@@ -469,7 +419,7 @@ const handleRealTimeBar = (bar) => {
               }
             });
             
-            console.log(`Added ${newBricks.length} new Renko brick(s)`);
+            //console.log(`Added ${newBricks.length} new Renko brick(s)`);
           }
           
           // Don't update with regular displayUpdate for Renko
@@ -530,7 +480,7 @@ const handleRealTimeBar = (bar) => {
 };
 
 const handleTickChartUpdate = (update, bar) => {
-  console.log('Tick chart: Received tick data - price:', update.close, 'volume:', update.volume);
+  //console.log('Tick chart: Received tick data - price:', update.close, 'volume:', update.volume);
   
   // Extract tick price (use close price as the tick price)
   const tickPrice = update.close;
@@ -543,23 +493,23 @@ const handleTickChartUpdate = (update, bar) => {
   
   if (!tickAccumulator) {
     shouldCreateNewBar = true;
-    console.log(`Tick chart: Starting first ${currentResolution} bar (${currentTicksPerBar} ticks per bar)`);
+    //console.log(`Tick chart: Starting first ${currentResolution} bar (${currentTicksPerBar} ticks per bar)`);
   } else {
     // Check if enough ticks have been accumulated
     if (tickCount >= currentTicksPerBar) {
       shouldCreateNewBar = true;
-      console.log(`Tick chart: ${currentTicksPerBar} ticks reached for ${currentResolution}, creating new bar`);
+      //console.log(`Tick chart: ${currentTicksPerBar} ticks reached for ${currentResolution}, creating new bar`);
     }
     // Also create new bar if significant time has passed (more than 30 seconds for larger tick resolutions)
     else if (lastTickTime && (tickTime - lastTickTime) > 30) {
       shouldCreateNewBar = true;
-      console.log('Tick chart: Time gap detected, creating new bar');
+      //console.log('Tick chart: Time gap detected, creating new bar');
     }
   }
   
   // If we need to create a new bar, finalize the current one first
   if (shouldCreateNewBar && tickAccumulator) {
-    console.log(`Tick chart: Finalizing current ${currentResolution} bar - ticks: ${tickCount}/${currentTicksPerBar}, OHLC: ${tickAccumulator.open}/${tickAccumulator.high}/${tickAccumulator.low}/${tickAccumulator.close}`);
+    //console.log(`Tick chart: Finalizing current ${currentResolution} bar - ticks: ${tickCount}/${currentTicksPerBar}, OHLC: ${tickAccumulator.open}/${tickAccumulator.high}/${tickAccumulator.low}/${tickAccumulator.close}`);
     
     // Finalize current bar
     lastBarTime = tickAccumulator.time;
@@ -579,7 +529,6 @@ const handleTickChartUpdate = (update, bar) => {
       time: barTime
     };
     tickCount = 0;
-    console.log(`Tick chart: Started new ${currentResolution} bar at time ${new Date(barTime * 1000).toLocaleString()}`);
   }
   
   // Update the current accumulator with this tick
@@ -590,7 +539,7 @@ const handleTickChartUpdate = (update, bar) => {
   tickCount++;
   lastTickTime = tickTime;
   
-  console.log(`Tick chart: Updated ${currentResolution} bar ${tickCount}/${currentTicksPerBar} - Price: ${tickPrice}, Bar: O:${tickAccumulator.open} H:${tickAccumulator.high} L:${tickAccumulator.low} C:${tickAccumulator.close}`);
+  //console.log(`Tick chart: Updated ${currentResolution} bar ${tickCount}/${currentTicksPerBar} - Price: ${tickPrice}, Bar: O:${tickAccumulator.open} H:${tickAccumulator.high} L:${tickAccumulator.low} C:${tickAccumulator.close}`);
   
   // Create current bar data for chart update
   let currentBarData = {
@@ -654,7 +603,6 @@ const handleTickChartUpdate = (update, bar) => {
         // Update indicators when new Renko bricks are formed
         updateIndicators(currentBarData, true);
 
-        console.log(`Tick chart: Added ${newBricks.length} new Renko brick(s)`);
         return; // Don't update with regular currentBarData
       }
       
@@ -704,7 +652,6 @@ const subscribeToResolution = async (resolution) => {
       try {
         const prevConfig = resolutionConfig[currentSubscription];
         await connection.invoke("UnsubscribeBars", prevConfig.symbol, currentSubscription);
-        console.log(`Unsubscribed from ${prevConfig.symbol} ${currentSubscription}`);
       } catch (unsubError) {
         console.warn('Error unsubscribing:', unsubError);
       }
@@ -713,7 +660,6 @@ const subscribeToResolution = async (resolution) => {
     // Subscribe to new resolution
     if (connection && connection.state === signalR.HubConnectionState.Connected) {
       await connection.invoke("SubscribeBars", symbol, resolution);
-      console.log(`Subscribed to ${symbol} ${resolution}`);
       currentSubscription = resolution;
     }
     
@@ -735,8 +681,6 @@ const updateStatus = (text, isConnected) => {
 };
 
 const changeResolution = async (resolution) => {
-  console.log(`=== Changing resolution to "${resolution}" ===`);
-  console.log('Resolution config:', resolutionConfig[resolution]);
   currentResolution = resolution;
   lastBarTime = null;
   currentBar = null;
@@ -748,8 +692,6 @@ const changeResolution = async (resolution) => {
   
   // Set the appropriate ticks per bar for this resolution
   currentTicksPerBar = getTicksPerBar(resolution);
-  console.log(`Setting ticks per bar for ${resolution}: ${currentTicksPerBar}`);
-  
   // Clear chart data and indicators
   if (candleSeries) {
     candleSeries.setData([]);
@@ -778,21 +720,12 @@ const changeResolution = async (resolution) => {
   
   // Debug: Check chart container
   const chartElement = document.getElementById('chart');
-  console.log('Chart container dimensions:', {
-    width: chartElement.offsetWidth,
-    height: chartElement.offsetHeight,
-    display: getComputedStyle(chartElement).display,
-    visibility: getComputedStyle(chartElement).visibility
-  });
   
   // Load historical data for new resolution
   const config = resolutionConfig[resolution];
-  console.log(`Loading data for resolution "${resolution}" with config:`, config);
   historicalData = await getHistoricalData(resolution, config.countback);
   
   if (historicalData && historicalData.length > 0) {
-    console.log(`Setting ${historicalData.length} bars on chart`);
-    
     // Ensure we have valid candlestick data
     const validData = historicalData.filter(d => {
       return d && 
@@ -813,9 +746,6 @@ const changeResolution = async (resolution) => {
              d.low <= d.open &&
              d.low <= d.close;
     });
-    
-    console.log(`Filtered data: ${validData.length} valid bars out of ${historicalData.length}`);
-    
     if (validData.length > 0) {
       try {
         // Sort by time to ensure proper order
@@ -827,10 +757,8 @@ const changeResolution = async (resolution) => {
         // Calculate Heiken Ashi data if that chart type is selected
         if (currentChartType === 'heikenashi') {
           heikenAshiData = calculateHeikenAshi(validData);
-          console.log('Calculated Heiken Ashi data with', heikenAshiData.length, 'bars');
         } else if (currentChartType === 'renko') {
           renkoData = convertToRenko(validData, currentBrickSize, false);
-          console.log('Calculated Renko data with', renkoData.length, 'bricks');
         }
         
         // Determine which data to display
@@ -840,17 +768,7 @@ const changeResolution = async (resolution) => {
         } else if (currentChartType === 'renko') {
           dataToDisplay = renkoData;
         }
-        
-        // Debug: Show sample of data being set
-        console.log('Sample data being set on chart:');
-        console.log('First 3 bars:', JSON.stringify(dataToDisplay.slice(0, 3), null, 2));
-        console.log('Last 3 bars:', JSON.stringify(dataToDisplay.slice(-3), null, 2));
-        console.log('Time range:', {
-          first: new Date(dataToDisplay[0].time * 1000).toLocaleString(),
-          last: new Date(dataToDisplay[dataToDisplay.length - 1].time * 1000).toLocaleString(),
-          totalBars: dataToDisplay.length
-        });
-        
+
         candleSeries.setData(dataToDisplay);
         
         // Update chart time scale to fit the data
@@ -860,14 +778,8 @@ const changeResolution = async (resolution) => {
         if (currentResolution.endsWith('T') && dataToDisplay.length > 10) {
           const lastTime = dataToDisplay[dataToDisplay.length - 1].time;
           const firstTime = dataToDisplay[Math.max(0, dataToDisplay.length - 100)].time;
-          console.log('Setting tick chart visible range:', {
-            from: new Date(firstTime * 1000).toLocaleString(),
-            to: new Date(lastTime * 1000).toLocaleString()
-          });
           chart.timeScale().setVisibleRange({ from: firstTime, to: lastTime });
         }
-        
-        console.log('Chart data set successfully, visible range:', chart.timeScale().getVisibleRange());
       } catch (chartError) {
         console.error('Error setting chart data:', chartError);
       }
@@ -888,8 +800,6 @@ const changeResolution = async (resolution) => {
 };
 
 const main = async () => {
-  console.log('=== Initializing application ===');
-  
   // Check if required libraries are loaded
   if (typeof LightweightCharts === 'undefined') {
     console.error('LightweightCharts library not loaded!');
@@ -900,29 +810,20 @@ const main = async () => {
     console.error('SignalR library not loaded!');
     return;
   }
-  
-  console.log('All required libraries loaded successfully');
-  
   // Initialize the chart
-  console.log('Initializing chart...');
   initializeChart();
   
   if (!chart) {
     console.error('Failed to initialize chart');
     return;
   }
-  
-  console.log('Chart initialized successfully');
-  
   // Load initial data
   const initialResolution = document.getElementById('resolution').value;
   currentResolution = initialResolution;
   
   // Set initial ticks per bar
   currentTicksPerBar = getTicksPerBar(initialResolution);
-  
-  console.log(`Loading initial data for resolution: "${initialResolution}"`);
-  console.log('Initial resolution config:', resolutionConfig[initialResolution]);
+
   const config = resolutionConfig[initialResolution];
   
   if (!config) {
@@ -933,8 +834,6 @@ const main = async () => {
   historicalData = await getHistoricalData(initialResolution, config.countback);
   
   if (historicalData && historicalData.length > 0) {
-    console.log(`Setting ${historicalData.length} initial bars on chart`);
-    
     // Ensure we have valid candlestick data
     const validData = historicalData.filter(d => {
       return d && 
@@ -955,9 +854,6 @@ const main = async () => {
              d.low <= d.open &&
              d.low <= d.close;
     });
-    
-    console.log(`Filtered data: ${validData.length} valid bars out of ${historicalData.length}`);
-    
     if (validData.length > 0) {
       try {
         // Sort by time to ensure proper order
@@ -994,7 +890,6 @@ const main = async () => {
   }
   
   // Setup real-time connection
-  console.log('Setting up real-time connection...');
   await setupRealTimeConnection();
 };
 
@@ -1051,9 +946,6 @@ const addIndicator = (indicatorType) => {
     document.getElementById('indicators').value = '';
     return;
   }
-  
-  console.log('Adding indicator:', indicatorType);
-  
   if (!historicalData || historicalData.length === 0) {
     alert('No data available to calculate indicators');
     document.getElementById('indicators').value = '';
@@ -1073,10 +965,8 @@ const addIndicator = (indicatorType) => {
     let dataForIndicator = historicalData;
     if (currentChartType === 'renko' && renkoData && renkoData.length > 0) {
       dataForIndicator = renkoData;
-      console.log('Using Renko data for indicator calculation');
     } else if (currentChartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
       dataForIndicator = heikenAshiData;
-      console.log('Using Heiken Ashi data for indicator calculation');
     }
 
     const indicatorValues = calculateIndicator(indicatorType, dataForIndicator, periodNum);
@@ -1097,8 +987,6 @@ const addIndicator = (indicatorType) => {
     if (indicatorType === 'DonchianChannel') {
       displaySignalsOnChart();
     }
-    
-    console.log(`${indicatorType} indicator added successfully`);
   } catch (error) {
     console.error('Error adding indicator:', error);
     alert('Error adding indicator: ' + error.message);
@@ -1187,9 +1075,6 @@ const displayIndicator = (type, values, period) => {
       lineSeries.setData(indicatorData);
       indicatorSeries.set(type, lineSeries);
     }
-    
-    console.log(`Displayed ${type} indicator with ${Array.isArray(values) ? values.length : 'multiple'} data points`);
-    
   } catch (error) {
     console.error('Error displaying indicator:', error);
   }
@@ -1262,8 +1147,6 @@ const updateIndicators = (newBarData, isNewRenkoBrick = false) => {
             upperSeries.update({ time: latestTime, value: newValues.upper[latestIndex] });
             middleSeries.update({ time: latestTime, value: newValues.middle[latestIndex] });
             lowerSeries.update({ time: latestTime, value: newValues.lower[latestIndex] });
-
-            console.log(`Updated ${type} indicator - time: ${latestTime}, upper: ${newValues.upper[latestIndex]}`);
           }
         } else if (Array.isArray(newValues)) {
           const series = indicatorSeries.get(type);
@@ -1272,7 +1155,6 @@ const updateIndicators = (newBarData, isNewRenkoBrick = false) => {
 
             if (!isNaN(latestValue)) {
               series.update({ time: latestTime, value: latestValue });
-              console.log(`Updated ${type} indicator - time: ${latestTime}, value: ${latestValue}`);
             }
           }
         }
@@ -1292,8 +1174,6 @@ const updateIndicators = (newBarData, isNewRenkoBrick = false) => {
 };
 
 const removeIndicator = (indicatorType) => {
-  console.log('Removing indicator:', indicatorType);
-  
   // Remove from active indicators
   activeIndicators.delete(indicatorType);
   
@@ -1335,10 +1215,7 @@ const removeIndicator = (indicatorType) => {
     activeSignals.clear();
     lastTouchLower = false;
     lastTouchUpper = false;
-    console.log('Trading signals cleared');
   }
-  
-  console.log(`${indicatorType} indicator removed successfully`);
 };
 
 const updateActiveIndicatorsDisplay = () => {
@@ -1463,20 +1340,12 @@ const displaySignalsOnChart = () => {
   
   candleSeries.setMarkers(markers);
   signalMarkers = markers;
-  
+
   // Update active signals
   activeSignals.clear();
   signals.forEach(signal => {
     activeSignals.set(signal.time, signal);
   });
-  
-  console.log(`Displayed ${signals.length} trading signals on chart`);
-  
-  // Show latest signals in console for debugging
-  const latestSignals = signals.slice(-5);
-  if (latestSignals.length > 0) {
-    console.log('Latest signals:', latestSignals);
-  }
 };
 
 const checkRealtimeSignal = (newBar) => {
@@ -1502,12 +1371,6 @@ const checkRealtimeSignal = (newBar) => {
   
   if (prevTouchedLower && currentIsGreen && !lastTouchLower) {
     // Generate buy signal
-    console.log('🟢 BUY SIGNAL DETECTED!', {
-      time: new Date(newBar.time * 1000).toLocaleString(),
-      price: newBar.close,
-      reason: 'Price touched Donchian lower + Green candle'
-    });
-    
     // Add marker to chart
     const currentMarkers = signalMarkers || [];
     currentMarkers.push({
@@ -1531,12 +1394,6 @@ const checkRealtimeSignal = (newBar) => {
   
   if (prevTouchedUpper && currentIsRed && !lastTouchUpper) {
     // Generate sell signal
-    console.log('🔴 SELL SIGNAL DETECTED!', {
-      time: new Date(newBar.time * 1000).toLocaleString(),
-      price: newBar.close,
-      reason: 'Price touched Donchian upper + Red candle'
-    });
-    
     // Add marker to chart
     const currentMarkers = signalMarkers || [];
     currentMarkers.push({
@@ -1592,7 +1449,6 @@ const convertToRenko = (data, brickSize = null, useATR = true) => {
   if (brickSize === null || useATR) {
     const atrValue = calculateATR(data);
     brickSize = Math.max(1, Math.round(atrValue * 0.5));
-    console.log('Calculated ATR brick size:', brickSize);
   }
   
   // Ensure brick size is valid
@@ -1707,8 +1563,7 @@ const convertToRenko = (data, brickSize = null, useATR = true) => {
     renkoState.direction = lastBrick.direction;
     renkoState.lastTimestamp = lastBrick.time;
   }
-  
-  console.log(`Generated ${validBricks.length} valid Renko bricks with size ${brickSize}`);
+
   return validBricks;
 };
 
@@ -1800,8 +1655,7 @@ const updateRenkoWithNewBar = (newBar, brickSize) => {
            !isNaN(brick.close) &&
            brick.high >= brick.low;
   });
-  
-  console.log(`Real-time: Generated ${validBricks.length} new Renko bricks, last timestamp: ${renkoState.lastTimestamp}`);
+
   return validBricks;
 };
 
@@ -1889,12 +1743,10 @@ const updateChartData = () => {
       // Calculate Heiken Ashi data
       heikenAshiData = calculateHeikenAshi(historicalData);
       dataToDisplay = heikenAshiData;
-      console.log('Displaying Heiken Ashi data with', dataToDisplay.length, 'bars');
     } else if (currentChartType === 'renko') {
       // Calculate Renko data
       renkoData = convertToRenko(historicalData, currentBrickSize, false);
       dataToDisplay = renkoData;
-      console.log('Displaying Renko data with', dataToDisplay.length, 'bricks');
       
       // Validate Renko data
       if (dataToDisplay.length === 0) {
@@ -1902,8 +1754,6 @@ const updateChartData = () => {
         updateStatus('No Renko bricks generated', false);
         return;
       }
-    } else {
-      console.log('Displaying Candlestick data with', dataToDisplay.length, 'bars');
     }
     
     // Validate data before setting
@@ -1924,9 +1774,6 @@ const updateChartData = () => {
       const firstTime = dataToDisplay[Math.max(0, dataToDisplay.length - 100)].time;
       chart.timeScale().setVisibleRange({ from: firstTime, to: lastTime });
     }
-    
-    console.log('Chart updated successfully with', dataToDisplay.length, 'data points');
-    
   } catch (error) {
     console.error('Error updating chart data:', error);
     updateStatus('Chart update error', false);
@@ -1934,7 +1781,6 @@ const updateChartData = () => {
 };
 
 const changeChartType = (chartType) => {
-  console.log('Changing chart type to:', chartType);
   currentChartType = chartType;
   
   // Show/hide Renko brick size controls
@@ -1969,10 +1815,8 @@ const changeChartType = (chartType) => {
       let dataToUse = historicalData;
       if (chartType === 'renko' && renkoData && renkoData.length > 0) {
         dataToUse = renkoData;
-        console.log('Recalculating indicators for Renko data');
       } else if (chartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
         dataToUse = heikenAshiData;
-        console.log('Recalculating indicators for Heiken Ashi data');
       }
 
       const indicatorValues = calculateIndicator(type, dataToUse, config.period);
@@ -2003,10 +1847,8 @@ const updateRenkoBrickSize = () => {
       brickSizeInput.value = currentBrickSize;
       return;
     }
-    
+
     currentBrickSize = newBrickSize;
-    console.log('Updated brick size to:', currentBrickSize);
-    
     // Update chart title
     document.querySelector('h1').textContent = `/MNQ Renko Chart (${currentBrickSize})`;
     

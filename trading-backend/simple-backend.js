@@ -811,27 +811,64 @@ app.get('/api/chart', (req, res) => {
               }
             }
 
-            // Update the title if there's a contract symbol
-            if (window.CHART_CONFIG.contractSymbol) {
-              const title = document.querySelector('h1');
-              if (title) {
-                title.textContent = window.CHART_CONFIG.contractSymbol + ' Real-Time Chart';
+            // Update the title with contract symbol and strategy name
+            const title = document.querySelector('h1');
+            if (title && window.CHART_CONFIG.contractSymbol) {
+              let titleText = window.CHART_CONFIG.contractSymbol + ' Real-Time Chart';
+              if (window.CHART_CONFIG.strategyName && window.CHART_CONFIG.strategyName !== 'Default') {
+                titleText += ' - ' + window.CHART_CONFIG.strategyName;
               }
+              title.textContent = titleText;
             }
 
             // Add appropriate button based on strategy type
             setTimeout(() => {
               console.log('=== Attempting to add Save/Update Strategy button ===');
 
-              // Try multiple selectors to find the header area
-              let targetElement = document.querySelector('.header');
+              // First, try to find and replace the "Connected" label
+              let connectedElement = document.querySelector('.connected-status, #connected, [class*="connected"]');
+
+              // Also try to find by text content
+              if (!connectedElement) {
+                const allElements = document.querySelectorAll('*');
+                for (let element of allElements) {
+                  if (element.textContent && element.textContent.trim() === 'Connected' &&
+                      element.children.length === 0) {
+                    connectedElement = element;
+                    break;
+                  }
+                }
+              }
+
+              // Also check for elements with green background (typical for Connected status)
+              if (!connectedElement) {
+                const greenElements = document.querySelectorAll('[style*="background"]');
+                for (let element of greenElements) {
+                  if (element.textContent && element.textContent.trim() === 'Connected') {
+                    connectedElement = element;
+                    break;
+                  }
+                }
+              }
+
+              if (connectedElement) {
+                console.log('Found connected element to replace:', connectedElement);
+                // Instead of removing, we'll replace its content
+                connectedElement.style.display = 'none';
+              }
+
+              // Look for the indicators dropdown container to place the button nearby
+              let targetElement = document.querySelector('#indicators')?.parentElement;
               if (!targetElement) {
-                targetElement = document.querySelector('h1').parentElement;
-                console.log('Using h1 parent as target element');
+                // Try finding header controls area
+                targetElement = document.querySelector('.header-controls, .controls, .toolbar');
               }
               if (!targetElement) {
-                targetElement = document.querySelector('body');
-                console.log('Using body as target element');
+                // Fall back to h1 parent
+                targetElement = document.querySelector('h1')?.parentElement;
+              }
+              if (!targetElement) {
+                targetElement = document.body;
               }
 
               if (targetElement && !document.getElementById('saveStrategyBtn')) {
@@ -843,17 +880,50 @@ app.get('/api/chart', (req, res) => {
                   background-color: #4CAF50;
                   color: white;
                   border: none;
-                  padding: 8px 16px;
+                  padding: 8px 12px;
                   border-radius: 4px;
                   cursor: pointer;
-                  margin: 10px;
-                  font-size: 14px;
-                  position: fixed;
-                  top: 10px;
-                  right: 10px;
-                  z-index: 9999;
+                  margin-left: 10px;
+                  font-size: 13px;
+                  display: inline-block;
+                  vertical-align: middle;
                   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                 \`;
+
+                // Try to position it where the Connected label was
+                if (connectedElement && connectedElement.parentElement) {
+                  connectedElement.parentElement.insertBefore(button, connectedElement.nextSibling);
+                  console.log('Button added in place of Connected label');
+                } else {
+                  // Try to position it next to the indicators dropdown
+                  const indicatorsElement = document.querySelector('#indicators');
+                  if (indicatorsElement && indicatorsElement.parentElement) {
+                    // Look for the parent container that has the indicators
+                    let container = indicatorsElement.parentElement;
+
+                    // Try to find a container that looks like a toolbar or header
+                    while (container && container !== document.body) {
+                      if (container.style.display === 'flex' ||
+                          container.className.includes('header') ||
+                          container.className.includes('toolbar') ||
+                          container.querySelector('#indicators')) {
+                        break;
+                      }
+                      container = container.parentElement;
+                    }
+
+                    container.appendChild(button);
+                    console.log('Button added to indicators container');
+                  } else {
+                    // Fall back to fixed position
+                    button.style.position = 'fixed';
+                    button.style.top = '10px';
+                    button.style.right = '10px';
+                    button.style.zIndex = '9999';
+                    targetElement.appendChild(button);
+                    console.log('Button added in fixed position');
+                  }
+                }
 
                 button.onclick = function() {
                   if (isExisting) {
@@ -866,6 +936,36 @@ app.get('/api/chart', (req, res) => {
                 targetElement.appendChild(button);
                 console.log('✅', isExisting ? 'Update Strategy button added to interface' : 'Save Strategy button added to interface');
                 console.log('Button element:', button);
+
+                // Add Payload/Webhook Details link if this is an existing strategy
+                if (isExisting && window.CHART_CONFIG.strategyId) {
+                  const detailsLink = document.createElement('a');
+                  detailsLink.id = 'payloadDetailsLink';
+                  detailsLink.textContent = 'Payload/Webhook Details';
+                  detailsLink.href = '#';
+                  detailsLink.style.cssText = \`
+                    color: #4CAF50;
+                    text-decoration: none;
+                    margin-left: 15px;
+                    font-size: 13px;
+                    cursor: pointer;
+                    border-bottom: 1px dotted #4CAF50;
+                  \`;
+
+                  detailsLink.onclick = function(e) {
+                    e.preventDefault();
+                    window.showPayloadDetails();
+                  };
+
+                  // Add the link next to the button
+                  if (connectedElement && connectedElement.parentElement) {
+                    connectedElement.parentElement.appendChild(detailsLink);
+                  } else if (button.parentElement) {
+                    button.parentElement.appendChild(detailsLink);
+                  }
+
+                  console.log('Payload details link added');
+                }
               } else {
                 console.log('❌ Could not find target element or button already exists');
                 console.log('Available elements:', {
@@ -1095,6 +1195,207 @@ app.get('/api/chart', (req, res) => {
             } catch (error) {
               console.error('Error saving strategy:', error);
               alert('Error saving strategy: ' + error.message);
+            }
+          };
+
+          // Utility function to show popup modal
+          window.showPopup = function(title, content) {
+            // Remove existing popup if any
+            const existingPopup = document.getElementById('strategy-popup');
+            if (existingPopup) {
+              existingPopup.remove();
+            }
+
+            // Create popup overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'strategy-popup';
+            overlay.style.cssText = \`
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: rgba(0, 0, 0, 0.7);
+              z-index: 10000;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            \`;
+
+            // Create popup container
+            const popup = document.createElement('div');
+            popup.style.cssText = \`
+              background: #1a1a1a;
+              border-radius: 8px;
+              max-width: 800px;
+              max-height: 80vh;
+              width: 90%;
+              overflow-y: auto;
+              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+              position: relative;
+              border: 1px solid #333;
+            \`;
+
+            // Create popup header
+            const header = document.createElement('div');
+            header.style.cssText = \`
+              background: #2a2a2a;
+              padding: 15px 20px;
+              border-bottom: 1px solid #444;
+              border-radius: 8px 8px 0 0;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            \`;
+
+            const titleElement = document.createElement('h2');
+            titleElement.textContent = title;
+            titleElement.style.cssText = \`
+              margin: 0;
+              font-size: 18px;
+              color: #ffffff;
+            \`;
+
+            const closeButton = document.createElement('button');
+            closeButton.textContent = '×';
+            closeButton.style.cssText = \`
+              background: none;
+              border: none;
+              font-size: 24px;
+              cursor: pointer;
+              color: #ccc;
+              padding: 0;
+              width: 30px;
+              height: 30px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            \`;
+
+            closeButton.onmouseover = function() {
+              this.style.color = '#fff';
+            };
+            closeButton.onmouseout = function() {
+              this.style.color = '#ccc';
+            };
+
+            closeButton.onclick = function() {
+              overlay.remove();
+            };
+
+            header.appendChild(titleElement);
+            header.appendChild(closeButton);
+
+            // Create popup body
+            const body = document.createElement('div');
+            body.style.cssText = \`
+              padding: 20px;
+              max-height: 60vh;
+              overflow-y: auto;
+            \`;
+            body.innerHTML = content;
+
+            // Assemble popup
+            popup.appendChild(header);
+            popup.appendChild(body);
+            overlay.appendChild(popup);
+
+            // Add to page
+            document.body.appendChild(overlay);
+
+            // Close on outside click
+            overlay.onclick = function(e) {
+              if (e.target === overlay) {
+                overlay.remove();
+              }
+            };
+
+            // Close on escape key
+            const escapeHandler = function(e) {
+              if (e.key === 'Escape') {
+                overlay.remove();
+                document.removeEventListener('keydown', escapeHandler);
+              }
+            };
+            document.addEventListener('keydown', escapeHandler);
+          };
+
+          // Function to show payload and webhook details in a popup
+          window.showPayloadDetails = async function() {
+            try {
+              const strategyId = window.CHART_CONFIG.strategyId;
+              if (!strategyId) {
+                alert('No strategy ID found');
+                return;
+              }
+
+              console.log('Fetching strategy details for:', strategyId);
+
+              const response = await fetch(\`/api/strategy/\${strategyId}/chart-config\`);
+              const result = await response.json();
+
+              if (!result.success) {
+                alert('Failed to fetch strategy details: ' + result.error);
+                return;
+              }
+
+              const strategy = result.data;
+
+              // Create popup content
+              const popupContent = \`
+                <div style="font-family: Arial, sans-serif; line-height: 1.4; color: #ffffff;">
+                  <h3 style="margin-top: 0; color: #ffffff;">Strategy Details: \${strategy.name}</h3>
+
+                  <div style="margin-bottom: 20px;">
+                    <h4 style="color: #4CAF50; margin-bottom: 10px;">Basic Information</h4>
+                    <table style="border-collapse: collapse; width: 100%; margin-bottom: 15px;">
+                      <tr><td style="font-weight: bold; padding: 5px; border: 1px solid #444; color: #ffffff;">ID:</td><td style="padding: 5px; border: 1px solid #444; color: #ccc;">\${strategy.id}</td></tr>
+                      <tr><td style="font-weight: bold; padding: 5px; border: 1px solid #444; color: #ffffff;">Name:</td><td style="padding: 5px; border: 1px solid #444; color: #ccc;">\${strategy.name}</td></tr>
+                      <tr><td style="font-weight: bold; padding: 5px; border: 1px solid #444; color: #ffffff;">Type:</td><td style="padding: 5px; border: 1px solid #444; color: #ccc;">\${strategy.strategy_type}</td></tr>
+                      <tr><td style="font-weight: bold; padding: 5px; border: 1px solid #444; color: #ffffff;">Contract:</td><td style="padding: 5px; border: 1px solid #444; color: #ccc;">\${strategy.contract_symbol}</td></tr>
+                      <tr><td style="font-weight: bold; padding: 5px; border: 1px solid #444; color: #ffffff;">Timeframe:</td><td style="padding: 5px; border: 1px solid #444; color: #ccc;">\${strategy.timeframe}</td></tr>
+                      <tr><td style="font-weight: bold; padding: 5px; border: 1px solid #444; color: #ffffff;">Status:</td><td style="padding: 5px; border: 1px solid #444; color: #ccc;">\${strategy.status}</td></tr>
+                      <tr><td style="font-weight: bold; padding: 5px; border: 1px solid #444; color: #ffffff;">Created:</td><td style="padding: 5px; border: 1px solid #444; color: #ccc;">\${new Date(strategy.created_at).toLocaleString()}</td></tr>
+                      <tr><td style="font-weight: bold; padding: 5px; border: 1px solid #444; color: #ffffff;">Updated:</td><td style="padding: 5px; border: 1px solid #444; color: #ccc;">\${new Date(strategy.updated_at).toLocaleString()}</td></tr>
+                    </table>
+                  </div>
+
+                  <div style="margin-bottom: 20px;">
+                    <h4 style="color: #4CAF50; margin-bottom: 10px;">Indicators (\${strategy.indicators ? strategy.indicators.length : 0})</h4>
+                    <div style="background: #333; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 150px; overflow-y: auto; color: #ffffff; border: 1px solid #555;">
+                      \${strategy.indicators ? JSON.stringify(strategy.indicators, null, 2) : 'No indicators'}
+                    </div>
+                  </div>
+
+                  <div style="margin-bottom: 20px;">
+                    <h4 style="color: #4CAF50; margin-bottom: 10px;">Chart Configuration</h4>
+                    <div style="background: #333; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 150px; overflow-y: auto; color: #ffffff; border: 1px solid #555;">
+                      \${strategy.chart_config ? JSON.stringify(strategy.chart_config, null, 2) : 'No chart configuration'}
+                    </div>
+                  </div>
+
+                  <div style="margin-bottom: 20px;">
+                    <h4 style="color: #4CAF50; margin-bottom: 10px;">Webhook URL</h4>
+                    <div style="background: #333; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #ffffff; border: 1px solid #555;">
+                      \${strategy.webhook_url || 'No webhook URL configured'}
+                    </div>
+                  </div>
+
+                  <div style="margin-bottom: 20px;">
+                    <h4 style="color: #4CAF50; margin-bottom: 10px;">Webhook Payload</h4>
+                    <div style="background: #333; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto; color: #ffffff; border: 1px solid #555;">
+                      \${strategy.webhook_payload ? JSON.stringify(strategy.webhook_payload, null, 2) : 'No webhook payload'}
+                    </div>
+                  </div>
+                </div>
+              \`;
+
+              // Create and show popup
+              window.showPopup('Strategy Details', popupContent);
+
+            } catch (error) {
+              console.error('Error fetching strategy details:', error);
+              alert('Error fetching strategy details: ' + error.message);
             }
           };
 

@@ -2,11 +2,36 @@
 🚀 Backend running on http://localhost:8000
 📄 Contracts cached in: /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableContracts.json
 ✅ Connected to PostgreSQL database
-📊 Saving chart strategy: {
-  name: '100T Strategy with Indicators',
-  strategy_type: 'candlestick',
-  contract_symbol: 'MNQ',
+📊 Loading saved strategy: 643603bc-64bc-4b90-a666-2873755aa599
+📊 Loading strategy with indicators: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ]
+📊 Loaded saved strategy configuration: {
+  strategyType: 'candlestick',
   timeframe: '100T',
+  brickSize: '0.25',
+  contractSymbol: 'MNQ',
+  strategyName: '100T Strategy with Indicators',
+  indicators: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ],
+  strategyId: '643603bc-64bc-4b90-a666-2873755aa599',
+  isExistingStrategy: true
+}
+🚀 Launched chart in browser: http://localhost:8000/api/chart
+📊 With configuration: {
+  strategyType: 'candlestick',
+  timeframe: '100T',
+  brickSize: '0.25',
+  contractSymbol: 'MNQ',
+  strategyName: '100T Strategy with Indicators',
+  indicators: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ],
+  strategyId: '643603bc-64bc-4b90-a666-2873755aa599',
+  isExistingStrategy: true
+}
+📊 Found indicators in database: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ]
+📊 Saving chart strategy: {
+  name: 'Test Strategy with Webhook',
+  strategy_type: 'candlestick',
+  contract_symbol: 'ES',
+  timeframe: '100T',
+  webhook_url: 'https://example.com/webhook',
   chart_config: { indicators: [ [Object], [Object] ] }
 }
 📊 Chart config received: {
@@ -14,104 +39,4 @@
 }
 📊 Extracted indicators: [ { type: 'SMA', period: 20 }, { type: 'RSI', period: 14 } ]
 📊 Saving indicators separately: [ { type: 'SMA', period: 20 }, { type: 'RSI', period: 14 } ]
-📊 Loading saved strategy: 643603bc-64bc-4b90-a666-2873755aa599
-📊 Loading strategy with indicators: [ { type: 'SMA', period: 20 }, { type: 'RSI', period: 14 } ]
-📊 Loaded saved strategy configuration: {
-  strategyType: 'candlestick',
-  timeframe: '100T',
-  brickSize: '0.25',
-  contractSymbol: 'MNQ',
-  strategyName: '100T Strategy with Indicators',
-  indicators: [ { type: 'SMA', period: 20 }, { type: 'RSI', period: 14 } ],
-  strategyId: '643603bc-64bc-4b90-a666-2873755aa599',
-  isExistingStrategy: true
-}
-🚀 Launched chart in browser: http://localhost:8000/api/chart
-📊 With configuration: {
-  strategyType: 'candlestick',
-  timeframe: '100T',
-  brickSize: '0.25',
-  contractSymbol: 'MNQ',
-  strategyName: '100T Strategy with Indicators',
-  indicators: [ { type: 'SMA', period: 20 }, { type: 'RSI', period: 14 } ],
-  strategyId: '643603bc-64bc-4b90-a666-2873755aa599',
-  isExistingStrategy: true
-}
-📊 Update strategy request: {
-  id: '643603bc-64bc-4b90-a666-2873755aa599',
-  chart_config: {
-    resolution: '100T',
-    chartType: 'candlestick',
-    brickSize: '0.25',
-    indicators: [ [Object] ],
-    timestamp: '2025-09-18T20:06:46.837Z'
-  },
-  chart_type: 'candlestick',
-  brick_size: 0.25,
-  hasWebhookPayload: false
-}
-📊 Using minimal webhook payload (no chart configuration)
-📊 UPDATE - Chart config received: {
-  resolution: '100T',
-  chartType: 'candlestick',
-  brickSize: '0.25',
-  indicators: [ { type: 'SMA', period: 20 } ],
-  timestamp: '2025-09-18T20:06:46.837Z'
-}
-📊 UPDATE - Extracted indicators: [ { type: 'SMA', period: 20 } ]
-📊 Update strategy request: {
-  id: '643603bc-64bc-4b90-a666-2873755aa599',
-  chart_config: {
-    resolution: '100T',
-    chartType: 'candlestick',
-    brickSize: '0.25',
-    indicators: [ [Object] ],
-    timestamp: '2025-09-18T20:06:49.043Z'
-  },
-  chart_type: 'candlestick',
-  brick_size: 0.25,
-  hasWebhookPayload: false
-}
-📊 Using minimal webhook payload (no chart configuration)
-📊 UPDATE - Chart config received: {
-  resolution: '100T',
-  chartType: 'candlestick',
-  brickSize: '0.25',
-  indicators: [ { type: 'SMA', period: 20 } ],
-  timestamp: '2025-09-18T20:06:49.043Z'
-}
-📊 UPDATE - Extracted indicators: [ { type: 'SMA', period: 20 } ]
-📊 Update strategy request: {
-  id: '643603bc-64bc-4b90-a666-2873755aa599',
-  chart_config: null,
-  chart_type: 'candlestick',
-  brick_size: null,
-  hasWebhookPayload: true
-}
-📊 Using minimal webhook payload (no chart configuration)
-📊 UPDATE - Chart config received: null
-📊 UPDATE - Extracted indicators: null
-📊 UPDATE - Preserving existing indicators: [ { type: 'SMA', period: 20 } ]
-📊 Loading saved strategy: 643603bc-64bc-4b90-a666-2873755aa599
-📊 Loading strategy with indicators: [ { type: 'SMA', period: 20 } ]
-📊 Loaded saved strategy configuration: {
-  strategyType: 'candlestick',
-  timeframe: '100T',
-  brickSize: '0.25',
-  contractSymbol: 'MNQ',
-  strategyName: '100T Strategy with Indicators',
-  indicators: [ { type: 'SMA', period: 20 } ],
-  strategyId: '643603bc-64bc-4b90-a666-2873755aa599',
-  isExistingStrategy: true
-}
-🚀 Launched chart in browser: http://localhost:8000/api/chart
-📊 With configuration: {
-  strategyType: 'candlestick',
-  timeframe: '100T',
-  brickSize: '0.25',
-  contractSymbol: 'MNQ',
-  strategyName: '100T Strategy with Indicators',
-  indicators: [ { type: 'SMA', period: 20 } ],
-  strategyId: '643603bc-64bc-4b90-a666-2873755aa599',
-  isExistingStrategy: true
-}
+📊 Found indicators in database: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ]

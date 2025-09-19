@@ -66,7 +66,6 @@ class BrowserAuthManager {
       // First, try to get token from localStorage (main auth system)
       const storedToken = localStorage.getItem('auth_token');
       if (storedToken) {
-        console.log('✅ Using token from localStorage (main auth system)');
         this.token = storedToken;
         this.username = localStorage.getItem('username');
         this.provider = localStorage.getItem('provider') || 'topstepx';
@@ -77,7 +76,6 @@ class BrowserAuthManager {
       const urlParams = new URLSearchParams(window.location.search);
       const urlToken = urlParams.get('token');
       if (urlToken) {
-        console.log('✅ Using token from URL parameters');
         this.token = urlToken;
         this.provider = urlParams.get('provider') || 'topstepx';
         return urlToken;
@@ -86,10 +84,8 @@ class BrowserAuthManager {
       // Try to get saved credentials and login
       const savedCreds = this.getSavedCredentials();
       if (savedCreds) {
-        console.log('🔄 Found saved credentials, attempting login...');
         const token = await this.loginWithStoredCredentials(savedCreds);
         if (token) {
-          console.log('✅ Successfully authenticated with stored credentials');
           return token;
         }
       }
@@ -305,6 +301,7 @@ class BrowserAuthManager {
 
 // Global instance
 window.browserAuth = new BrowserAuthManager();
+
 
 
 
