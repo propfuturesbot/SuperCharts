@@ -58,6 +58,26 @@ class AuthService {
         localStorage.setItem('provider', provider);
         localStorage.setItem('token_expiry', response.data.expiry || Date.now() + 86400000);
         localStorage.setItem('remember_credentials', rememberMe.toString());
+
+        // Also save to JSON file via backend
+        try {
+          await axios.post('http://localhost:8000/api/auth/save-token', {
+            token: this.token,
+            username: username,
+            provider: provider,
+            expiresAt: response.data.expiry || Date.now() + 86400000,
+            credentials: rememberMe ? {
+              username: username,
+              [usePassword ? 'password' : 'apiKey']: credential,
+              provider: provider,
+              usePassword: usePassword
+            } : null
+          });
+          console.log('✅ Token also saved to auth-token.json file');
+        } catch (saveError) {
+          console.warn('⚠️ Failed to save token to JSON file:', saveError.message);
+          // Don't fail the login if file save fails
+        }
         
         // Store credentials for auto-fill if remember me is checked
         if (rememberMe) {

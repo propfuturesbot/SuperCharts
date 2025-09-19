@@ -2158,6 +2158,83 @@ app.post('/api/launch-chart', async (req, res) => {
   }
 });
 
+// Auth token management endpoints
+const AUTH_TOKEN_FILE = path.join(__dirname, '../auth-token.json');
+
+// Save auth token to JSON file
+app.post('/api/auth/save-token', async (req, res) => {
+  try {
+    const { token, username, provider, expiresAt, credentials } = req.body;
+
+    if (!token || !username) {
+      return res.status(400).json({
+        success: false,
+        error: 'Token and username are required'
+      });
+    }
+
+    const tokenData = {
+      token,
+      username,
+      provider: provider || 'topstepx',
+      expiresAt: expiresAt || (Date.now() + 24 * 60 * 60 * 1000), // Default 24 hours
+      savedAt: Date.now(),
+      credentials: credentials || null
+    };
+
+    // Save to JSON file
+    fs.writeFileSync(AUTH_TOKEN_FILE, JSON.stringify(tokenData, null, 2));
+
+    console.log(`✅ Auth token saved to ${AUTH_TOKEN_FILE} for user: ${username}`);
+
+    res.json({
+      success: true,
+      message: 'Token saved successfully',
+      file: AUTH_TOKEN_FILE
+    });
+
+  } catch (error) {
+    console.error('❌ Error saving auth token:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Get saved auth token
+app.get('/api/auth/token', async (req, res) => {
+  try {
+    if (!fs.existsSync(AUTH_TOKEN_FILE)) {
+      return res.status(404).json({
+        success: false,
+        error: 'No auth token file found'
+      });
+    }
+
+    const tokenData = JSON.parse(fs.readFileSync(AUTH_TOKEN_FILE, 'utf8'));
+
+    // Check if token is expired
+    const isExpired = Date.now() >= tokenData.expiresAt;
+
+    res.json({
+      success: true,
+      data: {
+        ...tokenData,
+        isExpired,
+        credentials: undefined // Don't send credentials back for security
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error reading auth token:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Initialize contracts on startup
 async function initializeServer() {
   try {

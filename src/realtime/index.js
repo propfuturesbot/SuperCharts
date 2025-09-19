@@ -1,4 +1,25 @@
-const ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjE5NDY5OSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL3NpZCI6IjcxZTBhY2EwLWMxYzgtNGRiZC1iNjBhLWU0YjY0MTRkNTgzOSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJzdW1vbmV5MSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6InVzZXIiLCJtc2QiOiJDTUVHUk9VUF9UT0IiLCJtZmEiOiJ2ZXJpZmllZCIsImV4cCI6MTc1ODcyMzkxN30.CSfE9e-soJNxLU_4UyXS2KUWw-Dy6tyNW7u8vUByBfI";
+// Get access token from JSON file via backend API
+let ACCESS_TOKEN = null;
+
+// Function to get access token from backend
+const getAccessToken = async () => {
+  if (!ACCESS_TOKEN) {
+    try {
+      const response = await fetch('http://localhost:8000/api/auth/token');
+      if (response.ok) {
+        const data = await response.json();
+        ACCESS_TOKEN = data.data.token;
+        console.log('✅ Token loaded from auth-token.json file');
+      } else {
+        throw new Error(`Failed to load token from backend: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching token:', error);
+      throw new Error('Unable to load authentication token from auth-token.json file. Please login first.');
+    }
+  }
+  return ACCESS_TOKEN;
+};
 
 let chart = null;
 let candleSeries = null;
@@ -90,12 +111,13 @@ const getHistoricalData = async (resolution, countback, symbol = "%2FMNQ") => {
     const now = Math.floor(Date.now() / 1000);
     const from = now - (86400 * 7); // 7 days ago
     const to = now;
-    
+
     const url = `https://chartapi.topstepx.com/History/v2?Symbol=${symbol}&Resolution=${resolution}&Countback=${countback}&From=${from}&To=${to}&SessionId=extended&Live=false`;
-    
+
+    const token = await getAccessToken();
     const res = await fetch(url, {
       headers: {
-        'Authorization': `Bearer ${ACCESS_TOKEN}`,
+        'Authorization': `Bearer ${token}`,
         'Accept': 'application/json'
       }
     });
@@ -237,9 +259,10 @@ const setupRealTimeConnection = async () => {
     if (connection && connection.state === signalR.HubConnectionState.Connected) {
       await connection.stop();
     }
-    
+
+    const token = await getAccessToken();
     connection = new signalR.HubConnectionBuilder()
-      .withUrl(`https://chartapi.topstepx.com/hubs/chart?access_token=${ACCESS_TOKEN}`, {
+      .withUrl(`https://chartapi.topstepx.com/hubs/chart?access_token=${token}`, {
         skipNegotiation: true,
         transport: signalR.HttpTransportType.WebSockets
       })

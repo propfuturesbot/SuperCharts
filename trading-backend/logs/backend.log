@@ -40,4 +40,3 @@
   strategyId: '643603bc-64bc-4b90-a666-2873755aa599',
   isExistingStrategy: true
 }
-📊 Found indicators in database: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ]

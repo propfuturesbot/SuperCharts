@@ -1,16 +1,26 @@
 const axios = require('axios');
 const { getProviderConfig } = require('./providers');
+const TokenManager = require('./token-manager');
 
 class AuthManager {
   constructor() {
     this.token = null;
     this.username = null;
     this.provider = null;
+    this.tokenManager = new TokenManager();
   }
 
   // Get authentication token from various sources
   async getAuthToken() {
-    // Try to get token from command line arguments first
+    // First try to get valid token from token manager (checks existing + refresh)
+    const validToken = await this.tokenManager.getValidToken();
+    if (validToken) {
+      console.log('✅ Using valid token from token manager');
+      this.token = validToken;
+      return validToken;
+    }
+
+    // Try to get token from command line arguments
     const tokenFromArgs = this.getTokenFromArgs();
     if (tokenFromArgs) {
       console.log('✅ Using token from command line arguments');
@@ -107,48 +117,20 @@ class AuthManager {
   // Login with stored credentials
   async loginWithStoredCredentials(credentials) {
     try {
-      const config = getProviderConfig(credentials.provider);
-      let response;
+      const credential = credentials.usePassword ? credentials.password : credentials.apiKey;
+      const token = await this.tokenManager.login(
+        credentials.username,
+        credential,
+        credentials.provider,
+        credentials.usePassword
+      );
 
-      if (credentials.usePassword) {
-        // Use password authentication
-        response = await axios.post(
-          'https://userapi.topstepx.com/Login',
-          {
-            userName: credentials.username,
-            password: credentials.password
-          },
-          {
-            headers: {
-              'content-type': 'application/json'
-            }
-          }
-        );
-      } else {
-        // Use API key authentication
-        response = await axios.post(
-          `${config.api_endpoint}/api/Auth/loginKey`,
-          {
-            userName: credentials.username,
-            apiKey: credentials.apiKey
-          },
-          {
-            headers: {
-              'accept': 'text/plain',
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-      }
+      // Update local properties
+      this.token = token;
+      this.username = credentials.username;
+      this.provider = credentials.provider;
 
-      if (response.data.success || response.data.token) {
-        this.token = response.data.token;
-        this.username = credentials.username;
-        this.provider = credentials.provider;
-        return this.token;
-      } else {
-        throw new Error(response.data.errorMessage || 'Authentication failed');
-      }
+      return token;
     } catch (error) {
       console.error('Authentication error:', error.message);
       return null;
@@ -158,47 +140,16 @@ class AuthManager {
   // Login with explicit credentials
   async login(username, credential, provider = 'topstepx', usePassword = false) {
     try {
-      const config = getProviderConfig(provider);
-      let response;
+      // Use token manager's login method which handles JSON file storage
+      const token = await this.tokenManager.login(username, credential, provider, usePassword);
 
-      if (usePassword) {
-        response = await axios.post(
-          'https://userapi.topstepx.com/Login',
-          {
-            userName: username,
-            password: credential
-          },
-          {
-            headers: {
-              'content-type': 'application/json'
-            }
-          }
-        );
-      } else {
-        response = await axios.post(
-          `${config.api_endpoint}/api/Auth/loginKey`,
-          {
-            userName: username,
-            apiKey: credential
-          },
-          {
-            headers: {
-              'accept': 'text/plain',
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-      }
+      // Update local properties
+      this.token = token;
+      this.username = username;
+      this.provider = provider;
 
-      if (response.data.success || response.data.token) {
-        this.token = response.data.token;
-        this.username = username;
-        this.provider = provider;
-        console.log(`✅ Successfully authenticated as ${username} with ${provider}`);
-        return this.token;
-      } else {
-        throw new Error(response.data.errorMessage || 'Authentication failed');
-      }
+      console.log(`✅ Successfully authenticated as ${username} with ${provider} and saved to token file`);
+      return token;
     } catch (error) {
       console.error('Login error:', error.message);
       throw error;
