@@ -313,10 +313,10 @@ app.post('/api/contracts/lookup', (req, res) => {
 app.get('/api/strategies', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT id, name, strategy_type, contract_symbol, contract_name, 
-             timeframe, webhook_url, webhook_payload, 
+      SELECT id, name, strategy_type, contract_symbol, contract_name,
+             timeframe, webhook_url, webhook_payload, brick_size,
              status, created_at, updated_at
-      FROM strategies 
+      FROM strategies
       ORDER BY created_at DESC
     `);
     
@@ -349,16 +349,17 @@ app.post('/api/strategies', async (req, res) => {
 
     const result = await pool.query(`
       INSERT INTO strategies (
-        name, strategy_type, contract_symbol, contract_name, 
-        timeframe, webhook_url, webhook_payload,
+        name, strategy_type, contract_symbol, contract_name,
+        timeframe, webhook_url, webhook_payload, brick_size,
         status, created_by
-      ) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, 'inactive', 'system')
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'inactive', 'system')
       RETURNING *
     `, [
       name, strategy_type, contract_symbol, contract_name,
-      timeframe, webhook_url, 
-      webhook_payload ? JSON.stringify(webhook_payload) : null
+      timeframe, webhook_url,
+      webhook_payload ? JSON.stringify(webhook_payload) : null,
+      req.body.brick_size || 0.25
     ]);
 
     res.json({
@@ -501,28 +502,53 @@ app.put('/api/strategies/:id', async (req, res) => {
     console.log('📊 UPDATE - Chart config received:', chart_config);
     console.log('📊 UPDATE - Extracted indicators:', indicators);
 
-    // If no indicators provided but strategy exists, preserve existing indicators
-    if (!indicators) {
-      try {
-        const existingResult = await pool.query('SELECT indicators FROM strategies WHERE id = $1', [id]);
-        if (existingResult.rows.length > 0 && existingResult.rows[0].indicators) {
-          const existingIndicators = typeof existingResult.rows[0].indicators === 'string'
-            ? JSON.parse(existingResult.rows[0].indicators)
-            : existingResult.rows[0].indicators;
+    // Preserve existing data if not provided in the update
+    let finalWebhookUrl = webhook_url;
+    let preservedBrickSize = brick_size;
+
+    // If no indicators, webhook_url, webhook_payload, or brick_size provided, preserve existing values
+    try {
+      const existingResult = await pool.query('SELECT indicators, webhook_url, webhook_payload, brick_size FROM strategies WHERE id = $1', [id]);
+      if (existingResult.rows.length > 0) {
+        const existing = existingResult.rows[0];
+
+        // Preserve indicators if not provided
+        if (!indicators && existing.indicators) {
+          const existingIndicators = typeof existing.indicators === 'string'
+            ? JSON.parse(existing.indicators)
+            : existing.indicators;
           indicators = existingIndicators;
           console.log('📊 UPDATE - Preserving existing indicators:', indicators);
         }
-      } catch (e) {
-        console.warn('Failed to retrieve existing indicators:', e);
+
+        // Preserve webhook_url if not provided
+        if (webhook_url === undefined && existing.webhook_url) {
+          finalWebhookUrl = existing.webhook_url;
+          console.log('📊 UPDATE - Preserving existing webhook_url:', finalWebhookUrl);
+        }
+
+        // Preserve webhook_payload if not provided
+        if (webhook_payload === undefined && existing.webhook_payload) {
+          finalWebhookPayload = existing.webhook_payload;
+          console.log('📊 UPDATE - Preserving existing webhook_payload');
+        }
+
+        // Preserve brick_size if not provided
+        if (brick_size === undefined && existing.brick_size) {
+          preservedBrickSize = existing.brick_size;
+          console.log('📊 UPDATE - Preserving existing brick_size:', preservedBrickSize);
+        }
       }
+    } catch (e) {
+      console.warn('Failed to retrieve existing data:', e);
     }
 
     const result = await pool.query(`
       UPDATE strategies
       SET name = $1, strategy_type = $2, contract_symbol = $3, contract_name = $4,
           timeframe = $5, webhook_url = $6, webhook_payload = $7, indicators = $8,
-          updated_at = CURRENT_TIMESTAMP
-      WHERE id = $9
+          brick_size = $9, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $10
       RETURNING *
     `, [
       name,
@@ -530,9 +556,10 @@ app.put('/api/strategies/:id', async (req, res) => {
       contract_symbol,
       contract_name || contract_symbol,
       timeframe,
-      webhook_url,
+      finalWebhookUrl,
       finalWebhookPayload ? JSON.stringify(finalWebhookPayload) : null,
       indicators ? JSON.stringify(indicators) : null,
+      preservedBrickSize || 0.25,
       id
     ]);
 
@@ -656,6 +683,7 @@ app.get('/api/chart', (req, res) => {
               // For Renko charts, set the brick size BEFORE changing chart type
               if (chartType === 'renko' && window.CHART_CONFIG.brickSize) {
                 console.log('Setting Renko brick size to:', window.CHART_CONFIG.brickSize);
+                console.log('Brick size type:', typeof window.CHART_CONFIG.brickSize);
 
                 // Set global brick size variable if it exists
                 if (typeof window.currentBrickSize !== 'undefined') {
@@ -1151,7 +1179,7 @@ app.get('/api/chart', (req, res) => {
                 contract_symbol: chartConfig.contractSymbol,
                 timeframe: chartConfig.resolution,
                 chart_type: chartConfig.chartType,
-                brick_size: parseFloat(chartConfig.brickSize) || null,
+                brick_size: chartConfig.chartType === 'renko' ? parseFloat(chartConfig.brickSize) : null,
                 chart_config: {
                   chartType: chartConfig.chartType,
                   resolution: chartConfig.resolution,
@@ -1159,7 +1187,8 @@ app.get('/api/chart', (req, res) => {
                   indicators: chartConfig.indicators,
                   timestamp: chartConfig.timestamp
                 },
-                webhook_url: null,
+                // Preserve webhook data from original configuration if available
+                webhook_url: window.CHART_CONFIG.webhookUrl || null,
                 webhook_payload: null  // Let backend handle the structure
               };
 
@@ -1354,6 +1383,7 @@ app.get('/api/chart', (req, res) => {
                       <tr><td style="font-weight: bold; padding: 5px; border: 1px solid #444; color: #ffffff;">Type:</td><td style="padding: 5px; border: 1px solid #444; color: #ccc;">\${strategy.strategy_type}</td></tr>
                       <tr><td style="font-weight: bold; padding: 5px; border: 1px solid #444; color: #ffffff;">Contract:</td><td style="padding: 5px; border: 1px solid #444; color: #ccc;">\${strategy.contract_symbol}</td></tr>
                       <tr><td style="font-weight: bold; padding: 5px; border: 1px solid #444; color: #ffffff;">Timeframe:</td><td style="padding: 5px; border: 1px solid #444; color: #ccc;">\${strategy.timeframe}</td></tr>
+                      \${strategy.strategy_type === 'renko' ? \`<tr><td style="font-weight: bold; padding: 5px; border: 1px solid #444; color: #ffffff;">Brick Size:</td><td style="padding: 5px; border: 1px solid #444; color: #ccc;">\${strategy.brick_size || '0.25'}</td></tr>\` : ''}
                       <tr><td style="font-weight: bold; padding: 5px; border: 1px solid #444; color: #ffffff;">Status:</td><td style="padding: 5px; border: 1px solid #444; color: #ccc;">\${strategy.status}</td></tr>
                       <tr><td style="font-weight: bold; padding: 5px; border: 1px solid #444; color: #ffffff;">Created:</td><td style="padding: 5px; border: 1px solid #444; color: #ccc;">\${new Date(strategy.created_at).toLocaleString()}</td></tr>
                       <tr><td style="font-weight: bold; padding: 5px; border: 1px solid #444; color: #ffffff;">Updated:</td><td style="padding: 5px; border: 1px solid #444; color: #ccc;">\${new Date(strategy.updated_at).toLocaleString()}</td></tr>
@@ -1414,14 +1444,14 @@ app.get('/api/chart', (req, res) => {
               console.log('Indicators to save:', chartConfig.indicators);
 
               // Only include chart_config if there are indicators or other chart-specific settings to save
+              // Don't override webhook_url and webhook_payload - they should be preserved
               const strategyData = {
                 name: chartConfig.strategyName,
                 strategy_type: chartConfig.chartType,
                 contract_symbol: chartConfig.contractSymbol,
                 contract_name: chartConfig.contractSymbol,
-                timeframe: chartConfig.resolution,
-                webhook_url: null,
-                webhook_payload: null
+                timeframe: chartConfig.resolution
+                // webhook_url and webhook_payload will be preserved by the backend
               };
 
               // Only add chart config if there are indicators
@@ -1940,10 +1970,10 @@ app.post('/api/save-chart-strategy', async (req, res) => {
     const result = await pool.query(`
       INSERT INTO strategies (
         name, strategy_type, contract_symbol, contract_name,
-        timeframe, webhook_url, webhook_payload, indicators,
+        timeframe, webhook_url, webhook_payload, indicators, brick_size,
         status, created_by
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'inactive', 'chart')
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'inactive', 'chart')
       RETURNING *
     `, [
       name,
@@ -1953,7 +1983,8 @@ app.post('/api/save-chart-strategy', async (req, res) => {
       timeframe,
       webhook_url,
       webhook_payload ? JSON.stringify(webhook_payload) : null,
-      indicators ? JSON.stringify(indicators) : null
+      indicators ? JSON.stringify(indicators) : null,
+      brick_size || 0.25
     ]);
 
     res.json({
@@ -1978,7 +2009,8 @@ app.get('/api/strategy/:id/chart-config', async (req, res) => {
 
     const result = await pool.query(`
       SELECT id, name, strategy_type, contract_symbol, timeframe,
-             webhook_payload, indicators, status, created_at, updated_at
+             webhook_url, webhook_payload, indicators, brick_size,
+             status, created_at, updated_at
       FROM strategies
       WHERE id = $1
     `, [id]);
@@ -2042,7 +2074,7 @@ app.post('/api/launch-chart', async (req, res) => {
       try {
         const result = await pool.query(`
           SELECT id, name, strategy_type, contract_symbol, timeframe,
-                 webhook_payload, indicators, status
+                 webhook_url, webhook_payload, indicators, brick_size, status
           FROM strategies
           WHERE id = $1
         `, [req.body.strategyId]);
@@ -2070,15 +2102,17 @@ app.post('/api/launch-chart', async (req, res) => {
           currentChartConfig = {
             strategyType: strategy.strategy_type || 'candlestick',
             timeframe: strategy.timeframe || '100T',
-            brickSize: '0.25',
+            brickSize: String(strategy.brick_size || '0.25'),
             contractSymbol: strategy.contract_symbol || '/MNQ',
             strategyName: strategy.name || 'Saved Strategy',
             indicators: strategyIndicators,
             strategyId: strategy.id,
+            webhookUrl: strategy.webhook_url || '',
             isExistingStrategy: true
           };
 
           console.log('📊 Loaded saved strategy configuration:', currentChartConfig);
+          console.log('📊 Brick size type:', typeof currentChartConfig.brickSize, 'Value:', currentChartConfig.brickSize);
         } else {
           console.warn('Strategy not found, using default configuration');
           currentChartConfig = {

@@ -872,11 +872,14 @@ const main = async () => {
   }
   // Initialize the chart
   initializeChart();
-  
+
   if (!chart) {
     console.error('Failed to initialize chart');
     return;
   }
+
+  // Load current strategy
+  await loadCurrentStrategy();
   // Load initial data
   const initialResolution = document.getElementById('resolution').value;
   currentResolution = initialResolution;
@@ -1001,6 +1004,100 @@ const calculateIndicator = (type, data, period = 14) => {
   }
 };
 
+// Global variable to store the selected indicator type
+let pendingIndicatorType = null;
+
+const showIndicatorModal = (indicatorType) => {
+  pendingIndicatorType = indicatorType;
+  const modal = document.getElementById('indicatorModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const periodInput = document.getElementById('modalPeriodInput');
+
+  // Format the indicator name for display
+  const indicatorNames = {
+    'SMA': 'Simple Moving Average (SMA)',
+    'EMA': 'Exponential Moving Average (EMA)',
+    'RSI': 'Relative Strength Index (RSI)',
+    'BollingerBands': 'Bollinger Bands',
+    'DonchianChannel': 'Donchian Channel'
+  };
+
+  // Set default periods - 200 for Bollinger Bands and Donchian Channel, 14 for others
+  const defaultPeriod = (indicatorType === 'BollingerBands' || indicatorType === 'DonchianChannel') ? '200' : '14';
+
+  modalTitle.textContent = `Configure ${indicatorNames[indicatorType] || indicatorType}`;
+  periodInput.value = defaultPeriod;
+  periodInput.focus();
+
+  modal.classList.add('show');
+
+  // Add enter key support
+  periodInput.onkeydown = (e) => {
+    if (e.key === 'Enter') {
+      applyIndicator();
+    } else if (e.key === 'Escape') {
+      closeIndicatorModal();
+    }
+  };
+};
+
+const closeIndicatorModal = () => {
+  const modal = document.getElementById('indicatorModal');
+  modal.classList.remove('show');
+  document.getElementById('indicators').value = '';
+  pendingIndicatorType = null;
+};
+
+const applyIndicator = () => {
+  if (!pendingIndicatorType) return;
+
+  const periodInput = document.getElementById('modalPeriodInput');
+  const periodNum = parseInt(periodInput.value) || 14;
+
+  if (periodNum < 1 || periodNum > 500) {
+    periodInput.style.borderColor = '#ff4444';
+    setTimeout(() => {
+      periodInput.style.borderColor = '#444';
+    }, 2000);
+    return;
+  }
+
+  try {
+    // Use the appropriate data based on chart type
+    let dataForIndicator = historicalData;
+    if (currentChartType === 'renko' && renkoData && renkoData.length > 0) {
+      dataForIndicator = renkoData;
+    } else if (currentChartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
+      dataForIndicator = heikenAshiData;
+    }
+
+    const indicatorValues = calculateIndicator(pendingIndicatorType, dataForIndicator, periodNum);
+
+    if (!indicatorValues || indicatorValues.length === 0) {
+      alert('Failed to calculate indicator values');
+      closeIndicatorModal();
+      return;
+    }
+
+    displayIndicator(pendingIndicatorType, indicatorValues, periodNum);
+    activeIndicators.set(pendingIndicatorType, { period: periodNum, values: indicatorValues });
+
+    // Update the active indicators display
+    updateActiveIndicatorsDisplay();
+
+    // If Donchian Channel was added, display signals
+    if (pendingIndicatorType === 'DonchianChannel') {
+      displaySignalsOnChart();
+    }
+
+    closeIndicatorModal();
+  } catch (error) {
+    console.error('Error adding indicator:', error);
+    alert('Error adding indicator: ' + error.message);
+    closeIndicatorModal();
+  }
+};
+
 const addIndicator = (indicatorType) => {
   if (!indicatorType || activeIndicators.has(indicatorType)) {
     document.getElementById('indicators').value = '';
@@ -1011,48 +1108,8 @@ const addIndicator = (indicatorType) => {
     document.getElementById('indicators').value = '';
     return;
   }
-  
-  const period = prompt(`Enter period for ${indicatorType} (default: 14):`, '14');
-  if (period === null) {
-    document.getElementById('indicators').value = '';
-    return;
-  }
-  
-  const periodNum = parseInt(period) || 14;
-  
-  try {
-    // Use the appropriate data based on chart type
-    let dataForIndicator = historicalData;
-    if (currentChartType === 'renko' && renkoData && renkoData.length > 0) {
-      dataForIndicator = renkoData;
-    } else if (currentChartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
-      dataForIndicator = heikenAshiData;
-    }
 
-    const indicatorValues = calculateIndicator(indicatorType, dataForIndicator, periodNum);
-    
-    if (!indicatorValues || indicatorValues.length === 0) {
-      alert('Failed to calculate indicator values');
-      document.getElementById('indicators').value = '';
-      return;
-    }
-    
-    displayIndicator(indicatorType, indicatorValues, periodNum);
-    activeIndicators.set(indicatorType, { period: periodNum, values: indicatorValues });
-    
-    // Update the active indicators display
-    updateActiveIndicatorsDisplay();
-    
-    // If Donchian Channel was added, display signals
-    if (indicatorType === 'DonchianChannel') {
-      displaySignalsOnChart();
-    }
-  } catch (error) {
-    console.error('Error adding indicator:', error);
-    alert('Error adding indicator: ' + error.message);
-  }
-  
-  document.getElementById('indicators').value = '';
+  showIndicatorModal(indicatorType);
 };
 
 const displayIndicator = (type, values, period) => {
@@ -1985,8 +2042,188 @@ const updateRenkoBrickSize = () => {
   }
 };
 
+// Strategy management variables
+let currentStrategy = null;
+let strategyTimer = null;
+
+// Load the current strategy from URL parameters or default
+const loadCurrentStrategy = async () => {
+  try {
+    // Try to get strategy ID from URL parameters first
+    const urlParams = new URLSearchParams(window.location.search);
+    const strategyId = urlParams.get('strategyId');
+
+    if (strategyId) {
+      await loadStrategy(strategyId);
+    } else {
+      // If no strategy ID in URL, try to load from launch configuration
+      if (window.CHART_CONFIG && window.CHART_CONFIG.strategyId) {
+        await loadStrategy(window.CHART_CONFIG.strategyId);
+      }
+    }
+  } catch (error) {
+    console.error('Error loading current strategy:', error);
+  }
+};
+
+// Load a specific strategy
+const loadStrategy = async (strategyId) => {
+  if (!strategyId) {
+    currentStrategy = null;
+    updateStrategyUI();
+    return;
+  }
+
+  try {
+    const response = await fetch(`http://localhost:8000/api/strategies`);
+    const data = await response.json();
+
+    if (data.success && data.data) {
+      const strategy = data.data.find(s => s.id === strategyId);
+      if (strategy) {
+        currentStrategy = strategy;
+        updateStrategyUI();
+
+        // Apply strategy configuration to chart if needed
+        if (strategy.strategy_type !== currentChartType) {
+          changeChartType(strategy.strategy_type);
+        }
+
+        // Load indicators from strategy
+        if (strategy.indicators) {
+          loadStrategyIndicators(strategy.indicators);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error loading strategy:', error);
+    console.log('Error loading strategy: ' + error.message);
+  }
+};
+
+// Load indicators from strategy configuration
+const loadStrategyIndicators = (indicators) => {
+  // Clear existing indicators first
+  clearAllIndicators();
+
+  // Add each indicator from the strategy
+  Object.entries(indicators).forEach(([type, config]) => {
+    try {
+      let dataForIndicator = historicalData;
+      if (currentChartType === 'renko' && renkoData && renkoData.length > 0) {
+        dataForIndicator = renkoData;
+      } else if (currentChartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
+        dataForIndicator = heikenAshiData;
+      }
+
+      const indicatorValues = calculateIndicator(type, dataForIndicator, config.period || 14);
+      if (indicatorValues && indicatorValues.length > 0) {
+        displayIndicator(type, indicatorValues, config.period || 14);
+        activeIndicators.set(type, { period: config.period || 14, values: indicatorValues });
+      }
+    } catch (error) {
+      console.error(`Error loading indicator ${type}:`, error);
+    }
+  });
+
+  updateActiveIndicatorsDisplay();
+};
+
+// Toggle strategy (start/stop)
+const toggleStrategy = async () => {
+  if (!currentStrategy) {
+    alert('No strategy loaded');
+    return;
+  }
+
+  const isActive = currentStrategy.status === 'active';
+  const newStatus = isActive ? 'inactive' : 'active';
+
+  try {
+    const response = await fetch(`http://localhost:8000/api/strategies/${currentStrategy.id}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: newStatus })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      currentStrategy.status = newStatus;
+      updateStrategyUI();
+
+      if (newStatus === 'active') {
+        // Start monitoring strategy status
+        strategyTimer = setInterval(checkStrategyStatus, 5000);
+        console.log('✅ Strategy started successfully');
+      } else {
+        // Stop monitoring strategy status
+        if (strategyTimer) {
+          clearInterval(strategyTimer);
+          strategyTimer = null;
+        }
+        console.log('⏹️ Strategy stopped successfully');
+      }
+    } else {
+      throw new Error(data.error || `Failed to ${isActive ? 'stop' : 'start'} strategy`);
+    }
+  } catch (error) {
+    console.error(`Error ${isActive ? 'stopping' : 'starting'} strategy:`, error);
+    alert(`Error ${isActive ? 'stopping' : 'starting'} strategy: ` + error.message);
+  }
+};
+
+// Check strategy status periodically
+const checkStrategyStatus = async () => {
+  if (!currentStrategy) return;
+
+  try {
+    const response = await fetch(`http://localhost:8000/api/strategies`);
+    const data = await response.json();
+
+    if (data.success && data.data) {
+      const strategy = data.data.find(s => s.id === currentStrategy.id);
+      if (strategy && strategy.status !== currentStrategy.status) {
+        currentStrategy.status = strategy.status;
+        updateStrategyUI();
+      }
+    }
+  } catch (error) {
+    console.error('Error checking strategy status:', error);
+  }
+};
+
+// Update strategy UI based on current state
+const updateStrategyUI = () => {
+  const toggleBtn = document.getElementById('strategyToggleBtn');
+  const nameSpan = document.getElementById('strategyName');
+
+  if (!currentStrategy) {
+    toggleBtn.disabled = true;
+    toggleBtn.textContent = 'Start Strategy';
+    toggleBtn.className = 'strategy-toggle-btn';
+    nameSpan.textContent = 'No Strategy Loaded';
+    return;
+  }
+
+  const status = currentStrategy.status || 'inactive';
+  const isActive = status === 'active';
+
+  toggleBtn.disabled = false;
+  toggleBtn.textContent = isActive ? 'Stop Strategy' : 'Start Strategy';
+  toggleBtn.className = `strategy-toggle-btn ${isActive ? 'stop' : 'start'}`;
+
+  nameSpan.textContent = currentStrategy.name;
+};
+
 // Make functions and variables available globally
 window.addIndicator = addIndicator;
+window.showIndicatorModal = showIndicatorModal;
+window.closeIndicatorModal = closeIndicatorModal;
+window.applyIndicator = applyIndicator;
+window.toggleStrategy = toggleStrategy;
 window.changeResolution = changeResolution;
 window.changeChartType = changeChartType;
 window.updateRenkoBrickSize = updateRenkoBrickSize;
