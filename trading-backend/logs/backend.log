@@ -6,134 +6,6 @@
 🚀 Backend running on http://localhost:8000
 📄 Contracts cached in: /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableContracts.json
 ✅ Connected to PostgreSQL database
-✅ Auth token saved to /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/auth-token.json for user: sumoney1
-📊 Update strategy request: {
-  id: 'a00be081-8a47-4c3f-8c2c-b69e464068c6',
-  chart_config: null,
-  chart_type: 'renko',
-  brick_size: 1,
-  hasWebhookPayload: true
-}
-📊 Using minimal webhook payload (no chart configuration)
-📊 UPDATE - Chart config received: null
-📊 UPDATE - Extracted indicators: null
-📊 UPDATE - Preserving existing indicators: [ { type: 'DonchianChannel', period: 200 } ]
-📊 Loading saved strategy: a00be081-8a47-4c3f-8c2c-b69e464068c6
-📊 Loading strategy with indicators: [ { type: 'DonchianChannel', period: 200 } ]
-📊 Loaded saved strategy configuration: {
-  strategyType: 'renko',
-  timeframe: '1S',
-  brickSize: '1',
-  contractSymbol: 'MES',
-  strategyName: 'MESEEEE',
-  indicators: [ { type: 'DonchianChannel', period: 200 } ],
-  strategyId: 'a00be081-8a47-4c3f-8c2c-b69e464068c6',
-  webhookUrl: 'https://mail.google.com/mail/u/0/?ogbl#inbox',
-  isExistingStrategy: true
-}
-📊 Brick size type: string Value: 1
-🚀 Launched chart in browser: http://localhost:8000/api/chart
-📊 With configuration: {
-  strategyType: 'renko',
-  timeframe: '1S',
-  brickSize: '1',
-  contractSymbol: 'MES',
-  strategyName: 'MESEEEE',
-  indicators: [ { type: 'DonchianChannel', period: 200 } ],
-  strategyId: 'a00be081-8a47-4c3f-8c2c-b69e464068c6',
-  webhookUrl: 'https://mail.google.com/mail/u/0/?ogbl#inbox',
-  isExistingStrategy: true
-}
-📊 Found indicators in database: [ { type: 'DonchianChannel', period: 200 } ]
-📊 Found indicators in database: [ { type: 'DonchianChannel', period: 200 } ]
-📊 Found indicators in database: [ { type: 'DonchianChannel', period: 200 } ]
-📊 Found indicators in database: [ { type: 'DonchianChannel', period: 200 } ]
-📊 Found indicators in database: [ { type: 'DonchianChannel', period: 200 } ]
-📊 Update strategy request: {
-  id: 'a00be081-8a47-4c3f-8c2c-b69e464068c6',
-  chart_config: null,
-  chart_type: 'renko',
-  brick_size: 1,
-  hasWebhookPayload: true
-}
-📊 Using minimal webhook payload (no chart configuration)
-📊 UPDATE - Chart config received: null
-📊 UPDATE - Extracted indicators: null
-📊 UPDATE - Preserving existing indicators: [ { type: 'DonchianChannel', period: 200 } ]
-📊 Loading saved strategy: a00be081-8a47-4c3f-8c2c-b69e464068c6
-📊 Loading strategy with indicators: [ { type: 'DonchianChannel', period: 200 } ]
-📊 Loaded saved strategy configuration: {
-  strategyType: 'renko',
-  timeframe: '1S',
-  brickSize: '1',
-  contractSymbol: 'MES',
-  strategyName: 'MESEEEE',
-  indicators: [ { type: 'DonchianChannel', period: 200 } ],
-  strategyId: 'a00be081-8a47-4c3f-8c2c-b69e464068c6',
-  webhookUrl: 'https://mail.google.com/mail/u/0/?ogbl#inbox',
-  isExistingStrategy: true
-}
-📊 Brick size type: string Value: 1
-🚀 Launched chart in browser: http://localhost:8000/api/chart
-📊 With configuration: {
-  strategyType: 'renko',
-  timeframe: '1S',
-  brickSize: '1',
-  contractSymbol: 'MES',
-  strategyName: 'MESEEEE',
-  indicators: [ { type: 'DonchianChannel', period: 200 } ],
-  strategyId: 'a00be081-8a47-4c3f-8c2c-b69e464068c6',
-  webhookUrl: 'https://mail.google.com/mail/u/0/?ogbl#inbox',
-  isExistingStrategy: true
-}
-📊 Update strategy request: {
-  id: 'a00be081-8a47-4c3f-8c2c-b69e464068c6',
-  chart_config: {
-    resolution: '1S',
-    chartType: 'renko',
-    brickSize: '0.25',
-    indicators: [ [Object] ],
-    timestamp: '2025-09-21T18:55:43.939Z'
-  },
-  chart_type: 'renko',
-  brick_size: 0.25,
-  hasWebhookPayload: false
-}
-📊 Using minimal webhook payload (no chart configuration)
-📊 UPDATE - Chart config received: {
-  resolution: '1S',
-  chartType: 'renko',
-  brickSize: '0.25',
-  indicators: [ { type: 'DonchianChannel', period: 200 } ],
-  timestamp: '2025-09-21T18:55:43.939Z'
-}
-📊 UPDATE - Extracted indicators: [ { type: 'DonchianChannel', period: 200 } ]
-📊 UPDATE - Preserving existing webhook_url: https://mail.google.com/mail/u/0/?ogbl#inbox
-📊 UPDATE - Preserving existing webhook_payload
-📊 Update strategy request: {
-  id: 'a00be081-8a47-4c3f-8c2c-b69e464068c6',
-  chart_config: {
-    resolution: '1S',
-    chartType: 'renko',
-    brickSize: '0.25',
-    indicators: [ [Object] ],
-    timestamp: '2025-09-21T18:55:45.560Z'
-  },
-  chart_type: 'renko',
-  brick_size: 0.25,
-  hasWebhookPayload: false
-}
-📊 Using minimal webhook payload (no chart configuration)
-📊 UPDATE - Chart config received: {
-  resolution: '1S',
-  chartType: 'renko',
-  brickSize: '0.25',
-  indicators: [ { type: 'DonchianChannel', period: 200 } ],
-  timestamp: '2025-09-21T18:55:45.560Z'
-}
-📊 UPDATE - Extracted indicators: [ { type: 'DonchianChannel', period: 200 } ]
-📊 UPDATE - Preserving existing webhook_url: https://mail.google.com/mail/u/0/?ogbl#inbox
-📊 UPDATE - Preserving existing webhook_payload
 📊 Update strategy request: {
   id: 'a00be081-8a47-4c3f-8c2c-b69e464068c6',
   chart_config: null,
@@ -171,3 +43,117 @@
   webhookUrl: 'https://mail.google.com/mail/u/0/?ogbl#inbox',
   isExistingStrategy: true
 }
+📊 Update strategy request: {
+  id: 'c3e599d2-0e8a-415b-a337-d95280c6452a',
+  chart_config: null,
+  chart_type: 'candlestick',
+  brick_size: null,
+  hasWebhookPayload: true
+}
+📊 Using minimal webhook payload (no chart configuration)
+📊 UPDATE - Chart config received: null
+📊 UPDATE - Extracted indicators: null
+📊 UPDATE - Preserving existing indicators: [ { type: 'SMA', period: 20 } ]
+📊 Loading saved strategy: c3e599d2-0e8a-415b-a337-d95280c6452a
+📊 Loading strategy with indicators: [ { type: 'SMA', period: 20 } ]
+📊 Loaded saved strategy configuration: {
+  strategyType: 'candlestick',
+  timeframe: '100T',
+  brickSize: '0.25',
+  contractSymbol: 'ES',
+  strategyName: 'Test Strategy with Webhook',
+  indicators: [ { type: 'SMA', period: 20 } ],
+  strategyId: 'c3e599d2-0e8a-415b-a337-d95280c6452a',
+  webhookUrl: 'http://localhost:3000/strategies',
+  isExistingStrategy: true
+}
+📊 Brick size type: string Value: 0.25
+🚀 Launched chart in browser: http://localhost:8000/api/chart
+📊 With configuration: {
+  strategyType: 'candlestick',
+  timeframe: '100T',
+  brickSize: '0.25',
+  contractSymbol: 'ES',
+  strategyName: 'Test Strategy with Webhook',
+  indicators: [ { type: 'SMA', period: 20 } ],
+  strategyId: 'c3e599d2-0e8a-415b-a337-d95280c6452a',
+  webhookUrl: 'http://localhost:3000/strategies',
+  isExistingStrategy: true
+}
+📊 Update strategy request: {
+  id: '643603bc-64bc-4b90-a666-2873755aa599',
+  chart_config: null,
+  chart_type: 'candlestick',
+  brick_size: null,
+  hasWebhookPayload: true
+}
+📊 Using minimal webhook payload (no chart configuration)
+📊 UPDATE - Chart config received: null
+📊 UPDATE - Extracted indicators: null
+📊 UPDATE - Preserving existing indicators: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ]
+📊 Loading saved strategy: 643603bc-64bc-4b90-a666-2873755aa599
+📊 Loading strategy with indicators: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ]
+📊 Loaded saved strategy configuration: {
+  strategyType: 'candlestick',
+  timeframe: '100T',
+  brickSize: '0.25',
+  contractSymbol: 'MNQ',
+  strategyName: '100T Strategy with Indicators',
+  indicators: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ],
+  strategyId: '643603bc-64bc-4b90-a666-2873755aa599',
+  webhookUrl: '',
+  isExistingStrategy: true
+}
+📊 Brick size type: string Value: 0.25
+🚀 Launched chart in browser: http://localhost:8000/api/chart
+📊 With configuration: {
+  strategyType: 'candlestick',
+  timeframe: '100T',
+  brickSize: '0.25',
+  contractSymbol: 'MNQ',
+  strategyName: '100T Strategy with Indicators',
+  indicators: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ],
+  strategyId: '643603bc-64bc-4b90-a666-2873755aa599',
+  webhookUrl: '',
+  isExistingStrategy: true
+}
+📊 Found indicators in database: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ]
+📊 Found indicators in database: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ]
+📊 Update strategy request: {
+  id: '643603bc-64bc-4b90-a666-2873755aa599',
+  chart_config: null,
+  chart_type: 'candlestick',
+  brick_size: null,
+  hasWebhookPayload: true
+}
+📊 Using minimal webhook payload (no chart configuration)
+📊 UPDATE - Chart config received: null
+📊 UPDATE - Extracted indicators: null
+📊 UPDATE - Preserving existing indicators: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ]
+📊 Loading saved strategy: 643603bc-64bc-4b90-a666-2873755aa599
+📊 Loading strategy with indicators: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ]
+📊 Loaded saved strategy configuration: {
+  strategyType: 'candlestick',
+  timeframe: '100T',
+  brickSize: '0.25',
+  contractSymbol: 'MNQ',
+  strategyName: '100T Strategy with Indicators',
+  indicators: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ],
+  strategyId: '643603bc-64bc-4b90-a666-2873755aa599',
+  webhookUrl: 'https://www.topstepx.com/login',
+  isExistingStrategy: true
+}
+📊 Brick size type: string Value: 0.25
+🚀 Launched chart in browser: http://localhost:8000/api/chart
+📊 With configuration: {
+  strategyType: 'candlestick',
+  timeframe: '100T',
+  brickSize: '0.25',
+  contractSymbol: 'MNQ',
+  strategyName: '100T Strategy with Indicators',
+  indicators: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ],
+  strategyId: '643603bc-64bc-4b90-a666-2873755aa599',
+  webhookUrl: 'https://www.topstepx.com/login',
+  isExistingStrategy: true
+}
+📊 Found indicators in database: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ]

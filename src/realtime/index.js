@@ -1,6 +1,9 @@
 // Get access token from JSON file via backend API
 let ACCESS_TOKEN = null;
 
+// Import webhook service for signal notifications
+const { sendPayload } = require('../../trading-backend/services/webhookService');
+
 // Function to get access token from backend
 const getAccessToken = async () => {
   if (!ACCESS_TOKEN) {
@@ -1416,6 +1419,11 @@ const detectDonchianSignals = (data) => {
         price: currentBar.close,
         reason: 'Donchian Lower Touch + Green Candle'
       });
+
+      // Send webhook (non-blocking)
+      if (currentStrategyId) {
+        sendPayload("buy", currentTicker, currentStrategyId);
+      }
     }
     
     // Sell Signal Detection
@@ -1431,6 +1439,11 @@ const detectDonchianSignals = (data) => {
         price: currentBar.close,
         reason: 'Donchian Upper Touch + Red Candle'
       });
+
+      // Send webhook (non-blocking)
+      if (currentStrategyId) {
+        sendPayload("sell", currentTicker, currentStrategyId);
+      }
     }
   }
   
@@ -1517,7 +1530,12 @@ const checkRealtimeSignal = (newBar) => {
     });
     candleSeries.setMarkers(currentMarkers);
     signalMarkers = currentMarkers;
-    
+
+    // Send webhook
+    if (currentStrategyId) {
+      sendPayload("buy", currentTicker, currentStrategyId);
+    }
+
     lastTouchLower = true;
   } else if (!prevTouchedLower) {
     lastTouchLower = false;
@@ -1540,7 +1558,12 @@ const checkRealtimeSignal = (newBar) => {
     });
     candleSeries.setMarkers(currentMarkers);
     signalMarkers = currentMarkers;
-    
+
+    // Send webhook
+    if (currentStrategyId) {
+      sendPayload("sell", currentTicker, currentStrategyId);
+    }
+
     lastTouchUpper = true;
   } else if (!prevTouchedUpper) {
     lastTouchUpper = false;
