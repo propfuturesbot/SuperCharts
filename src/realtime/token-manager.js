@@ -100,7 +100,7 @@ class TokenManager {
       if (credentials.usePassword) {
         // Use password authentication
         response = await axios.post(
-          'https://userapi.topstepx.com/Login',
+          `${config.userapi_endpoint}/Login`,
           {
             userName: credentials.username,
             password: credentials.password
@@ -187,7 +187,7 @@ class TokenManager {
 
       if (usePassword) {
         response = await axios.post(
-          'https://userapi.topstepx.com/Login',
+          `${config.userapi_endpoint}/Login`,
           {
             userName: username,
             password: credential

@@ -1,8 +1,32 @@
 // Get access token from JSON file via backend API
 let ACCESS_TOKEN = null;
 
-// Import webhook service for signal notifications
-const { sendPayload } = require('../../trading-backend/services/webhookService');
+// Webhook service for signal notifications (browser-compatible)
+const sendPayload = async (action, ticker, strategyId) => {
+  try {
+    // Send webhook via backend API (browser-compatible)
+    const response = await fetch('http://localhost:8000/api/webhook/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        action,
+        ticker,
+        strategyId
+      })
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      console.log(`✅ Webhook sent: ${action} signal for ${ticker}`);
+    } else {
+      console.warn(`⚠️ Webhook failed: ${result.error}`);
+    }
+  } catch (error) {
+    console.error('❌ Error sending webhook:', error);
+  }
+};
 
 // Function to get access token from backend
 const getAccessToken = async () => {
@@ -147,7 +171,11 @@ const getHistoricalData = async (resolution, countback, symbol = null) => {
     const from = now - (86400 * 7); // 7 days ago
     const to = now;
 
-    const url = `https://chartapi.topstepx.com/History/v2?Symbol=${symbol}&Resolution=${resolution}&Countback=${countback}&From=${from}&To=${to}&SessionId=extended&Live=false`;
+    // Get current provider configuration
+    const currentProvider = window.browserAuth ? window.browserAuth.getCurrentProvider() : 'topstepx';
+    const providerConfig = window.browserAuth ? window.browserAuth.getProviderConfig(currentProvider) : { chartapi_endpoint: 'https://chartapi.topstepx.com' };
+
+    const url = `${providerConfig.chartapi_endpoint}/History/v2?Symbol=${symbol}&Resolution=${resolution}&Countback=${countback}&From=${from}&To=${to}&SessionId=extended&Live=false`;
 
     const token = await getAccessToken();
     const res = await fetch(url, {
@@ -296,8 +324,13 @@ const setupRealTimeConnection = async () => {
     }
 
     const token = await getAccessToken();
+
+    // Get current provider configuration for WebSocket connection
+    const currentProvider = window.browserAuth ? window.browserAuth.getCurrentProvider() : 'topstepx';
+    const providerConfig = window.browserAuth ? window.browserAuth.getProviderConfig(currentProvider) : { websocket_chartapi: 'wss://chartapi.topstepx.com/hubs' };
+
     connection = new signalR.HubConnectionBuilder()
-      .withUrl(`https://chartapi.topstepx.com/hubs/chart?access_token=${token}`, {
+      .withUrl(`${providerConfig.websocket_chartapi}/chart?access_token=${token}`, {
         skipNegotiation: true,
         transport: signalR.HttpTransportType.WebSockets
       })
@@ -2068,6 +2101,8 @@ const updateRenkoBrickSize = () => {
 // Strategy management variables
 let currentStrategy = null;
 let strategyTimer = null;
+let currentStrategyId = null;
+let currentTicker = CURRENT_CONTRACT; // Use the current contract as ticker
 
 // Load the current strategy from URL parameters or default
 const loadCurrentStrategy = async () => {
@@ -2093,6 +2128,7 @@ const loadCurrentStrategy = async () => {
 const loadStrategy = async (strategyId) => {
   if (!strategyId) {
     currentStrategy = null;
+    currentStrategyId = null;
     updateStrategyUI();
     return;
   }
@@ -2105,6 +2141,7 @@ const loadStrategy = async (strategyId) => {
       const strategy = data.data.find(s => s.id === strategyId);
       if (strategy) {
         currentStrategy = strategy;
+        currentStrategyId = strategy.id;
         updateStrategyUI();
 
         // Apply strategy configuration to chart if needed

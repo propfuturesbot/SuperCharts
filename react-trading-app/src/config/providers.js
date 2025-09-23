@@ -28,6 +28,16 @@ export const PROVIDERS = {
     market_hub: 'https://rtc.blueguardianfutures.projectx.com/hubs/market',
     websocket_chartapi: 'wss://chartapi.blueguardianfutures.projectx.com/hubs',
     chartapi_endpoint: 'https://chartapi.blueguardianfutures.projectx.com'
+  },
+  thefuturesdesk: {
+    name: 'The Futures Desk',
+    api_endpoint: 'https://api.thefuturesdesk.projectx.com',
+    userapi_endpoint: 'https://userapi.thefuturesdesk.projectx.com',
+    websocket_endpoint: 'wss://api.thefuturesdesk.projectx.com/signalr',
+    user_hub: 'https://rtc.thefuturesdesk.projectx.com/hubs/user',
+    market_hub: 'https://rtc.thefuturesdesk.projectx.com/hubs/market',
+    websocket_chartapi: 'wss://chartapi.thefuturesdesk.projectx.com/hubs',
+    chartapi_endpoint: 'https://chartapi.thefuturesdesk.projectx.com'
   }
 };
 

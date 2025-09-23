@@ -1,8 +1,8 @@
 const axios = require('axios');
-const pool = require('../database');
+// Note: pool is imported from simple-backend.js context, will need to be passed as parameter
 
 // Single purpose: Send webhook when signal occurs
-async function sendPayload(action, ticker, strategyId) {
+async function sendPayload(action, ticker, strategyId, pool) {
   try {
     // Get strategy config (status + webhook)
     const { rows } = await pool.query(

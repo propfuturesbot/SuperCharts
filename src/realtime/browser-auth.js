@@ -38,6 +38,16 @@ class BrowserAuthManager {
         market_hub: 'https://rtc.blueguardianfutures.projectx.com/hubs/market',
         websocket_chartapi: 'wss://chartapi.blueguardianfutures.projectx.com/hubs',
         chartapi_endpoint: 'https://chartapi.blueguardianfutures.projectx.com'
+      },
+      thefuturesdesk: {
+        name: 'The Futures Desk',
+        api_endpoint: 'https://api.thefuturesdesk.projectx.com',
+        userapi_endpoint: 'https://userapi.thefuturesdesk.projectx.com',
+        websocket_endpoint: 'wss://api.thefuturesdesk.projectx.com/signalr',
+        user_hub: 'https://rtc.thefuturesdesk.projectx.com/hubs/user',
+        market_hub: 'https://rtc.thefuturesdesk.projectx.com/hubs/market',
+        websocket_chartapi: 'wss://chartapi.thefuturesdesk.projectx.com/hubs',
+        chartapi_endpoint: 'https://chartapi.thefuturesdesk.projectx.com'
       }
     };
   }
@@ -158,7 +168,7 @@ class BrowserAuthManager {
           userName: credentials.username,
           password: credentials.password
         });
-        response = await fetch('https://userapi.topstepx.com/Login', requestOptions);
+        response = await fetch(`${config.userapi_endpoint}/Login`, requestOptions);
       } else {
         // Use API key authentication
         requestOptions.headers['accept'] = 'text/plain';
@@ -301,6 +311,7 @@ class BrowserAuthManager {
 
 // Global instance
 window.browserAuth = new BrowserAuthManager();
+
 
 
 

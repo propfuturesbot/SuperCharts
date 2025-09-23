@@ -5,7 +5,8 @@ const fs = require('fs');
 const path = require('path');
 const { Pool } = require('pg');
 const { spawn } = require('child_process');
-const { sendPayload } = require('./services/webhookService');
+// const { sendPayload } = require('./services/webhookService'); // Will be enabled when webhook endpoint is used
+const { getProviderConfig } = require('../src/realtime/providers');
 
 const app = express();
 const port = 8000;
@@ -19,17 +20,12 @@ app.use(express.json());
 // Serve static files from src/realtime directory
 app.use('/chart-assets', express.static(path.join(__dirname, '../src/realtime')));
 
-// Provider Configuration
-const PROVIDER_CONFIG = {
-  topstep: {
-    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjE5NDY5OSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL3NpZCI6IjYzYzBjYTZhLWQxYTgtNDBjNS04MWViLWY1YTA0NGQ0ZjU0NiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJzdW1vbmV5MSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6InVzZXIiLCJtc2QiOiJDTUVHUk9VUF9UT0IiLCJtZmEiOiJ2ZXJpZmllZCIsImV4cCI6MTc1ODA2MzYzNH0.HRx9bQw0GfM3pGfyTmtfusdPx6kW3wLp5k-HyByyLjs',
-    apiUrl: 'https://userapi.topstepx.com/UserContract/active/nonprofesional'
-  }
-  // Add other providers here as needed
-};
+// Provider Configuration - uses the same provider system as the frontend
+// Default provider (configurable via environment variable or runtime)
+const CURRENT_PROVIDER = process.env.TRADING_PROVIDER || 'topstepx';
 
-// Current provider (configurable)
-const CURRENT_PROVIDER = 'topstep';
+// Hardcoded token for development (should be replaced with proper auth)
+const DEVELOPMENT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjE5NDY5OSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL3NpZCI6IjYzYzBjYTZhLWQxYTgtNDBjNS04MWViLWY1YTA0NGQ0ZjU0NiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJzdW1vbmV5MSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6InVzZXIiLCJtc2QiOiJDTUVHUk9VUF9UT0IiLCJtZmEiOiJ2ZXJpZmllZCIsImV4cCI6MTc1ODA2MzYzNH0.HRx9bQw0GfM3pGfyTmtfusdPx6kW3wLp5k-HyByyLjs';
 
 // PostgreSQL Database connection
 const pool = new Pool({
@@ -56,15 +52,18 @@ const STRATEGIES_FILE = path.join(__dirname, 'strategies.json');
 // Fetch contracts from provider and cache them
 async function loadContracts(provider = CURRENT_PROVIDER) {
   try {
-    const providerConfig = PROVIDER_CONFIG[provider];
+    const providerConfig = getProviderConfig(provider);
     if (!providerConfig) {
       throw new Error(`Unknown provider: ${provider}`);
     }
 
     console.log(`Loading contracts from ${provider.toUpperCase()} API...`);
-    
-    const response = await axios.get(providerConfig.apiUrl, {
-      headers: { 'Authorization': `Bearer ${providerConfig.token}` }
+
+    // Construct the contract API URL using provider's userapi_endpoint
+    const contractApiUrl = `${providerConfig.userapi_endpoint}/UserContract/active/nonprofesional`;
+
+    const response = await axios.get(contractApiUrl, {
+      headers: { 'Authorization': `Bearer ${DEVELOPMENT_TOKEN}` }
     });
 
     const contracts = response.data.map(contract => ({
@@ -1895,12 +1894,14 @@ app.get('/api/chart-history', async (req, res) => {
   try {
     const { Symbol, Resolution, Countback, From, To, SessionId, Live } = req.query;
 
-    // Build the TopStepX API URL
-    const apiUrl = `https://chartapi.topstepx.com/History/v2?Symbol=${encodeURIComponent(Symbol)}&Resolution=${Resolution}&Countback=${Countback}&From=${From}&To=${To}&SessionId=${SessionId || 'extended'}&Live=${Live || 'false'}`;
+    // Get provider configuration and build the chart API URL
+    const provider = req.query.provider || CURRENT_PROVIDER;
+    const providerConfig = getProviderConfig(provider);
+    const apiUrl = `${providerConfig.chartapi_endpoint}/History/v2?Symbol=${encodeURIComponent(Symbol)}&Resolution=${Resolution}&Countback=${Countback}&From=${From}&To=${To}&SessionId=${SessionId || 'extended'}&Live=${Live || 'false'}`;
 
-    console.log('Proxying chart history request:', apiUrl);
+    console.log(`Proxying chart history request for ${provider}:`, apiUrl);
 
-    // Fetch data from TopStepX
+    // Fetch data from provider's chart API
     const response = await axios.get(apiUrl);
     let data = response.data;
 
@@ -2266,6 +2267,46 @@ app.get('/api/auth/token', async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message
+    });
+  }
+});
+
+// Webhook endpoint for trading signals from charts
+app.post('/api/webhook/send', async (req, res) => {
+  try {
+    const { action, ticker, strategyId } = req.body;
+
+    if (!action || !ticker || !strategyId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: action, ticker, strategyId'
+      });
+    }
+
+    console.log(`📡 Webhook received: ${action} signal for ${ticker} (strategy: ${strategyId})`);
+
+    // For now, just log the webhook. In the future, this could:
+    // 1. Forward to external trading platforms
+    // 2. Store in database for analysis
+    // 3. Send notifications
+    // 4. Execute automated trades
+
+    res.json({
+      success: true,
+      message: `Webhook processed: ${action} signal for ${ticker}`,
+      data: {
+        action,
+        ticker,
+        strategyId,
+        timestamp: new Date().toISOString()
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error processing webhook:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to process webhook: ' + error.message
     });
   }
 });

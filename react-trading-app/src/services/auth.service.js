@@ -16,9 +16,9 @@ class AuthService {
       let response;
       
       if (usePassword) {
-        // Use password authentication with the new endpoint
+        // Use password authentication with the provider's endpoint
         response = await axios.post(
-          'https://userapi.topstepx.com/Login',
+          `${config.userapi_endpoint}/Login`,
           {
             userName: username,
             password: credential
