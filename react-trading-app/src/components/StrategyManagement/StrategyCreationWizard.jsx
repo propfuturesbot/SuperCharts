@@ -170,7 +170,7 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
   // Contract lookup function to get product_id
   const lookupContractProductId = async (contractName) => {
     try {
-      const response = await axios.get(`http://localhost:8000/api/contracts/lookup/${encodeURIComponent(contractName)}`);
+      const response = await axios.get(`http://localhost:8025/api/contracts/lookup/${encodeURIComponent(contractName)}`);
       if (response.data && response.data.success) {
         return response.data.product_id;
       }
@@ -187,7 +187,7 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
       console.log('Fetching contracts from API...');
       
       // Fetch contracts from our backend API
-      const response = await axios.get('http://localhost:8000/api/contracts');
+      const response = await axios.get('http://localhost:8025/api/contracts');
       
       if (response.data && response.data.success && response.data.contracts) {
         console.log(`Loaded ${response.data.contracts.length} contracts from ${response.data.source}`);
@@ -346,7 +346,7 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
         // Update existing strategy
         console.log('Updating strategy:', strategy.id);
         try {
-          const response = await axios.put(`http://localhost:8000/api/strategies/${strategy.id}`, strategyData);
+          const response = await axios.put(`http://localhost:8025/api/strategies/${strategy.id}`, strategyData);
           updatedStrategy = {
             ...strategyData,
             id: strategy.id,
@@ -367,7 +367,7 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
         // Create new strategy
         console.log('Creating new strategy');
         try {
-          const response = await axios.post('http://localhost:8000/api/strategies', strategyData);
+          const response = await axios.post('http://localhost:8025/api/strategies', strategyData);
           updatedStrategy = {
             ...strategyData,
             id: response.data.id,
@@ -444,7 +444,7 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
         console.log('Launching chart with config:', chartConfig);
       }
 
-      const response = await axios.post('http://localhost:8000/api/launch-chart', chartConfig);
+      const response = await axios.post('http://localhost:8025/api/launch-chart', chartConfig);
       console.log('Chart launched successfully:', response.data);
     } catch (error) {
       console.error('Error launching chart:', error);

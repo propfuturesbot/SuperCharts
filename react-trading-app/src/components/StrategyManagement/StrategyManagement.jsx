@@ -46,7 +46,7 @@ const StrategyManagement = () => {
   const fetchStrategies = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8000/api/strategies');
+      const response = await axios.get('http://localhost:8025/api/strategies');
       setStrategies(response.data.data || []);
     } catch (error) {
       console.error('Error fetching strategies:', error);
@@ -152,7 +152,7 @@ const StrategyManagement = () => {
   const handleStartStop = async (strategyId, currentStatus) => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
     try {
-      await axios.patch(`http://localhost:8000/api/strategies/${strategyId}`, { status: newStatus });
+      await axios.patch(`http://localhost:8025/api/strategies/${strategyId}`, { status: newStatus });
       setStrategies(strategies.map(s => 
         s.id === strategyId ? { ...s, status: newStatus } : s
       ));
@@ -180,7 +180,7 @@ const StrategyManagement = () => {
     if (!strategyToDelete) return;
     
     try {
-      await axios.delete(`http://localhost:8000/api/strategies/${strategyToDelete.id}`);
+      await axios.delete(`http://localhost:8025/api/strategies/${strategyToDelete.id}`);
       setStrategies(strategies.filter(s => s.id !== strategyToDelete.id));
     } catch (error) {
       console.error('Error deleting strategy:', error);
@@ -203,7 +203,7 @@ const StrategyManagement = () => {
     };
 
     try {
-      const response = await axios.post('http://localhost:8000/api/strategies', clonedStrategy);
+      const response = await axios.post('http://localhost:8025/api/strategies', clonedStrategy);
       setStrategies([...strategies, response.data]);
     } catch (error) {
       console.error('Error cloning strategy:', error);

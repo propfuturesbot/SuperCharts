@@ -5,7 +5,7 @@ let ACCESS_TOKEN = null;
 const sendPayload = async (action, ticker, strategyId) => {
   try {
     // Send webhook via backend API (browser-compatible)
-    const response = await fetch('http://localhost:8000/api/webhook/send', {
+    const response = await fetch('http://localhost:8025/api/webhook/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -32,7 +32,7 @@ const sendPayload = async (action, ticker, strategyId) => {
 const getAccessToken = async () => {
   if (!ACCESS_TOKEN) {
     try {
-      const response = await fetch('http://localhost:8000/api/auth/token');
+      const response = await fetch('http://localhost:8025/api/auth/token');
       if (response.ok) {
         const data = await response.json();
         ACCESS_TOKEN = data.data.token;
@@ -2134,7 +2134,7 @@ const loadStrategy = async (strategyId) => {
   }
 
   try {
-    const response = await fetch(`http://localhost:8000/api/strategies`);
+    const response = await fetch(`http://localhost:8025/api/strategies`);
     const data = await response.json();
 
     if (data.success && data.data) {
@@ -2200,7 +2200,7 @@ const toggleStrategy = async () => {
   const newStatus = isActive ? 'inactive' : 'active';
 
   try {
-    const response = await fetch(`http://localhost:8000/api/strategies/${currentStrategy.id}/status`, {
+    const response = await fetch(`http://localhost:8025/api/strategies/${currentStrategy.id}/status`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -2240,7 +2240,7 @@ const checkStrategyStatus = async () => {
   if (!currentStrategy) return;
 
   try {
-    const response = await fetch(`http://localhost:8000/api/strategies`);
+    const response = await fetch(`http://localhost:8025/api/strategies`);
     const data = await response.json();
 
     if (data.success && data.data) {

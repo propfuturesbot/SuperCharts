@@ -9,7 +9,7 @@ const { spawn } = require('child_process');
 const { getProviderConfig } = require('../src/realtime/providers');
 
 const app = express();
-const port = 8000;
+const port = 8025;
 
 app.use(cors({
   origin: 'http://localhost:3000',
