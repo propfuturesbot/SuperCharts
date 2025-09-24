@@ -28,7 +28,67 @@ const sendPayload = async (action, ticker, strategyId) => {
   }
 };
 
-// Function to get access token from backend
+// Get provider configuration from the global ProviderConfig (loaded from providers-browser.js)
+const getProviderConfig = (providerKey) => {
+  // Check if ProviderConfig is available (loaded from providers-browser.js)
+  if (window.ProviderConfig && window.ProviderConfig.getProviderConfig) {
+    return window.ProviderConfig.getProviderConfig(providerKey);
+  }
+
+  // Fallback: define providers inline if ProviderConfig not loaded
+  console.warn('ProviderConfig not loaded. Using fallback provider configuration.');
+
+  const fallbackProviders = {
+    topstepx: {
+      name: 'TopStepX',
+      api_endpoint: 'https://api.topstepx.com',
+      userapi_endpoint: 'https://userapi.topstepx.com',
+      websocket_endpoint: 'wss://api.topstepx.com/signalr',
+      user_hub: 'https://rtc.topstepx.com/hubs/user',
+      market_hub: 'https://rtc.topstepx.com/hubs/market',
+      websocket_chartapi: 'wss://chartapi.topstepx.com/hubs',
+      chartapi_endpoint: 'https://chartapi.topstepx.com'
+    },
+    alphaticks: {
+      name: 'AlphaTicks',
+      api_endpoint: 'https://api.alphaticks.projectx.com',
+      userapi_endpoint: 'https://userapi.alphaticks.projectx.com',
+      websocket_endpoint: 'wss://api.alphaticks.projectx.com/signalr',
+      user_hub: 'https://rtc.alphaticks.projectx.com/hubs/user',
+      market_hub: 'https://rtc.alphaticks.projectx.com/hubs/market',
+      websocket_chartapi: 'wss://chartapi.alphaticks.projectx.com/hubs',
+      chartapi_endpoint: 'https://chartapi.alphaticks.projectx.com'
+    },
+    blueguardian: {
+      name: 'Blue Guardian',
+      api_endpoint: 'https://api.blueguardianfutures.projectx.com',
+      userapi_endpoint: 'https://userapi.blueguardianfutures.projectx.com',
+      websocket_endpoint: 'wss://api.blueguardianfutures.projectx.com/signalr',
+      user_hub: 'https://rtc.blueguardianfutures.projectx.com/hubs/user',
+      market_hub: 'https://rtc.blueguardianfutures.projectx.com/hubs/market',
+      websocket_chartapi: 'wss://chartapi.blueguardianfutures.projectx.com/hubs',
+      chartapi_endpoint: 'https://chartapi.blueguardianfutures.projectx.com'
+    },
+    thefuturesdesk: {
+      name: 'The Futures Desk',
+      api_endpoint: 'https://api.thefuturesdesk.projectx.com',
+      userapi_endpoint: 'https://userapi.thefuturesdesk.projectx.com',
+      websocket_endpoint: 'wss://api.thefuturesdesk.projectx.com/signalr',
+      user_hub: 'https://rtc.thefuturesdesk.projectx.com/hubs/user',
+      market_hub: 'https://rtc.thefuturesdesk.projectx.com/hubs/market',
+      websocket_chartapi: 'wss://chartapi.thefuturesdesk.projectx.com/hubs',
+      chartapi_endpoint: 'https://chartapi.thefuturesdesk.projectx.com'
+    }
+  };
+
+  return fallbackProviders[providerKey] || fallbackProviders.topstepx;
+};
+
+// Store provider information globally
+let CURRENT_PROVIDER = null;
+let PROVIDER_CONFIG = null;
+
+// Function to get access token and provider from backend
 const getAccessToken = async () => {
   if (!ACCESS_TOKEN) {
     try {
@@ -36,7 +96,12 @@ const getAccessToken = async () => {
       if (response.ok) {
         const data = await response.json();
         ACCESS_TOKEN = data.data.token;
-        console.log('✅ Token loaded from auth-token.json file');
+        CURRENT_PROVIDER = data.data.provider || 'topstepx';
+        console.log(`✅ Token loaded from auth-token.json file for provider: ${CURRENT_PROVIDER}`);
+
+        // Load provider configuration using the common getProviderConfig function
+        PROVIDER_CONFIG = getProviderConfig(CURRENT_PROVIDER);
+        console.log(`📊 Using provider config for ${CURRENT_PROVIDER}:`, PROVIDER_CONFIG.chartapi_endpoint);
       } else {
         throw new Error(`Failed to load token from backend: ${response.status}`);
       }
@@ -171,11 +236,12 @@ const getHistoricalData = async (resolution, countback, symbol = null) => {
     const from = now - (86400 * 7); // 7 days ago
     const to = now;
 
-    // Get current provider configuration
-    const currentProvider = window.browserAuth ? window.browserAuth.getCurrentProvider() : 'topstepx';
-    const providerConfig = window.browserAuth ? window.browserAuth.getProviderConfig(currentProvider) : { chartapi_endpoint: 'https://chartapi.topstepx.com' };
+    // Ensure we have provider configuration
+    if (!PROVIDER_CONFIG) {
+      await getAccessToken(); // This will load provider config
+    }
 
-    const url = `${providerConfig.chartapi_endpoint}/History/v2?Symbol=${symbol}&Resolution=${resolution}&Countback=${countback}&From=${from}&To=${to}&SessionId=extended&Live=false`;
+    const url = `${PROVIDER_CONFIG.chartapi_endpoint}/History/v2?Symbol=${symbol}&Resolution=${resolution}&Countback=${countback}&From=${from}&To=${to}&SessionId=extended&Live=false`;
 
     const token = await getAccessToken();
     const res = await fetch(url, {
@@ -325,12 +391,13 @@ const setupRealTimeConnection = async () => {
 
     const token = await getAccessToken();
 
-    // Get current provider configuration for WebSocket connection
-    const currentProvider = window.browserAuth ? window.browserAuth.getCurrentProvider() : 'topstepx';
-    const providerConfig = window.browserAuth ? window.browserAuth.getProviderConfig(currentProvider) : { websocket_chartapi: 'wss://chartapi.topstepx.com/hubs' };
+    // Ensure we have provider configuration
+    if (!PROVIDER_CONFIG) {
+      await getAccessToken(); // This will load provider config
+    }
 
     connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${providerConfig.websocket_chartapi}/chart?access_token=${token}`, {
+      .withUrl(`${PROVIDER_CONFIG.websocket_chartapi}/chart?access_token=${token}`, {
         skipNegotiation: true,
         transport: signalR.HttpTransportType.WebSockets
       })
@@ -352,6 +419,7 @@ const setupRealTimeConnection = async () => {
     connection.onreconnected(async () => {
       updateStatus('Connected', true);
       await subscribeToResolution(currentResolution);
+      isRealTimeReady = true; // Ready for real-time signals
     });
     
     connection.onclose(() => {
@@ -360,9 +428,13 @@ const setupRealTimeConnection = async () => {
     
     await connection.start();
     updateStatus('Connected', true);
-    
+
     // Subscribe to the current resolution
     await subscribeToResolution(currentResolution);
+
+    // Mark system as ready for real-time signals
+    isRealTimeReady = true;
+    console.log('✅ Real-time connection established - webhooks enabled');
     
   } catch (error) {
     console.error('Failed to setup real-time connection:', error);
@@ -1453,10 +1525,9 @@ const detectDonchianSignals = (data) => {
         reason: 'Donchian Lower Touch + Green Candle'
       });
 
-      // Send webhook (non-blocking)
-      if (currentStrategyId) {
-        sendPayload("buy", currentTicker, currentStrategyId);
-      }
+      // DON'T send webhook for historical signals - only visual markers
+      // Webhooks are only sent in checkRealtimeSignal() for real-time data
+      console.log('🔵 Historical BUY signal detected at', new Date(currentBar.time * 1000).toLocaleString(), '(webhook not sent)');
     }
     
     // Sell Signal Detection
@@ -1473,10 +1544,9 @@ const detectDonchianSignals = (data) => {
         reason: 'Donchian Upper Touch + Red Candle'
       });
 
-      // Send webhook (non-blocking)
-      if (currentStrategyId) {
-        sendPayload("sell", currentTicker, currentStrategyId);
-      }
+      // DON'T send webhook for historical signals - only visual markers
+      // Webhooks are only sent in checkRealtimeSignal() for real-time data
+      console.log('🔴 Historical SELL signal detected at', new Date(currentBar.time * 1000).toLocaleString(), '(webhook not sent)');
     }
   }
   
@@ -1564,9 +1634,12 @@ const checkRealtimeSignal = (newBar) => {
     candleSeries.setMarkers(currentMarkers);
     signalMarkers = currentMarkers;
 
-    // Send webhook
-    if (currentStrategyId) {
+    // Send webhook only if real-time is ready (not during initial load)
+    if (currentStrategyId && isRealTimeReady) {
       sendPayload("buy", currentTicker, currentStrategyId);
+      console.log('📡 Real-time BUY signal detected and webhook sent');
+    } else if (currentStrategyId) {
+      console.log('⏸️ Buy signal detected but webhooks disabled during initialization');
     }
 
     lastTouchLower = true;
@@ -1592,9 +1665,12 @@ const checkRealtimeSignal = (newBar) => {
     candleSeries.setMarkers(currentMarkers);
     signalMarkers = currentMarkers;
 
-    // Send webhook
-    if (currentStrategyId) {
+    // Send webhook only if real-time is ready (not during initial load)
+    if (currentStrategyId && isRealTimeReady) {
       sendPayload("sell", currentTicker, currentStrategyId);
+      console.log('📡 Real-time SELL signal detected and webhook sent');
+    } else if (currentStrategyId) {
+      console.log('⏸️ Sell signal detected but webhooks disabled during initialization');
     }
 
     lastTouchUpper = true;
@@ -1973,6 +2049,10 @@ const updateChartData = () => {
 
 const changeChartType = (chartType) => {
   currentChartType = chartType;
+
+  // Temporarily disable real-time signals during chart type change
+  const wasRealTimeReady = isRealTimeReady;
+  isRealTimeReady = false;
   
   // Show/hide Renko brick size controls
   const renkoBrickSizeDiv = document.getElementById('renkoBrickSize');
@@ -2023,6 +2103,14 @@ const changeChartType = (chartType) => {
     if (activeIndicators.has('DonchianChannel')) {
       displaySignalsOnChart();
     }
+  }
+
+  // Re-enable real-time signals after chart type change
+  if (wasRealTimeReady) {
+    setTimeout(() => {
+      isRealTimeReady = true;
+      console.log('✅ Real-time ready after chart type change');
+    }, 500); // Wait 500ms to ensure we're past any historical processing
   }
 };
 

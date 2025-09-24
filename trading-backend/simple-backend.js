@@ -21,11 +21,40 @@ app.use(express.json());
 app.use('/chart-assets', express.static(path.join(__dirname, '../src/realtime')));
 
 // Provider Configuration - uses the same provider system as the frontend
-// Default provider (configurable via environment variable or runtime)
-const CURRENT_PROVIDER = process.env.TRADING_PROVIDER || 'topstepx';
+// Function to get current provider from auth-token.json
+const getCurrentProvider = () => {
+  try {
+    if (fs.existsSync(AUTH_TOKEN_FILE)) {
+      const tokenData = JSON.parse(fs.readFileSync(AUTH_TOKEN_FILE, 'utf8'));
+      return tokenData.provider || process.env.TRADING_PROVIDER || 'topstepx';
+    }
+  } catch (error) {
+    console.error('Error reading provider from auth token:', error);
+  }
+  return process.env.TRADING_PROVIDER || 'topstepx';
+};
 
-// Hardcoded token for development (should be replaced with proper auth)
-const DEVELOPMENT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjE5NDY5OSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL3NpZCI6IjYzYzBjYTZhLWQxYTgtNDBjNS04MWViLWY1YTA0NGQ0ZjU0NiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJzdW1vbmV5MSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6InVzZXIiLCJtc2QiOiJDTUVHUk9VUF9UT0IiLCJtZmEiOiJ2ZXJpZmllZCIsImV4cCI6MTc1ODA2MzYzNH0.HRx9bQw0GfM3pGfyTmtfusdPx6kW3wLp5k-HyByyLjs';
+// Default provider (dynamically loaded from auth-token.json)
+const CURRENT_PROVIDER = getCurrentProvider();
+
+// Function to get current auth token from auth-token.json
+const getCurrentToken = () => {
+  try {
+    if (fs.existsSync(AUTH_TOKEN_FILE)) {
+      const tokenData = JSON.parse(fs.readFileSync(AUTH_TOKEN_FILE, 'utf8'));
+      // Check if token is expired
+      if (Date.now() < tokenData.expiresAt) {
+        return tokenData.token;
+      } else {
+        console.warn('Auth token has expired. Please login again.');
+      }
+    }
+  } catch (error) {
+    console.error('Error reading auth token:', error);
+  }
+  // Return null if no valid token found
+  return null;
+};
 
 // PostgreSQL Database connection
 const pool = new Pool({
@@ -50,7 +79,11 @@ const CONTRACTS_FILE = path.join(__dirname, 'tradableContracts.json');
 const STRATEGIES_FILE = path.join(__dirname, 'strategies.json');
 
 // Fetch contracts from provider and cache them
-async function loadContracts(provider = CURRENT_PROVIDER) {
+async function loadContracts(provider = null) {
+  // Use provided provider or get current provider from auth-token.json
+  if (!provider) {
+    provider = getCurrentProvider();
+  }
   try {
     const providerConfig = getProviderConfig(provider);
     if (!providerConfig) {
@@ -63,7 +96,7 @@ async function loadContracts(provider = CURRENT_PROVIDER) {
     const contractApiUrl = `${providerConfig.userapi_endpoint}/UserContract/active/nonprofesional`;
 
     const response = await axios.get(contractApiUrl, {
-      headers: { 'Authorization': `Bearer ${DEVELOPMENT_TOKEN}` }
+      headers: { 'Authorization': `Bearer ${getCurrentToken() || process.env.TOPSTEP_TOKEN}` }
     });
 
     const contracts = response.data.map(contract => ({
@@ -639,10 +672,22 @@ app.get('/api/chart', (req, res) => {
     // Read the HTML file and modify the script src to use the correct path
     let htmlContent = fs.readFileSync(htmlPath, 'utf8');
 
-    // Replace the relative path with the full path to the static assets
+    // Replace the relative paths with the full path to the static assets
     htmlContent = htmlContent.replace(
       'src="index.js"',
       'src="/chart-assets/index.js"'
+    );
+
+    // Also replace the providers-browser.js path
+    htmlContent = htmlContent.replace(
+      'src="providers-browser.js"',
+      'src="/chart-assets/providers-browser.js"'
+    );
+
+    // Replace browser-auth.js if it exists
+    htmlContent = htmlContent.replace(
+      'src="browser-auth.js"',
+      'src="/chart-assets/browser-auth.js"'
     );
 
     // Inject the chart configuration into the HTML
@@ -1895,7 +1940,7 @@ app.get('/api/chart-history', async (req, res) => {
     const { Symbol, Resolution, Countback, From, To, SessionId, Live } = req.query;
 
     // Get provider configuration and build the chart API URL
-    const provider = req.query.provider || CURRENT_PROVIDER;
+    const provider = req.query.provider || getCurrentProvider();
     const providerConfig = getProviderConfig(provider);
     const apiUrl = `${providerConfig.chartapi_endpoint}/History/v2?Symbol=${encodeURIComponent(Symbol)}&Resolution=${Resolution}&Countback=${Countback}&From=${From}&To=${To}&SessionId=${SessionId || 'extended'}&Live=${Live || 'false'}`;
 
@@ -2319,7 +2364,7 @@ async function initializeServer() {
       const contracts = JSON.parse(fs.readFileSync(CONTRACTS_FILE, 'utf8'));
       console.log(`✅ Found existing contracts file with ${contracts.length} contracts`);
     } else {
-      console.log(`📥 No existing contracts file found, fetching from ${CURRENT_PROVIDER.toUpperCase()}...`);
+      console.log(`📥 No existing contracts file found, fetching from ${getCurrentProvider().toUpperCase()}...`);
       await loadContracts();
     }
     
