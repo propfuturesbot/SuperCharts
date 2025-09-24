@@ -15,7 +15,8 @@ import {
   FaClock,
   FaCheckCircle,
   FaTimesCircle,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaSync
 } from 'react-icons/fa';
 import axios from 'axios';
 import Layout from '../Layout/Layout';
@@ -204,11 +205,23 @@ const StrategyManagement = () => {
 
     try {
       const response = await axios.post('http://localhost:8025/api/strategies', clonedStrategy);
-      setStrategies([...strategies, response.data]);
+      // Backend returns { success: true, data: strategyObject }
+      const newStrategy = response.data.data || response.data;
+      setStrategies([...strategies, newStrategy]);
     } catch (error) {
       console.error('Error cloning strategy:', error);
-      // Add locally for demonstration
-      const newStrategy = { ...clonedStrategy, id: Date.now().toString() };
+      // Add locally for demonstration with a proper ID
+      const newStrategy = {
+        ...clonedStrategy,
+        id: `local-${Date.now()}`,
+        // Ensure all required fields are present
+        contract_name: strategy.contract_name || 'Unknown Contract',
+        strategy_type: strategy.strategy_type || 'candlestick',
+        contract_symbol: strategy.contract_symbol || 'N/A',
+        timeframe: strategy.timeframe || '5m',
+        webhook_payload: strategy.webhook_payload || null,
+        brick_size: strategy.brick_size || null
+      };
       setStrategies([...strategies, newStrategy]);
     }
   };
@@ -266,14 +279,26 @@ const StrategyManagement = () => {
           <h1 className="management-title">Strategy Management</h1>
           <p className="management-subtitle">Create, manage, and monitor your trading strategies</p>
         </div>
-        <motion.button
-          className="create-strategy-btn"
-          onClick={() => setIsWizardOpen(true)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <FaPlus /> Create New Strategy
-        </motion.button>
+        <div className="header-actions">
+          <motion.button
+            className="refresh-btn"
+            onClick={fetchStrategies}
+            disabled={loading}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            title="Refresh strategies"
+          >
+            <FaSync className={loading ? 'spinning' : ''} /> Refresh
+          </motion.button>
+          <motion.button
+            className="create-strategy-btn"
+            onClick={() => setIsWizardOpen(true)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <FaPlus /> Create New Strategy
+          </motion.button>
+        </div>
       </div>
 
       <div className="management-controls">

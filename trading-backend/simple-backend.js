@@ -377,22 +377,25 @@ app.post('/api/strategies', async (req, res) => {
       contract_name,
       timeframe,
       webhook_url,
-      webhook_payload
+      webhook_payload,
+      indicators,
+      brick_size
     } = req.body;
 
     const result = await pool.query(`
       INSERT INTO strategies (
         name, strategy_type, contract_symbol, contract_name,
         timeframe, webhook_url, webhook_payload, brick_size,
-        status, created_by
+        status, created_by, indicators
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'inactive', 'system')
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'inactive', 'system', $9)
       RETURNING *
     `, [
       name, strategy_type, contract_symbol, contract_name,
       timeframe, webhook_url,
       webhook_payload ? JSON.stringify(webhook_payload) : null,
-      req.body.brick_size || 0.25
+      brick_size || 0.25,
+      indicators ? JSON.stringify(indicators) : null
     ]);
 
     res.json({

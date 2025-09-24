@@ -4,27 +4,85 @@ let ACCESS_TOKEN = null;
 // Webhook service for signal notifications (browser-compatible)
 const sendPayload = async (action, ticker, strategyId) => {
   try {
-    // Send webhook via backend API (browser-compatible)
-    const response = await fetch('http://localhost:8025/api/webhook/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        action,
-        ticker,
-        strategyId
-      })
-    });
-
-    const result = await response.json();
-    if (result.success) {
-      console.log(`✅ Webhook sent: ${action} signal for ${ticker}`);
-    } else {
-      console.warn(`⚠️ Webhook failed: ${result.error}`);
+    // First get strategy details to get webhook URL and payload
+    const strategyResponse = await fetch(`http://localhost:8025/api/strategies`);
+    if (!strategyResponse.ok) {
+      throw new Error('Failed to fetch strategy details');
     }
+
+    const strategyData = await strategyResponse.json();
+    if (!strategyData.success || !strategyData.data) {
+      throw new Error('Invalid strategy data response');
+    }
+
+    const strategy = strategyData.data.find(s => s.id === strategyId);
+    if (!strategy) {
+      throw new Error(`Strategy not found: ${strategyId}`);
+    }
+
+    const webhookUrl = strategy.webhook_url;
+    if (!webhookUrl) {
+      console.warn(`⚠️ No webhook URL configured for strategy ${strategyId}`);
+      return;
+    }
+
+    // Prepare the payload
+    let finalPayload;
+    if (strategy.webhook_payload) {
+      try {
+        // Parse the stored payload (it's stored as JSON string)
+        const parsedPayload = typeof strategy.webhook_payload === 'string'
+          ? JSON.parse(strategy.webhook_payload)
+          : strategy.webhook_payload;
+
+        // Replace the action in the payload with the actual signal action
+        finalPayload = {
+          ...parsedPayload,
+          action: action, // Replace with actual signal action (buy/sell)
+          symbol: ticker  // Also update symbol with current ticker
+        };
+      } catch (e) {
+        console.error('Error parsing webhook payload, using default:', e);
+        finalPayload = {
+          action: action,
+          symbol: ticker
+        };
+      }
+    } else {
+      // Default payload if none configured
+      finalPayload = {
+        action: action,
+        symbol: ticker
+      };
+    }
+
+    // Log the details BEFORE sending (so we see them even if webhook fails)
+    console.log(`📤 Attempting webhook: ${action} signal for ${ticker}`);
+    console.log(`📡 Webhook URL: ${webhookUrl}`);
+    console.log(`📦 Webhook Payload:`, JSON.stringify(finalPayload, null, 2));
+
+    // Send POST request directly to the webhook URL
+    try {
+      const webhookResponse = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'PropFuturesBot/1.0'
+        },
+        body: JSON.stringify(finalPayload)
+      });
+
+      if (webhookResponse.ok) {
+        console.log(`✅ Webhook sent successfully: ${webhookResponse.status} ${webhookResponse.statusText}`);
+      } else {
+        console.warn(`⚠️ Webhook returned error: ${webhookResponse.status} ${webhookResponse.statusText}`);
+      }
+    } catch (fetchError) {
+      console.warn(`⚠️ Webhook failed to send: ${fetchError.message} (CORS/Network error)`);
+    }
+
   } catch (error) {
-    console.error('❌ Error sending webhook:', error);
+    console.error('❌ Error sending webhook:', error.message);
   }
 };
 
@@ -169,6 +227,8 @@ let signalMarkers = [];
 let activeSignals = new Map();
 let lastTouchLower = false;
 let lastTouchUpper = false;
+let lastSignalUpdate = 0;
+let signalUpdateDebounceTime = 500; // 500ms debounce
 
 // Tick chart accumulation variables
 let tickAccumulator = null;
@@ -1387,8 +1447,8 @@ const updateIndicators = (newBarData, isNewRenkoBrick = false) => {
         // Update stored values
         activeIndicators.set(type, { period: config.period, values: newValues });
         
-        // Update signals if Donchian Channel was updated
-        if (type === 'DonchianChannel') {
+        // Update signals if Donchian Channel was updated (only on new bars)
+        if (type === 'DonchianChannel' && newBarData && isNewRenkoBrick !== false) {
           displaySignalsOnChart();
         }
       }
@@ -1527,7 +1587,6 @@ const detectDonchianSignals = (data) => {
 
       // DON'T send webhook for historical signals - only visual markers
       // Webhooks are only sent in checkRealtimeSignal() for real-time data
-      console.log('🔵 Historical BUY signal detected at', new Date(currentBar.time * 1000).toLocaleString(), '(webhook not sent)');
     }
     
     // Sell Signal Detection
@@ -1546,7 +1605,6 @@ const detectDonchianSignals = (data) => {
 
       // DON'T send webhook for historical signals - only visual markers
       // Webhooks are only sent in checkRealtimeSignal() for real-time data
-      console.log('🔴 Historical SELL signal detected at', new Date(currentBar.time * 1000).toLocaleString(), '(webhook not sent)');
     }
   }
   
@@ -1555,6 +1613,13 @@ const detectDonchianSignals = (data) => {
 
 const displaySignalsOnChart = () => {
   if (!candleSeries) return;
+
+  // Debounce signal updates to prevent excessive recalculation
+  const now = Date.now();
+  if (now - lastSignalUpdate < signalUpdateDebounceTime) {
+    return;
+  }
+  lastSignalUpdate = now;
 
   // Use the appropriate data source based on chart type
   let dataForSignals = historicalData;
@@ -1637,9 +1702,6 @@ const checkRealtimeSignal = (newBar) => {
     // Send webhook only if real-time is ready (not during initial load)
     if (currentStrategyId && isRealTimeReady) {
       sendPayload("buy", currentTicker, currentStrategyId);
-      console.log('📡 Real-time BUY signal detected and webhook sent');
-    } else if (currentStrategyId) {
-      console.log('⏸️ Buy signal detected but webhooks disabled during initialization');
     }
 
     lastTouchLower = true;
@@ -1668,9 +1730,6 @@ const checkRealtimeSignal = (newBar) => {
     // Send webhook only if real-time is ready (not during initial load)
     if (currentStrategyId && isRealTimeReady) {
       sendPayload("sell", currentTicker, currentStrategyId);
-      console.log('📡 Real-time SELL signal detected and webhook sent');
-    } else if (currentStrategyId) {
-      console.log('⏸️ Sell signal detected but webhooks disabled during initialization');
     }
 
     lastTouchUpper = true;

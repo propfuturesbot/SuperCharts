@@ -41,13 +41,13 @@ const Layout = ({ children, title = 'Dashboard', subtitle = '' }) => {
       {/* Header */}
       <header className="dashboard-header">
         <div className="header-left">
-          <motion.h1 
+          <motion.h1
             className="dashboard-logo"
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            TradingBot
+            PROP FUTURES BOT
           </motion.h1>
           <div className="breadcrumb">{title}</div>
         </div>

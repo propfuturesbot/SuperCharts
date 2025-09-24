@@ -1,18 +1,19 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  FaSignOutAlt, 
-  FaUser, 
-  FaChartLine, 
-  FaCog, 
-  FaBolt, 
-  FaRocket, 
+import {
+  FaSignOutAlt,
+  FaUser,
+  FaChartLine,
+  FaCog,
+  FaBolt,
+  FaRocket,
   FaShieldAlt,
   FaDollarSign,
   FaChartBar,
   FaRobot
 } from 'react-icons/fa';
+import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
 import './Dashboard.css';
 
@@ -20,12 +21,29 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout, isAuthenticated } = useAuth();
+  const [activeStrategiesCount, setActiveStrategiesCount] = useState(0);
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
+    } else {
+      fetchStrategiesCount();
     }
   }, [isAuthenticated, navigate]);
+
+  const fetchStrategiesCount = async () => {
+    try {
+      const response = await axios.get('http://localhost:8025/api/strategies');
+      if (response.data.success && response.data.data) {
+        // Count strategies with status 'active'
+        const activeCount = response.data.data.filter(strategy => strategy.status === 'active').length;
+        setActiveStrategiesCount(activeCount);
+      }
+    } catch (error) {
+      console.error('Error fetching strategies:', error);
+      // Keep default value of 0
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -84,13 +102,13 @@ const Dashboard = () => {
       {/* Header */}
       <header className="dashboard-header">
         <div className="header-left">
-          <motion.h1 
+          <motion.h1
             className="dashboard-logo"
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            TradingBot
+            PROP FUTURES BOT
           </motion.h1>
           <div className="breadcrumb">Dashboard</div>
         </div>
@@ -201,7 +219,7 @@ const Dashboard = () => {
                   transition={{ duration: 0.4, delay: 0.4 }}
                 >
                   <div className="status-label">Active Strategies</div>
-                  <div className="status-value">3</div>
+                  <div className="status-value">{activeStrategiesCount}</div>
                 </motion.div>
                 
                 <motion.div 

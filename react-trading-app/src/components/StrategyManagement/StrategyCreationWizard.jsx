@@ -403,24 +403,6 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
     setFormData(prev => ({ ...prev, timeframe: newResolution }));
   };
 
-  const testWebhook = async () => {
-    if (!validateWebhookUrl(formData.webhookUrl)) {
-      setError('Please enter a valid webhook URL');
-      return;
-    }
-
-    try {
-      const testPayload = JSON.parse(formData.webhookPayload);
-      await axios.post(formData.webhookUrl, testPayload);
-      alert('Webhook test successful!');
-    } catch (error) {
-      if (error.name === 'SyntaxError') {
-        setError('Invalid JSON in payload. Please check your JSON syntax.');
-      } else {
-        setError('Webhook test failed: ' + error.message);
-      }
-    }
-  };
 
   const launchChart = async (strategyId = null) => {
     try {
@@ -696,11 +678,6 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
                     onChange={(e) => setFormData({ ...formData, webhookUrl: e.target.value })}
                     className="config-input"
                   />
-                  {formData.webhookUrl && (
-                    <button className="test-webhook-btn" onClick={testWebhook}>
-                      Test Webhook
-                    </button>
-                  )}
                 </div>
               </motion.div>
             )}
