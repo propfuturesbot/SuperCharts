@@ -20,6 +20,12 @@ const sendPayload = async (action, ticker, strategyId) => {
       throw new Error(`Strategy not found: ${strategyId}`);
     }
 
+    // Check if strategy is active
+    if (strategy.status !== 'active') {
+      console.log(`🚫 Strategy ${strategyId} is ${strategy.status}, webhook not sent`);
+      return;
+    }
+
     const webhookUrl = strategy.webhook_url;
     if (!webhookUrl) {
       console.warn(`⚠️ No webhook URL configured for strategy ${strategyId}`);
