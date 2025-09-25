@@ -385,6 +385,7 @@
             <optgroup label="Volatility Indicators">
               <option value="BollingerBands">Bollinger Bands</option>
               <option value="DonchianChannel">Donchian Channel</option>
+              <option value="DonchianMidBandStrategy">Donchian MidBand Strategy</option>
             </optgroup>
           </select>
         </div>
@@ -515,6 +516,34 @@
         },
         
         donchianChannel: function(data, config) {
+          const period = config.period || 4;
+          const upperChannel = [];
+          const lowerChannel = [];
+          const middleChannel = [];
+
+          for (let i = period - 1; i < data.length; i++) {
+            let highest = data[i];
+            let lowest = data[i];
+
+            for (let j = 0; j < period; j++) {
+              highest = Math.max(highest, data[i - j]);
+              lowest = Math.min(lowest, data[i - j]);
+            }
+
+            upperChannel.push(highest);
+            lowerChannel.push(lowest);
+            middleChannel.push((highest + lowest) / 2);
+          }
+
+          return {
+            upper: upperChannel,
+            middle: middleChannel,
+            lower: lowerChannel
+          };
+        },
+
+        donchianMidBandStrategy: function(data, config) {
+          // Exact copy of donchianChannel calculation
           const period = config.period || 4;
           const upperChannel = [];
           const lowerChannel = [];

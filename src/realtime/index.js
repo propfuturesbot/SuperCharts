@@ -1,6 +1,9 @@
 // Get access token from JSON file via backend API
 let ACCESS_TOKEN = null;
 
+// Global variables that need to be available early
+let isRealTimeReady = false; // Flag to indicate when real-time signals can be sent
+
 // Webhook service for signal notifications (browser-compatible)
 const sendPayload = async (action, ticker, strategyId) => {
   try {
@@ -235,6 +238,10 @@ let lastTouchLower = false;
 let lastTouchUpper = false;
 let lastSignalUpdate = 0;
 let signalUpdateDebounceTime = 500; // 500ms debounce
+
+// DonchianMidBandStrategy tracking
+let dmbsLastAboveMiddle = false;
+let dmbsLastBelowMiddle = false;
 
 // Tick chart accumulation variables
 let tickAccumulator = null;
@@ -501,6 +508,7 @@ const setupRealTimeConnection = async () => {
     // Mark system as ready for real-time signals
     isRealTimeReady = true;
     console.log('✅ Real-time connection established - webhooks enabled');
+    console.log('🔧 Debug: isRealTimeReady set to true, currentStrategyId:', currentStrategyId);
     
   } catch (error) {
     console.error('Failed to setup real-time connection:', error);
@@ -837,6 +845,12 @@ const handleTickChartUpdate = (update, bar) => {
         // Update indicators when new Renko bricks are formed
         updateIndicators(currentBarData, true);
 
+        // Check for signals when new Renko bricks are created from tick data
+        const latestRenkoBrick = renkoData[renkoData.length - 1];
+        if (latestRenkoBrick) {
+          checkRealtimeSignal(latestRenkoBrick);
+        }
+
         return; // Don't update with regular currentBarData
       }
       
@@ -865,9 +879,19 @@ const handleTickChartUpdate = (update, bar) => {
 
       // Update indicators for completed tick bar
       updateIndicators(completedBar, false);
+
+      // Check for trading signals on completed tick bar
+      console.log('🔥 Tick chart: Checking signals on completed bar:', completedBar.time);
+      checkRealtimeSignal(completedBar);
     } else {
       // Update indicators with current accumulating bar
       updateIndicators(currentBarData, false);
+
+      // Check for trading signals on current accumulating tick bar (less frequent logging)
+      if (tickCount % Math.floor(currentTicksPerBar / 4) === 0) {
+        console.log('🔥 Tick chart: Checking signals on accumulating bar:', currentBarData.time, `(${tickCount}/${currentTicksPerBar} ticks)`);
+      }
+      checkRealtimeSignal(currentBarData);
     }
 
   } catch (error) {
@@ -1128,6 +1152,16 @@ const main = async () => {
   
   // Setup real-time connection
   await setupRealTimeConnection();
+
+  // Fallback: If isRealTimeReady is still false after connection setup, enable it
+  // This handles cases where SignalR might not be available but we still want webhooks
+  setTimeout(() => {
+    if (!isRealTimeReady) {
+      isRealTimeReady = true;
+      console.log('🔧 Fallback: Enabling real-time webhooks (non-SignalR mode)');
+      console.log('🔧 Debug fallback: isRealTimeReady set to true, currentStrategyId:', currentStrategyId);
+    }
+  }, 2000); // Wait 2 seconds after connection attempt
 };
 
 // Indicator calculation functions
@@ -1167,6 +1201,14 @@ const calculateIndicator = (type, data, period = 14) => {
           middle: dcResult.middle,
           lower: dcResult.lower
         };
+      case 'DonchianMidBandStrategy':
+        // Exact copy of DonchianChannel calculation
+        const dmbsResult = window.indicators.donchianMidBandStrategy(closePrices, { period });
+        return {
+          upper: dmbsResult.upper,
+          middle: dmbsResult.middle,
+          lower: dmbsResult.lower
+        };
       default:
         console.warn('Indicator type not implemented yet:', type);
         alert(`${type} indicator is not implemented yet. Available indicators: SMA, EMA, RSI, Bollinger Bands, Donchian Channel`);
@@ -1193,11 +1235,12 @@ const showIndicatorModal = (indicatorType) => {
     'EMA': 'Exponential Moving Average (EMA)',
     'RSI': 'Relative Strength Index (RSI)',
     'BollingerBands': 'Bollinger Bands',
-    'DonchianChannel': 'Donchian Channel'
+    'DonchianChannel': 'Donchian Channel',
+    'DonchianMidBandStrategy': 'Donchian MidBand Strategy'
   };
 
-  // Set default periods - 200 for Bollinger Bands and Donchian Channel, 14 for others
-  const defaultPeriod = (indicatorType === 'BollingerBands' || indicatorType === 'DonchianChannel') ? '200' : '14';
+  // Set default periods - 200 for Bollinger Bands and Donchian indicators, 14 for others
+  const defaultPeriod = (indicatorType === 'BollingerBands' || indicatorType === 'DonchianChannel' || indicatorType === 'DonchianMidBandStrategy') ? '200' : '14';
 
   modalTitle.textContent = `Configure ${indicatorNames[indicatorType] || indicatorType}`;
   periodInput.value = defaultPeriod;
@@ -1259,8 +1302,8 @@ const applyIndicator = () => {
     // Update the active indicators display
     updateActiveIndicatorsDisplay();
 
-    // If Donchian Channel was added, display signals
-    if (pendingIndicatorType === 'DonchianChannel') {
+    // If signal-based indicators were added, display signals
+    if (pendingIndicatorType === 'DonchianChannel' || pendingIndicatorType === 'DonchianMidBandStrategy') {
       displaySignalsOnChart();
     }
 
@@ -1304,9 +1347,9 @@ const displayIndicator = (type, values, period) => {
   const color = colors[colorIndex];
   
   try {
-    if ((type === 'BollingerBands' || type === 'DonchianChannel') && values.upper && values.middle && values.lower) {
-      // Handle multi-line indicators (Bollinger Bands, Donchian Channel)
-      const prefix = type === 'BollingerBands' ? 'BB' : 'DC';
+    if ((type === 'BollingerBands' || type === 'DonchianChannel' || type === 'DonchianMidBandStrategy') && values.upper && values.middle && values.lower) {
+      // Handle multi-line indicators (Bollinger Bands, Donchian Channel, DonchianMidBandStrategy)
+      const prefix = type === 'BollingerBands' ? 'BB' : (type === 'DonchianMidBandStrategy' ? 'DMBS' : 'DC');
       
       const upperSeries = chart.addLineSeries({
         color: color,
@@ -1426,7 +1469,7 @@ const updateIndicators = (newBarData, isNewRenkoBrick = false) => {
         const latestTime = dataForIndicator[dataForIndicator.length - 1]?.time;
 
         // Update the series data
-        if ((type === 'BollingerBands' || type === 'DonchianChannel') && newValues.upper) {
+        if ((type === 'BollingerBands' || type === 'DonchianChannel' || type === 'DonchianMidBandStrategy') && newValues.upper) {
           const upperSeries = indicatorSeries.get(`${type}_upper`);
           const middleSeries = indicatorSeries.get(`${type}_middle`);
           const lowerSeries = indicatorSeries.get(`${type}_lower`);
@@ -1438,6 +1481,16 @@ const updateIndicators = (newBarData, isNewRenkoBrick = false) => {
             upperSeries.update({ time: latestTime, value: newValues.upper[latestIndex] });
             middleSeries.update({ time: latestTime, value: newValues.middle[latestIndex] });
             lowerSeries.update({ time: latestTime, value: newValues.lower[latestIndex] });
+
+            // Debug logging for DonchianMidBandStrategy (commented out to reduce noise)
+            // if (type === 'DonchianMidBandStrategy') {
+            //   console.log('📊 DMBS Real-time Update:', {
+            //     time: latestTime,
+            //     upper: newValues.upper[latestIndex],
+            //     middle: newValues.middle[latestIndex],
+            //     lower: newValues.lower[latestIndex]
+            //   });
+            // }
           }
         } else if (Array.isArray(newValues)) {
           const series = indicatorSeries.get(type);
@@ -1453,8 +1506,8 @@ const updateIndicators = (newBarData, isNewRenkoBrick = false) => {
         // Update stored values
         activeIndicators.set(type, { period: config.period, values: newValues });
         
-        // Update signals if Donchian Channel was updated (only on new bars)
-        if (type === 'DonchianChannel' && newBarData && isNewRenkoBrick !== false) {
+        // Update signals if signal-based indicators were updated (only on new bars)
+        if ((type === 'DonchianChannel' || type === 'DonchianMidBandStrategy') && newBarData && isNewRenkoBrick !== false) {
           displaySignalsOnChart();
         }
       }
@@ -1469,7 +1522,7 @@ const removeIndicator = (indicatorType) => {
   activeIndicators.delete(indicatorType);
   
   // Remove series from chart
-  if (indicatorType === 'BollingerBands' || indicatorType === 'DonchianChannel') {
+  if (indicatorType === 'BollingerBands' || indicatorType === 'DonchianChannel' || indicatorType === 'DonchianMidBandStrategy') {
     // Remove multi-line indicators
     const upperSeries = indicatorSeries.get(`${indicatorType}_upper`);
     const middleSeries = indicatorSeries.get(`${indicatorType}_middle`);
@@ -1499,13 +1552,15 @@ const removeIndicator = (indicatorType) => {
   // Update the active indicators display
   updateActiveIndicatorsDisplay();
   
-  // Clear signals if Donchian Channel is removed
-  if (indicatorType === 'DonchianChannel') {
+  // Clear signals if signal-based indicator is removed
+  if (indicatorType === 'DonchianChannel' || indicatorType === 'DonchianMidBandStrategy') {
     candleSeries.setMarkers([]);
     signalMarkers = [];
     activeSignals.clear();
     lastTouchLower = false;
     lastTouchUpper = false;
+    dmbsLastAboveMiddle = false;
+    dmbsLastBelowMiddle = false;
   }
 };
 
@@ -1617,6 +1672,71 @@ const detectDonchianSignals = (data) => {
   return signals;
 };
 
+// Detect Donchian MidBand Strategy trading signals
+const detectDonchianMidBandSignals = (data) => {
+  if (!data || data.length < 2) return [];
+
+  const dmbsConfig = activeIndicators.get('DonchianMidBandStrategy');
+  if (!dmbsConfig || !dmbsConfig.values) return [];
+
+  const { upper, lower, middle } = dmbsConfig.values;
+  if (!middle || middle.length === 0) return [];
+
+  const signals = [];
+  const startIndex = data.length - middle.length;
+
+  for (let i = 1; i < middle.length; i++) {
+    const dataIndex = startIndex + i;
+    const prevDataIndex = dataIndex - 1;
+
+    if (dataIndex >= data.length || prevDataIndex < 0) continue;
+
+    const currentBar = data[dataIndex];
+    const prevBar = data[prevDataIndex];
+
+    const currentMiddle = middle[i];
+    const prevMiddle = middle[i - 1];
+
+    if (!currentMiddle || !prevMiddle) continue;
+
+    // Buy Signal Detection - Bar crosses above middle band
+    const prevCloseBelow = prevBar.close < prevMiddle;
+    const currentCloseAbove = currentBar.close >= currentMiddle;
+
+    if (prevCloseBelow && currentCloseAbove) {
+      signals.push({
+        time: currentBar.time,
+        type: 'buy',
+        price: currentBar.close,
+        reason: 'Donchian MidBand Crossover Up',
+        indicator: 'DMBS'
+      });
+
+      // DON'T send webhook for historical signals - only visual markers
+      // Webhooks are only sent in checkRealtimeSignal() for real-time data
+    }
+
+    // Sell Signal Detection - Bar crosses below middle band
+    const prevCloseAbove = prevBar.close > prevMiddle;
+    const currentCloseBelow = currentBar.close <= currentMiddle;
+
+    if (prevCloseAbove && currentCloseBelow) {
+      signals.push({
+        time: currentBar.time,
+        type: 'sell',
+        price: currentBar.close,
+        reason: 'Donchian MidBand Crossover Down',
+        indicator: 'DMBS'
+      });
+
+      // DON'T send webhook for historical signals - only visual markers
+      // Webhooks are only sent in checkRealtimeSignal() for real-time data
+    }
+  }
+
+  return signals;
+};
+
 const displaySignalsOnChart = () => {
   if (!candleSeries) return;
 
@@ -1640,24 +1760,37 @@ const displaySignalsOnChart = () => {
   // Clear existing markers
   candleSeries.setMarkers([]);
 
-  const signals = detectDonchianSignals(dataForSignals);
-  if (signals.length === 0) return;
-  
+  let allSignals = [];
+
+  // Get Donchian Channel signals
+  if (activeIndicators.has('DonchianChannel')) {
+    const dcSignals = detectDonchianSignals(dataForSignals);
+    allSignals = allSignals.concat(dcSignals);
+  }
+
+  // Get Donchian MidBand Strategy signals
+  if (activeIndicators.has('DonchianMidBandStrategy')) {
+    const dmbsSignals = detectDonchianMidBandSignals(dataForSignals);
+    allSignals = allSignals.concat(dmbsSignals);
+  }
+
+  if (allSignals.length === 0) return;
+
   // Create markers for signals
-  const markers = signals.map(signal => ({
+  const markers = allSignals.map(signal => ({
     time: signal.time,
     position: signal.type === 'buy' ? 'belowBar' : 'aboveBar',
     color: signal.type === 'buy' ? '#26a69a' : '#ef5350',
     shape: signal.type === 'buy' ? 'arrowUp' : 'arrowDown',
-    text: signal.type === 'buy' ? 'BUY' : 'SELL'
+    text: signal.type === 'buy' ? `BUY${signal.indicator ? ' (' + signal.indicator + ')' : ''}` : `SELL${signal.indicator ? ' (' + signal.indicator + ')' : ''}`
   }));
-  
+
   candleSeries.setMarkers(markers);
   signalMarkers = markers;
 
   // Update active signals
   activeSignals.clear();
-  signals.forEach(signal => {
+  allSignals.forEach(signal => {
     activeSignals.set(signal.time, signal);
   });
 };
@@ -1673,74 +1806,188 @@ const checkRealtimeSignal = (newBar) => {
 
   if (!newBar || !dataForSignals || dataForSignals.length < 2) return;
 
-  const donchianConfig = activeIndicators.get('DonchianChannel');
-  if (!donchianConfig || !donchianConfig.values) return;
-
-  const { upper, lower } = donchianConfig.values;
-  if (!upper || !lower || upper.length === 0) return;
-
-  // Get the latest Donchian values
-  const latestUpper = upper[upper.length - 1];
-  const latestLower = lower[lower.length - 1];
-
   // Get previous bar from the appropriate data source
   const prevBar = dataForSignals[dataForSignals.length - 2];
   if (!prevBar) return;
-  
-  // Check for buy signal
-  const prevTouchedLower = prevBar.low <= latestLower;
-  const currentIsGreen = newBar.close > newBar.open;
-  
-  if (prevTouchedLower && currentIsGreen && !lastTouchLower) {
-    // Generate buy signal
-    // Add marker to chart
-    const currentMarkers = signalMarkers || [];
-    currentMarkers.push({
-      time: newBar.time,
-      position: 'belowBar',
-      color: '#26a69a',
-      shape: 'arrowUp',
-      text: 'BUY'
-    });
-    candleSeries.setMarkers(currentMarkers);
-    signalMarkers = currentMarkers;
 
-    // Send webhook only if real-time is ready (not during initial load)
-    if (currentStrategyId && isRealTimeReady) {
-      sendPayload("buy", currentTicker, currentStrategyId);
+  // Check for Donchian Channel signals
+  const donchianConfig = activeIndicators.get('DonchianChannel');
+  if (donchianConfig && donchianConfig.values) {
+    const { upper, lower } = donchianConfig.values;
+    if (upper && lower && upper.length > 0) {
+      // Get the latest Donchian values
+      const latestUpper = upper[upper.length - 1];
+      const latestLower = lower[lower.length - 1];
+  
+      // Check for buy signal
+      const prevTouchedLower = prevBar.low <= latestLower;
+      const currentIsGreen = newBar.close > newBar.open;
+
+      if (prevTouchedLower && currentIsGreen && !lastTouchLower) {
+        // Generate buy signal
+        // Add marker to chart
+        const currentMarkers = signalMarkers || [];
+        currentMarkers.push({
+          time: newBar.time,
+          position: 'belowBar',
+          color: '#26a69a',
+          shape: 'arrowUp',
+          text: 'BUY'
+        });
+        candleSeries.setMarkers(currentMarkers);
+        signalMarkers = currentMarkers;
+
+        // Send webhook only if real-time is ready (not during initial load)
+        console.log('🔍 Buy signal detected - Debug info:', {
+          currentStrategyId,
+          isRealTimeReady,
+          currentTicker,
+          willSendWebhook: !!(currentStrategyId && isRealTimeReady)
+        });
+
+        if (currentStrategyId && isRealTimeReady) {
+          console.log('🚀 Sending BUY webhook...');
+          sendPayload("buy", currentTicker, currentStrategyId);
+        } else {
+          console.log('❌ Webhook NOT sent - missing requirements');
+        }
+
+        lastTouchLower = true;
+      } else if (!prevTouchedLower) {
+        lastTouchLower = false;
+      }
+
+      // Check for sell signal
+      const prevTouchedUpper = prevBar.high >= latestUpper;
+      const currentIsRed = newBar.close < newBar.open;
+
+      if (prevTouchedUpper && currentIsRed && !lastTouchUpper) {
+        // Generate sell signal
+        // Add marker to chart
+        const currentMarkers = signalMarkers || [];
+        currentMarkers.push({
+          time: newBar.time,
+          position: 'aboveBar',
+          color: '#ef5350',
+          shape: 'arrowDown',
+          text: 'SELL'
+        });
+        candleSeries.setMarkers(currentMarkers);
+        signalMarkers = currentMarkers;
+
+        // Send webhook only if real-time is ready (not during initial load)
+        console.log('🔍 Sell signal detected - Debug info:', {
+          currentStrategyId,
+          isRealTimeReady,
+          currentTicker,
+          willSendWebhook: !!(currentStrategyId && isRealTimeReady)
+        });
+
+        if (currentStrategyId && isRealTimeReady) {
+          console.log('🚀 Sending SELL webhook...');
+          sendPayload("sell", currentTicker, currentStrategyId);
+        } else {
+          console.log('❌ Webhook NOT sent - missing requirements');
+        }
+
+        lastTouchUpper = true;
+      } else if (!prevTouchedUpper) {
+        lastTouchUpper = false;
+      }
     }
-
-    lastTouchLower = true;
-  } else if (!prevTouchedLower) {
-    lastTouchLower = false;
   }
-  
-  // Check for sell signal
-  const prevTouchedUpper = prevBar.high >= latestUpper;
-  const currentIsRed = newBar.close < newBar.open;
-  
-  if (prevTouchedUpper && currentIsRed && !lastTouchUpper) {
-    // Generate sell signal
-    // Add marker to chart
-    const currentMarkers = signalMarkers || [];
-    currentMarkers.push({
-      time: newBar.time,
-      position: 'aboveBar',
-      color: '#ef5350',
-      shape: 'arrowDown',
-      text: 'SELL'
-    });
-    candleSeries.setMarkers(currentMarkers);
-    signalMarkers = currentMarkers;
 
-    // Send webhook only if real-time is ready (not during initial load)
-    if (currentStrategyId && isRealTimeReady) {
-      sendPayload("sell", currentTicker, currentStrategyId);
+  // Check for DonchianMidBandStrategy signals
+  const dmbsConfig = activeIndicators.get('DonchianMidBandStrategy');
+  if (dmbsConfig && dmbsConfig.values) {
+    const { upper, lower, middle } = dmbsConfig.values;
+    if (middle && middle.length > 0) {
+      // Get the latest middle band value
+      const latestMiddle = middle[middle.length - 1];
+
+      // Debug log for DMBS real-time signal checking (commented out to reduce noise)
+      // console.log('🎯 DMBS Signal Check:', {
+      //   prevClose: prevBar.close,
+      //   currentClose: newBar.close,
+      //   latestMiddle: latestMiddle,
+      //   willBuy: (prevBar.close < latestMiddle && newBar.close >= latestMiddle),
+      //   willSell: (prevBar.close > latestMiddle && newBar.close <= latestMiddle)
+      // });
+
+      // Buy Signal Detection - Bar crosses above middle band
+      const prevCloseBelow = prevBar.close < latestMiddle;
+      const currentCloseAbove = newBar.close >= latestMiddle;
+
+      if (prevCloseBelow && currentCloseAbove && !dmbsLastAboveMiddle) {
+        // Generate buy signal
+        const currentMarkers = signalMarkers || [];
+        currentMarkers.push({
+          time: newBar.time,
+          position: 'belowBar',
+          color: '#26a69a',
+          shape: 'arrowUp',
+          text: 'BUY (DMBS)'
+        });
+        candleSeries.setMarkers(currentMarkers);
+        signalMarkers = currentMarkers;
+
+        // Send webhook only if real-time is ready (not during initial load)
+        console.log('🔍 DMBS Buy signal detected - Debug info:', {
+          currentStrategyId,
+          isRealTimeReady,
+          currentTicker,
+          willSendWebhook: !!(currentStrategyId && isRealTimeReady)
+        });
+
+        if (currentStrategyId && isRealTimeReady) {
+          console.log('🚀 Sending DMBS BUY webhook...');
+          sendPayload("buy", currentTicker, currentStrategyId);
+        } else {
+          console.log('❌ DMBS Webhook NOT sent - missing requirements');
+        }
+
+        dmbsLastAboveMiddle = true;
+      } else if (!currentCloseAbove) {
+        dmbsLastAboveMiddle = false;
+      }
+
+      // Sell Signal Detection - Bar crosses below middle band
+      const prevCloseAbove = prevBar.close > latestMiddle;
+      const currentCloseBelow = newBar.close <= latestMiddle;
+
+      if (prevCloseAbove && currentCloseBelow && !dmbsLastBelowMiddle) {
+        // Generate sell signal
+        const currentMarkers = signalMarkers || [];
+        currentMarkers.push({
+          time: newBar.time,
+          position: 'aboveBar',
+          color: '#ef5350',
+          shape: 'arrowDown',
+          text: 'SELL (DMBS)'
+        });
+        candleSeries.setMarkers(currentMarkers);
+        signalMarkers = currentMarkers;
+
+        // Send webhook only if real-time is ready (not during initial load)
+        console.log('🔍 DMBS Sell signal detected - Debug info:', {
+          currentStrategyId,
+          isRealTimeReady,
+          currentTicker,
+          willSendWebhook: !!(currentStrategyId && isRealTimeReady)
+        });
+
+        if (currentStrategyId && isRealTimeReady) {
+          console.log('🚀 Sending DMBS SELL webhook...');
+          sendPayload("sell", currentTicker, currentStrategyId);
+        } else {
+          console.log('❌ DMBS Webhook NOT sent - missing requirements');
+        }
+
+        dmbsLastBelowMiddle = true;
+      } else if (!currentCloseBelow) {
+        dmbsLastBelowMiddle = false;
+      }
     }
-
-    lastTouchUpper = true;
-  } else if (!prevTouchedUpper) {
-    lastTouchUpper = false;
   }
 };
 
