@@ -8,6 +8,9 @@ const { spawn } = require('child_process');
 // const { sendPayload } = require('./services/webhookService'); // Will be enabled when webhook endpoint is used
 const { getProviderConfig } = require('../src/realtime/providers');
 
+// Auth token file path - moved to top to avoid initialization errors
+const AUTH_TOKEN_FILE = path.join(__dirname, '../auth-token.json');
+
 const app = express();
 const port = 8025;
 
@@ -56,13 +59,13 @@ const getCurrentToken = () => {
   return null;
 };
 
-// PostgreSQL Database connection
+// PostgreSQL Database connection using environment variables
 const pool = new Pool({
-  user: 'techuser',
-  host: 'localhost',
-  database: 'techanalysis',
-  password: 'techanalysis2024',
-  port: 5432,
+  user: process.env.POSTGRES_USER || 'techuser',
+  host: process.env.POSTGRES_HOST || 'localhost',
+  database: process.env.POSTGRES_DB || 'techanalysis',
+  password: process.env.POSTGRES_PASSWORD || 'techanalysis2024',
+  port: parseInt(process.env.POSTGRES_PORT) || 5432,
 });
 
 // Test database connection
@@ -2198,33 +2201,11 @@ app.post('/api/launch-chart', async (req, res) => {
       console.log('📊 Chart configuration received:', currentChartConfig);
     }
 
-    const chartUrl = `http://localhost:${port}/api/chart`;
+    // Use the external port for chart URL since it will be accessed from browser
+    const chartUrl = `http://localhost:8025/api/chart`;
 
-    // Launch in default browser based on platform
-    let command;
-    const args = [chartUrl];
-
-    switch (process.platform) {
-      case 'darwin': // macOS
-        command = 'open';
-        break;
-      case 'win32': // Windows
-        command = 'start';
-        args.unshift('');
-        break;
-      default: // Linux and others
-        command = 'xdg-open';
-        break;
-    }
-
-    const child = spawn(command, args, {
-      detached: true,
-      stdio: 'ignore'
-    });
-
-    child.unref();
-
-    console.log(`🚀 Launched chart in browser: ${chartUrl}`);
+    // In Docker container, we can't open browser windows, so just return the URL
+    console.log(`🚀 Chart URL prepared: ${chartUrl}`);
     console.log(`📊 With configuration:`, currentChartConfig);
 
     res.json({
@@ -2243,7 +2224,6 @@ app.post('/api/launch-chart', async (req, res) => {
 });
 
 // Auth token management endpoints
-const AUTH_TOKEN_FILE = path.join(__dirname, '../auth-token.json');
 
 // Save auth token to JSON file
 app.post('/api/auth/save-token', async (req, res) => {

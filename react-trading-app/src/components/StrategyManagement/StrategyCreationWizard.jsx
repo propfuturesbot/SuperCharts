@@ -428,6 +428,11 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
 
       const response = await axios.post('http://localhost:8025/api/launch-chart', chartConfig);
       console.log('Chart launched successfully:', response.data);
+
+      // Open the chart URL in a new window
+      if (response.data && response.data.url) {
+        window.open(response.data.url, '_blank');
+      }
     } catch (error) {
       console.error('Error launching chart:', error);
       setError('Failed to launch chart: ' + error.message);

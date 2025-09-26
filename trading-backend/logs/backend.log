@@ -2,148 +2,44 @@
 > trading-backend@1.0.0 start
 > node simple-backend.js
 
-Error reading provider from auth token: ReferenceError: Cannot access 'AUTH_TOKEN_FILE' before initialization
-    at getCurrentProvider (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/simple-backend.js:27:23)
-    at Object.<anonymous> (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/simple-backend.js:38:26)
-    at Module._compile (node:internal/modules/cjs/loader:1364:14)
-    at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
-    at Module.load (node:internal/modules/cjs/loader:1203:32)
-    at Module._load (node:internal/modules/cjs/loader:1019:12)
-    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
-    at node:internal/main/run_main_module:28:49
 ✅ Found existing contracts file with 57 contracts
 🚀 Backend running on http://localhost:8025
 📄 Contracts cached in: /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableContracts.json
 ✅ Connected to PostgreSQL database
 📊 Update strategy request: {
-  id: 'cc008a2b-ed1a-4514-a4b1-2d99e57e4b7a',
-  chart_config: null,
-  chart_type: 'renko',
-  brick_size: 1,
-  hasWebhookPayload: true
-}
-📊 Using minimal webhook payload (no chart configuration)
-📊 UPDATE - Chart config received: null
-📊 UPDATE - Extracted indicators: null
-📊 UPDATE - Preserving existing indicators: [ { type: 'DonchianChannel', period: 200 } ]
-📊 Loading saved strategy: cc008a2b-ed1a-4514-a4b1-2d99e57e4b7a
-📊 Loading strategy with indicators: [ { type: 'DonchianChannel', period: 200 } ]
-📊 Loaded saved strategy configuration: {
-  strategyType: 'renko',
-  timeframe: '1S',
-  brickSize: '1',
-  contractSymbol: 'MNQ',
-  strategyName: 'mnq123143 (Copy)',
-  indicators: [ { type: 'DonchianChannel', period: 200 } ],
-  strategyId: 'cc008a2b-ed1a-4514-a4b1-2d99e57e4b7a',
-  webhookUrl: 'https://counts-fuji-festival-treasury.trycloudflare.com/orders/place',
-  isExistingStrategy: true
-}
-📊 Brick size type: string Value: 1
-🚀 Launched chart in browser: http://localhost:8025/api/chart
-📊 With configuration: {
-  strategyType: 'renko',
-  timeframe: '1S',
-  brickSize: '1',
-  contractSymbol: 'MNQ',
-  strategyName: 'mnq123143 (Copy)',
-  indicators: [ { type: 'DonchianChannel', period: 200 } ],
-  strategyId: 'cc008a2b-ed1a-4514-a4b1-2d99e57e4b7a',
-  webhookUrl: 'https://counts-fuji-festival-treasury.trycloudflare.com/orders/place',
-  isExistingStrategy: true
-}
-📊 Update strategy request: {
   id: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
   chart_config: null,
-  chart_type: 'renko',
-  brick_size: 3,
-  hasWebhookPayload: true
-}
-📊 Using minimal webhook payload (no chart configuration)
-📊 UPDATE - Chart config received: null
-📊 UPDATE - Extracted indicators: null
-📊 Loading saved strategy: bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6
-📊 Loaded saved strategy configuration: {
-  strategyType: 'renko',
-  timeframe: '1000T',
-  brickSize: '3',
-  contractSymbol: 'MNQ',
-  strategyName: 'MNQ-TOPSTEPX-PRACTICE',
-  indicators: [],
-  strategyId: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
-  webhookUrl: 'https://counts-fuji-festival-treasury.trycloudflare.com/orders/place',
-  isExistingStrategy: true
-}
-📊 Brick size type: string Value: 3
-🚀 Launched chart in browser: http://localhost:8025/api/chart
-📊 With configuration: {
-  strategyType: 'renko',
-  timeframe: '1000T',
-  brickSize: '3',
-  contractSymbol: 'MNQ',
-  strategyName: 'MNQ-TOPSTEPX-PRACTICE',
-  indicators: [],
-  strategyId: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
-  webhookUrl: 'https://counts-fuji-festival-treasury.trycloudflare.com/orders/place',
-  isExistingStrategy: true
-}
-📊 Update strategy request: {
-  id: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
-  chart_config: null,
-  chart_type: 'renko',
-  brick_size: 3,
-  hasWebhookPayload: true
-}
-📊 Using minimal webhook payload (no chart configuration)
-📊 UPDATE - Chart config received: null
-📊 UPDATE - Extracted indicators: null
-📊 Loading saved strategy: bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6
-📊 Loaded saved strategy configuration: {
-  strategyType: 'renko',
-  timeframe: '1000T',
-  brickSize: '3',
-  contractSymbol: 'MNQ',
-  strategyName: 'MNQ-TOPSTEPX-PRACTICE',
-  indicators: [],
-  strategyId: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
-  webhookUrl: 'https://counts-fuji-festival-treasury.trycloudflare.com/orders/place',
-  isExistingStrategy: true
-}
-📊 Brick size type: string Value: 3
-🚀 Launched chart in browser: http://localhost:8025/api/chart
-📊 With configuration: {
-  strategyType: 'renko',
-  timeframe: '1000T',
-  brickSize: '3',
-  contractSymbol: 'MNQ',
-  strategyName: 'MNQ-TOPSTEPX-PRACTICE',
-  indicators: [],
-  strategyId: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
-  webhookUrl: 'https://counts-fuji-festival-treasury.trycloudflare.com/orders/place',
-  isExistingStrategy: true
-}
-📊 Update strategy request: {
-  id: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
-  chart_config: {
-    resolution: '1000T',
-    chartType: 'renko',
-    brickSize: '0.25',
-    indicators: [ [Object] ],
-    timestamp: '2025-09-25T20:14:34.076Z'
-  },
   chart_type: 'renko',
   brick_size: 0.25,
-  hasWebhookPayload: false
+  hasWebhookPayload: true
 }
 📊 Using minimal webhook payload (no chart configuration)
-📊 UPDATE - Chart config received: {
-  resolution: '1000T',
-  chartType: 'renko',
+📊 UPDATE - Chart config received: null
+📊 UPDATE - Extracted indicators: null
+📊 UPDATE - Preserving existing indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ]
+📊 Loading saved strategy: bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6
+📊 Loading strategy with indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ]
+📊 Loaded saved strategy configuration: {
+  strategyType: 'renko',
+  timeframe: '1000T',
   brickSize: '0.25',
+  contractSymbol: 'MNQ',
+  strategyName: 'MNQ-TOPSTEPX-PRACTICE',
   indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ],
-  timestamp: '2025-09-25T20:14:34.076Z'
+  strategyId: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
+  webhookUrl: 'https://administration-storage-battery-synopsis.trycloudflare.com/orders/place',
+  isExistingStrategy: true
 }
-📊 UPDATE - Extracted indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ]
-📊 UPDATE - Preserving existing webhook_url: https://counts-fuji-festival-treasury.trycloudflare.com/orders/place
-📊 UPDATE - Preserving existing webhook_payload
-📊 Found indicators in database: [ { type: 'DonchianMidBandStrategy', period: 200 } ]
+📊 Brick size type: string Value: 0.25
+🚀 Chart URL prepared: http://localhost:8025/api/chart
+📊 With configuration: {
+  strategyType: 'renko',
+  timeframe: '1000T',
+  brickSize: '0.25',
+  contractSymbol: 'MNQ',
+  strategyName: 'MNQ-TOPSTEPX-PRACTICE',
+  indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ],
+  strategyId: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
+  webhookUrl: 'https://administration-storage-battery-synopsis.trycloudflare.com/orders/place',
+  isExistingStrategy: true
+}

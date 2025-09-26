@@ -1,0 +1,42 @@
+version: '3.8'
+
+# Docker Compose configuration for connecting to external PostgreSQL
+services:
+  supercharts:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    container_name: supercharts-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-3000}
+      # External PostgreSQL connection settings
+      - POSTGRES_HOST=${POSTGRES_HOST}  # External DB host (required)
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB}  # Database name (required)
+      - POSTGRES_USER=${POSTGRES_USER}  # Database user (required)
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}  # Database password (required)
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      # Application settings
+      - API_KEY=${API_KEY}
+      - SECRET_KEY=${SECRET_KEY}
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    volumes:
+      - ../logs:/app/logs
+      - ../data:/app/data
+    networks:
+      - supercharts-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  supercharts-network:
+    driver: bridge

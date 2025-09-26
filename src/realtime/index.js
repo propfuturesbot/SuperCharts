@@ -242,6 +242,8 @@ let signalUpdateDebounceTime = 500; // 500ms debounce
 // DonchianMidBandStrategy tracking
 let dmbsLastAboveMiddle = false;
 let dmbsLastBelowMiddle = false;
+let dmbsLastSignalTime = 0;
+let dmbsSignalDebounceTime = 1000; // 1 second debounce for DMBS signals
 
 // Tick chart accumulation variables
 let tickAccumulator = null;
@@ -1561,6 +1563,7 @@ const removeIndicator = (indicatorType) => {
     lastTouchUpper = false;
     dmbsLastAboveMiddle = false;
     dmbsLastBelowMiddle = false;
+    dmbsLastSignalTime = 0;
   }
 };
 
@@ -1699,9 +1702,9 @@ const detectDonchianMidBandSignals = (data) => {
 
     if (!currentMiddle || !prevMiddle) continue;
 
-    // Buy Signal Detection - Bar crosses above middle band
+    // Buy Signal Detection - Bar crosses above middle band (INCLUSIVE CROSSING)
     const prevCloseBelow = prevBar.close < prevMiddle;
-    const currentCloseAbove = currentBar.close >= currentMiddle;
+    const currentCloseAbove = currentBar.close >= currentMiddle; // Using >= to include exact touches
 
     if (prevCloseBelow && currentCloseAbove) {
       signals.push({
@@ -1716,9 +1719,9 @@ const detectDonchianMidBandSignals = (data) => {
       // Webhooks are only sent in checkRealtimeSignal() for real-time data
     }
 
-    // Sell Signal Detection - Bar crosses below middle band
+    // Sell Signal Detection - Bar crosses below middle band (INCLUSIVE CROSSING)
     const prevCloseAbove = prevBar.close > prevMiddle;
-    const currentCloseBelow = currentBar.close <= currentMiddle;
+    const currentCloseBelow = currentBar.close <= currentMiddle; // Using <= to include exact touches
 
     if (prevCloseAbove && currentCloseBelow) {
       signals.push({
@@ -1901,24 +1904,30 @@ const checkRealtimeSignal = (newBar) => {
   const dmbsConfig = activeIndicators.get('DonchianMidBandStrategy');
   if (dmbsConfig && dmbsConfig.values) {
     const { upper, lower, middle } = dmbsConfig.values;
-    if (middle && middle.length > 0) {
-      // Get the latest middle band value
-      const latestMiddle = middle[middle.length - 1];
+    if (middle && middle.length >= 2) {
+      // Get the correct middle band values for proper crossover detection
+      const currentMiddle = middle[middle.length - 1];
+      const prevMiddle = middle[middle.length - 2];
 
       // Debug log for DMBS real-time signal checking (commented out to reduce noise)
       // console.log('🎯 DMBS Signal Check:', {
       //   prevClose: prevBar.close,
       //   currentClose: newBar.close,
-      //   latestMiddle: latestMiddle,
-      //   willBuy: (prevBar.close < latestMiddle && newBar.close >= latestMiddle),
-      //   willSell: (prevBar.close > latestMiddle && newBar.close <= latestMiddle)
+      //   prevMiddle: prevMiddle,
+      //   currentMiddle: currentMiddle,
+      //   willBuy: (prevBar.close < prevMiddle && newBar.close >= currentMiddle),
+      //   willSell: (prevBar.close > prevMiddle && newBar.close <= currentMiddle),
+      //   dmbsLastAboveMiddle: dmbsLastAboveMiddle,
+      //   dmbsLastBelowMiddle: dmbsLastBelowMiddle
       // });
 
-      // Buy Signal Detection - Bar crosses above middle band
-      const prevCloseBelow = prevBar.close < latestMiddle;
-      const currentCloseAbove = newBar.close >= latestMiddle;
+      // Buy Signal Detection - Bar crosses above middle band (INCLUSIVE CROSSING)
+      const prevCloseBelow = prevBar.close < prevMiddle;
+      const currentCloseAbove = newBar.close >= currentMiddle; // Using >= to include exact touches
 
       if (prevCloseBelow && currentCloseAbove && !dmbsLastAboveMiddle) {
+        const currentTime = Date.now();
+        
         // Generate buy signal
         const currentMarkers = signalMarkers || [];
         currentMarkers.push({
@@ -1931,31 +1940,40 @@ const checkRealtimeSignal = (newBar) => {
         candleSeries.setMarkers(currentMarkers);
         signalMarkers = currentMarkers;
 
-        // Send webhook only if real-time is ready (not during initial load)
+        // Send webhook only if real-time is ready and enough time has passed since last signal
+        const timeSinceLastSignal = currentTime - dmbsLastSignalTime;
         console.log('🔍 DMBS Buy signal detected - Debug info:', {
           currentStrategyId,
           isRealTimeReady,
           currentTicker,
-          willSendWebhook: !!(currentStrategyId && isRealTimeReady)
+          timeSinceLastSignal,
+          debounceTime: dmbsSignalDebounceTime,
+          willSendWebhook: !!(currentStrategyId && isRealTimeReady && timeSinceLastSignal > dmbsSignalDebounceTime)
         });
 
-        if (currentStrategyId && isRealTimeReady) {
+        if (currentStrategyId && isRealTimeReady && timeSinceLastSignal > dmbsSignalDebounceTime) {
           console.log('🚀 Sending DMBS BUY webhook...');
           sendPayload("buy", currentTicker, currentStrategyId);
+          dmbsLastSignalTime = currentTime;
         } else {
-          console.log('❌ DMBS Webhook NOT sent - missing requirements');
+          console.log('❌ DMBS Webhook NOT sent - missing requirements or debounce active');
         }
 
         dmbsLastAboveMiddle = true;
-      } else if (!currentCloseAbove) {
+      }
+      
+      // Reset flag only when price crosses back below middle band
+      if (newBar.close < currentMiddle) {
         dmbsLastAboveMiddle = false;
       }
 
-      // Sell Signal Detection - Bar crosses below middle band
-      const prevCloseAbove = prevBar.close > latestMiddle;
-      const currentCloseBelow = newBar.close <= latestMiddle;
+      // Sell Signal Detection - Bar crosses below middle band (INCLUSIVE CROSSING)
+      const prevCloseAbove = prevBar.close > prevMiddle;
+      const currentCloseBelow = newBar.close <= currentMiddle; // Using <= to include exact touches
 
       if (prevCloseAbove && currentCloseBelow && !dmbsLastBelowMiddle) {
+        const currentTime = Date.now();
+        
         // Generate sell signal
         const currentMarkers = signalMarkers || [];
         currentMarkers.push({
@@ -1968,23 +1986,30 @@ const checkRealtimeSignal = (newBar) => {
         candleSeries.setMarkers(currentMarkers);
         signalMarkers = currentMarkers;
 
-        // Send webhook only if real-time is ready (not during initial load)
+        // Send webhook only if real-time is ready and enough time has passed since last signal
+        const timeSinceLastSignal = currentTime - dmbsLastSignalTime;
         console.log('🔍 DMBS Sell signal detected - Debug info:', {
           currentStrategyId,
           isRealTimeReady,
           currentTicker,
-          willSendWebhook: !!(currentStrategyId && isRealTimeReady)
+          timeSinceLastSignal,
+          debounceTime: dmbsSignalDebounceTime,
+          willSendWebhook: !!(currentStrategyId && isRealTimeReady && timeSinceLastSignal > dmbsSignalDebounceTime)
         });
 
-        if (currentStrategyId && isRealTimeReady) {
+        if (currentStrategyId && isRealTimeReady && timeSinceLastSignal > dmbsSignalDebounceTime) {
           console.log('🚀 Sending DMBS SELL webhook...');
           sendPayload("sell", currentTicker, currentStrategyId);
+          dmbsLastSignalTime = currentTime;
         } else {
-          console.log('❌ DMBS Webhook NOT sent - missing requirements');
+          console.log('❌ DMBS Webhook NOT sent - missing requirements or debounce active');
         }
 
         dmbsLastBelowMiddle = true;
-      } else if (!currentCloseBelow) {
+      }
+      
+      // Reset flag only when price crosses back above middle band
+      if (newBar.close > currentMiddle) {
         dmbsLastBelowMiddle = false;
       }
     }
