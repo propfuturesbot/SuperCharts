@@ -5,7 +5,8 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login/Login';
 import Dashboard from './components/Dashboard/Dashboard';
-import StrategyManagement from './components/StrategyManagement/StrategyManagement';
+import TradeOptions from './components/TradeOptions/TradeOptions';
+import WebhookGenerator from './components/WebhookGenerator/WebhookGenerator';
 import ThemeCustomizer from './components/ThemeCustomizer/ThemeCustomizer';
 import './App.css';
 
@@ -28,11 +29,21 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
+              
               <Route 
-                path="/strategies" 
+                path="/trade-options" 
                 element={
                   <ProtectedRoute>
-                    <StrategyManagement />
+                    <TradeOptions />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/webhook-generator" 
+                element={
+                  <ProtectedRoute>
+                    <WebhookGenerator />
                   </ProtectedRoute>
                 } 
               />

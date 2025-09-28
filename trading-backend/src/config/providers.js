@@ -1,4 +1,4 @@
-export const PROVIDERS = {
+const PROVIDERS = {
   topstepx: {
     name: 'TopStepX',
     api_endpoint: 'https://api.topstepx.com',
@@ -41,6 +41,11 @@ export const PROVIDERS = {
   }
 };
 
-export const getProviderConfig = (providerKey) => {
+const getProviderConfig = (providerKey) => {
   return PROVIDERS[providerKey] || PROVIDERS.thefuturesdesk;
+};
+
+module.exports = {
+  PROVIDERS,
+  getProviderConfig
 };

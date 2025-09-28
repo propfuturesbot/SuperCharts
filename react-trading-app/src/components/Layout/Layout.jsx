@@ -6,7 +6,10 @@ import {
   FaUser, 
   FaChartLine, 
   FaCog, 
-  FaChartBar
+  FaChartBar,
+  FaCalendarAlt,
+  FaCode,
+  FaCogs
 } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 import './Layout.css';
@@ -29,10 +32,22 @@ const Layout = ({ children, title = 'Dashboard', subtitle = '' }) => {
       active: location.pathname === '/dashboard'
     },
     {
-      icon: <FaChartLine />,
-      label: 'Strategies',
-      path: '/strategies',
-      active: location.pathname === '/strategies'
+      icon: <FaCalendarAlt />,
+      label: 'Trading Schedule',
+      path: '/trading-schedule',
+      active: location.pathname === '/trading-schedule'
+    },
+    {
+      icon: <FaCode />,
+      label: 'Webhook Generator',
+      path: '/webhook-generator',
+      active: location.pathname === '/webhook-generator'
+    },
+    {
+      icon: <FaCogs />,
+      label: 'Trade Options',
+      path: '/trade-options',
+      active: location.pathname === '/trade-options'
     }
   ];
 

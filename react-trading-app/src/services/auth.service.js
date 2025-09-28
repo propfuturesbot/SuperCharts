@@ -5,20 +5,20 @@ class AuthService {
   constructor() {
     this.token = localStorage.getItem('auth_token');
     this.username = localStorage.getItem('username');
-    this.provider = localStorage.getItem('provider') || 'topstepx';
+    this.provider = localStorage.getItem('provider') || 'thefuturesdesk';
     this.apiKey = null; // Never store API key in localStorage for security
     this.rememberCredentials = localStorage.getItem('remember_credentials') === 'true';
   }
 
-  async login(username, credential, provider = 'topstepx', rememberMe = false, usePassword = false) {
+  async login(username, credential, provider = 'thefuturesdesk', rememberMe = false, usePassword = false) {
     try {
       const config = getProviderConfig(provider);
       let response;
       
       if (usePassword) {
-        // Use password authentication with the new endpoint
+        // Use password authentication with the provider endpoint
         response = await axios.post(
-          'https://userapi.topstepx.com/Login',
+          `${config.userapi_endpoint}/Login`,
           {
             userName: username,
             password: credential

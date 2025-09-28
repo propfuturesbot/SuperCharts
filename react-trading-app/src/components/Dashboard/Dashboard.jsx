@@ -11,7 +11,10 @@ import {
   FaShieldAlt,
   FaDollarSign,
   FaChartBar,
-  FaRobot
+  FaRobot,
+  FaCalendarAlt,
+  FaCode,
+  FaCogs
 } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 import './Dashboard.css';
@@ -40,33 +43,45 @@ const Dashboard = () => {
       active: location.pathname === '/dashboard'
     },
     {
-      icon: <FaChartLine />,
-      label: 'Strategies',
-      path: '/strategies',
-      active: location.pathname === '/strategies'
+      icon: <FaCalendarAlt />,
+      label: 'Trading Schedule',
+      path: '/trading-schedule',
+      active: location.pathname === '/trading-schedule'
+    },
+    {
+      icon: <FaCode />,
+      label: 'Webhook Generator',
+      path: '/webhook-generator',
+      active: location.pathname === '/webhook-generator'
+    },
+    {
+      icon: <FaCogs />,
+      label: 'Trade Options',
+      path: '/trade-options',
+      active: location.pathname === '/trade-options'
     }
   ];
 
   const quickActions = [
     {
+      icon: <FaRobot />,
+      title: 'Webhook Bot',
+      description: 'Configure and manage your webhook-based trading bot'
+    },
+    {
       icon: <FaBolt />,
-      title: 'Live Trading',
-      description: 'Start automated trading with your configured strategies'
+      title: 'Contract Loading',
+      description: 'Load and manage tradable contracts from your provider'
     },
     {
       icon: <FaShieldAlt />,
-      title: 'Risk Management',
-      description: 'Configure position sizing and risk parameters'
+      title: 'Authentication',
+      description: 'Manage API keys and authentication settings'
     },
     {
       icon: <FaChartBar />,
-      title: 'Performance',
-      description: 'Analyze your trading performance and metrics'
-    },
-    {
-      icon: <FaRobot />,
-      title: 'Trading Analytics',
-      description: 'View detailed analytics and trading insights'
+      title: 'Bot Status',
+      description: 'Monitor webhook bot status and activity logs'
     }
   ];
 
@@ -90,7 +105,7 @@ const Dashboard = () => {
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            TradingBot
+            WebhookBot
           </motion.h1>
           <div className="breadcrumb">Dashboard</div>
         </div>
@@ -150,7 +165,7 @@ const Dashboard = () => {
         >
           <div className="sidebar-header">
             <h2 className="sidebar-title">Navigation</h2>
-            <p className="sidebar-subtitle">Trading Dashboard</p>
+            <p className="sidebar-subtitle">Webhook Bot Dashboard</p>
           </div>
           
           <nav className="sidebar-nav">
@@ -189,8 +204,8 @@ const Dashboard = () => {
                 Welcome Back!
               </h1>
               <p className="welcome-text">
-                Your trading system is ready. Monitor your strategies, analyze performance, 
-                and optimize your trading approach with our advanced tools.
+                Your webhook bot is ready. Configure webhooks, manage contracts, 
+                and monitor your automated trading system.
               </p>
               
               <div className="status-grid">
@@ -200,8 +215,8 @@ const Dashboard = () => {
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.4, delay: 0.4 }}
                 >
-                  <div className="status-label">Active Strategies</div>
-                  <div className="status-value">3</div>
+                  <div className="status-label">Webhook Status</div>
+                  <div className="status-value">Active</div>
                 </motion.div>
                 
                 <motion.div 

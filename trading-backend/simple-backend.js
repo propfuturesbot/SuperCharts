@@ -3,10 +3,11 @@ const cors = require('cors');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-const { Pool } = require('pg');
+
+// Routes removed
 
 const app = express();
-const port = 8000;
+const port = 8025;
 
 app.use(cors({
   origin: 'http://localhost:3000',
@@ -26,27 +27,7 @@ const PROVIDER_CONFIG = {
 // Current provider (configurable)
 const CURRENT_PROVIDER = 'topstep';
 
-// PostgreSQL Database connection
-const pool = new Pool({
-  user: 'techuser',
-  host: 'localhost',
-  database: 'techanalysis',
-  password: 'techanalysis2024',
-  port: 5432,
-});
-
-// Test database connection
-pool.connect((err, client, release) => {
-  if (err) {
-    console.error('❌ Error acquiring client', err.stack);
-  } else {
-    console.log('✅ Connected to PostgreSQL database');
-    release();
-  }
-});
-
 const CONTRACTS_FILE = path.join(__dirname, 'tradableContracts.json');
-const STRATEGIES_FILE = path.join(__dirname, 'strategies.json');
 
 // Fetch contracts from provider and cache them
 async function loadContracts(provider = CURRENT_PROVIDER) {
@@ -305,171 +286,16 @@ app.post('/api/contracts/lookup', (req, res) => {
   }
 });
 
-// Get all strategies
-app.get('/api/strategies', async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT id, name, strategy_type, contract_symbol, contract_name, 
-             timeframe, webhook_url, webhook_payload, 
-             status, created_at, updated_at
-      FROM strategies 
-      ORDER BY created_at DESC
-    `);
-    
-    res.json({
-      success: true,
-      data: result.rows,
-      count: result.rows.length
-    });
-  } catch (error) {
-    console.error('❌ Error fetching strategies:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
+// Account routes removed
 
-// Create new strategy
-app.post('/api/strategies', async (req, res) => {
-  try {
-    const {
-      name,
-      strategy_type,
-      contract_symbol,
-      contract_name,
-      timeframe,
-      webhook_url,
-      webhook_payload
-    } = req.body;
-
-    const result = await pool.query(`
-      INSERT INTO strategies (
-        name, strategy_type, contract_symbol, contract_name, 
-        timeframe, webhook_url, webhook_payload,
-        status, created_by
-      ) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, 'inactive', 'system')
-      RETURNING *
-    `, [
-      name, strategy_type, contract_symbol, contract_name,
-      timeframe, webhook_url, 
-      webhook_payload ? JSON.stringify(webhook_payload) : null
-    ]);
-
-    res.json({
-      success: true,
-      message: 'Strategy saved successfully',
-      data: result.rows[0],
-      id: result.rows[0].id
-    });
-  } catch (error) {
-    console.error('❌ Error creating strategy:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
-
-// Update strategy status (PUT)
-app.put('/api/strategies/:id/status', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
-
-    const result = await pool.query(`
-      UPDATE strategies 
-      SET status = $1, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $2
-      RETURNING *
-    `, [status, id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Strategy not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Strategy status updated successfully',
-      data: result.rows[0]
-    });
-  } catch (error) {
-    console.error('❌ Error updating strategy status:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
-
-// Update strategy status (PATCH) - same functionality as PUT for frontend compatibility
-app.patch('/api/strategies/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
-
-    const result = await pool.query(`
-      UPDATE strategies 
-      SET status = $1, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $2
-      RETURNING *
-    `, [status, id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Strategy not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Strategy status updated successfully',
-      data: result.rows[0]
-    });
-  } catch (error) {
-    console.error('❌ Error updating strategy status:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-});
-
-// Delete strategy
-app.delete('/api/strategies/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const result = await pool.query(`
-      DELETE FROM strategies 
-      WHERE id = $1
-      RETURNING *
-    `, [id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Strategy not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      message: 'Strategy deleted successfully',
-      data: result.rows[0]
-    });
-  } catch (error) {
-    console.error('❌ Error deleting strategy:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Webhook Bot API is running',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
 });
 
 // Initialize contracts on startup

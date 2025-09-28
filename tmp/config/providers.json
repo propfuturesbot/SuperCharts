@@ -1,0 +1,119 @@
+{
+  "topstepx": {
+    "api_endpoint": "https://api.topstepx.com",
+    "userapi_endpoint": "https://userapi.topstepx.com",
+    "websocket_endpoint": "wss://api.topstepx.com/signalr",
+    "user_hub": "https://rtc.topstepx.com/hubs/user",
+    "market_hub": "https://rtc.topstepx.com/hubs/market",
+    "websocket_chartapi": "wss://chartapi.topstepx.com/hubs",
+    "chartapi_endpoint": "https://chartapi.topstepx.com"
+  },
+  "alphaticks": {
+    "api_endpoint": "https://api.alphaticks.projectx.com",
+    "userapi_endpoint": "https://userapi.alphaticks.projectx.com",
+    "websocket_endpoint": "wss://api.alphaticks.projectx.com/signalr",
+    "user_hub": "https://rtc.alphaticks.projectx.com/hubs/user",
+    "market_hub": "https://rtc.alphaticks.projectx.com/hubs/market",
+    "websocket_chartapi": "wss://chartapi.alphaticks.projectx.com/hubs",
+    "chartapi_endpoint": "https://chartapi.alphaticks.projectx.com"
+  },
+  "blueguardian": {
+    "api_endpoint": "https://api.blueguardianfutures.projectx.com",
+    "userapi_endpoint": "https://userapi.blueguardianfutures.projectx.com",
+    "websocket_endpoint": "wss://api.blueguardianfutures.projectx.com/signalr",
+    "user_hub": "https://rtc.blueguardianfutures.projectx.com/hubs/user",
+    "market_hub": "https://rtc.blueguardianfutures.projectx.com/hubs/market",
+    "websocket_chartapi": "wss://chartapi.blueguardianfutures.projectx.com/hubs",
+    "chartapi_endpoint": "https://chartapi.blueguardianfutures.projectx.com"
+  },
+  "blusky": {
+    "api_endpoint": "https://api.blusky.projectx.com",
+    "userapi_endpoint": "https://userapi.blusky.projectx.com",
+    "websocket_endpoint": "wss://api.blusky.projectx.com/signalr",
+    "user_hub": "https://rtc.blusky.projectx.com/hubs/user",
+    "market_hub": "https://rtc.blusky.projectx.com/hubs/market",
+    "websocket_chartapi": "wss://chartapi.blusky.projectx.com/hubs",
+    "chartapi_endpoint": "https://chartapi.blusky.projectx.com"
+  },
+  "e8x": {
+    "api_endpoint": "https://api.e8.projectx.com",
+    "userapi_endpoint": "https://userapi.e8.projectx.com",
+    "websocket_endpoint": "wss://api.e8.projectx.com/signalr",
+    "user_hub": "https://rtc.e8.projectx.com/hubs/user",
+    "market_hub": "https://rtc.e8.projectx.com/hubs/market",
+    "websocket_chartapi": "wss://chartapi.e8.projectx.com/hubs",
+    "chartapi_endpoint": "https://chartapi.e8.projectx.com"
+  },
+  "fundingfutures": {
+    "api_endpoint": "https://api.fundingfutures.projectx.com",
+    "userapi_endpoint": "https://userapi.fundingfutures.projectx.com",
+    "websocket_endpoint": "wss://api.fundingfutures.projectx.com/signalr",
+    "user_hub": "https://rtc.fundingfutures.projectx.com/hubs/user",
+    "market_hub": "https://rtc.fundingfutures.projectx.com/hubs/market",
+    "websocket_chartapi": "wss://chartapi.fundingfutures.projectx.com/hubs",
+    "chartapi_endpoint": "https://chartapi.fundingfutures.projectx.com"
+  },
+  "thefuturesdesk": {
+    "api_endpoint": "https://api.thefuturesdesk.projectx.com",
+    "userapi_endpoint": "https://userapi.thefuturesdesk.projectx.com",
+    "websocket_endpoint": "wss://api.thefuturesdesk.projectx.com/signalr",
+    "user_hub": "https://rtc.thefuturesdesk.projectx.com/hubs/user",
+    "market_hub": "https://rtc.thefuturesdesk.projectx.com/hubs/market",
+    "websocket_chartapi": "wss://chartapi.thefuturesdesk.projectx.com/hubs",
+    "chartapi_endpoint": "https://chartapi.thefuturesdesk.projectx.com"
+  },
+  "futureselite": {
+    "api_endpoint": "https://api.futureselite.projectx.com",
+    "userapi_endpoint": "https://userapi.futureselite.projectx.com",
+    "websocket_endpoint": "wss://api.futureselite.projectx.com/signalr",
+    "user_hub": "https://rtc.futureselite.projectx.com/hubs/user",
+    "market_hub": "https://rtc.futureselite.projectx.com/hubs/market",
+    "websocket_chartapi": "wss://chartapi.futureselite.projectx.com/hubs",
+    "chartapi_endpoint": "https://chartapi.futureselite.projectx.com"
+  },
+  "fxifyfutures": {
+    "api_endpoint": "https://api.fxifyfutures.projectx.com",
+    "userapi_endpoint": "https://userapi.fxifyfutures.projectx.com",
+    "websocket_endpoint": "wss://api.fxifyfutures.projectx.com/signalr",
+    "user_hub": "https://rtc.fxifyfutures.projectx.com/hubs/user",
+    "market_hub": "https://rtc.fxifyfutures.projectx.com/hubs/market",
+    "websocket_chartapi": "wss://chartapi.fxifyfutures.projectx.com/hubs",
+    "chartapi_endpoint": "https://chartapi.fxifyfutures.projectx.com"
+  },
+  "goatfunded": {
+    "api_endpoint": "https://api.goatfundedfutures.projectx.com",
+    "userapi_endpoint": "https://userapi.goatfundedfutures.projectx.com",
+    "websocket_endpoint": "wss://api.goatfundedfutures.projectx.com/signalr",
+    "user_hub": "https://rtc.goatfundedfutures.projectx.com/hubs/user",
+    "market_hub": "https://rtc.goatfundedfutures.projectx.com/hubs/market",
+    "websocket_chartapi": "wss://chartapi.goatfundedfutures.projectx.com/hubs",
+    "chartapi_endpoint": "https://chartapi.goatfundedfutures.projectx.com"
+  },
+  "tickticktrader": {
+    "api_endpoint": "https://api.tickticktrader.projectx.com",
+    "userapi_endpoint": "https://userapi.tickticktrader.projectx.com",
+    "websocket_endpoint": "wss://api.tickticktrader.projectx.com/signalr",
+    "user_hub": "https://rtc.tickticktrader.projectx.com/hubs/user",
+    "market_hub": "https://rtc.tickticktrader.projectx.com/hubs/market",
+    "websocket_chartapi": "wss://chartapi.tickticktrader.projectx.com/hubs",
+    "chartapi_endpoint": "https://chartapi.tickticktrader.projectx.com"
+  },
+  "toponefutures": {
+    "api_endpoint": "https://api.toponefutures.projectx.com",
+    "userapi_endpoint": "https://userapi.toponefutures.projectx.com",
+    "websocket_endpoint": "wss://api.toponefutures.projectx.com/signalr",
+    "user_hub": "https://rtc.toponefutures.projectx.com/hubs/user",
+    "market_hub": "https://rtc.toponefutures.projectx.com/hubs/market",
+    "websocket_chartapi": "wss://chartapi.toponefutures.projectx.com/hubs",
+    "chartapi_endpoint": "https://chartapi.toponefutures.projectx.com"
+  },
+  "tx3funding": {
+    "api_endpoint": "https://api.tx3funding.projectx.com",
+    "userapi_endpoint": "https://userapi.tx3funding.projectx.com",
+    "websocket_endpoint": "wss://api.tx3funding.projectx.com/signalr",
+    "user_hub": "https://rtc.tx3funding.projectx.com/hubs/user",
+    "market_hub": "https://rtc.tx3funding.projectx.com/hubs/market",
+    "websocket_chartapi": "wss://chartapi.tx3funding.projectx.com/hubs",
+    "chartapi_endpoint": "https://chartapi.tx3funding.projectx.com"
+  }
+} 

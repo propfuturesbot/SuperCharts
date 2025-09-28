@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Trading System Master Startup Script
-# This script starts both the React frontend and Node.js backend with proper process management
+# Webhook Trading Bot Master Startup Script
+# This script starts both the React frontend and Node.js backend for webhook-based trading bot
 
 set -e  # Exit on any error
 
@@ -16,11 +16,10 @@ NC='\033[0m' # No Color
 
 # Configuration
 REACT_PORT=3000
-BACKEND_PORT=8000
-SIGNALR_PORT=5000
+BACKEND_PORT=8025
 
 # Application identifiers for safe process killing
-APP_NAME="trading-system"
+APP_NAME="webhook-bot"
 BACKEND_IDENTIFIER="simple-backend.js"
 FRONTEND_IDENTIFIER="react-scripts"
 
@@ -29,21 +28,21 @@ echo -e "${CYAN}"
 cat << "EOF"
 ╔════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                                ║
-║  ████████╗██████╗  █████╗ ██████╗ ██╗███╗   ██╗ ██████╗     ███████╗██╗   ██╗███████╗████████╗║
-║  ╚══██╔══╝██╔══██╗██╔══██╗██╔══██╗██║████╗  ██║██╔════╝     ██╔════╝╚██╗ ██╔╝██╔════╝╚══██╔══╝║
-║     ██║   ██████╔╝███████║██║  ██║██║██╔██╗ ██║██║  ███╗    ███████╗ ╚████╔╝ ███████╗   ██║   ║
-║     ██║   ██╔══██╗██╔══██║██║  ██║██║██║╚██╗██║██║   ██║    ╚════██║  ╚██╔╝  ╚════██║   ██║   ║
-║     ██║   ██║  ██║██║  ██║██████╔╝██║██║ ╚████║╚██████╔╝    ███████║   ██║   ███████║   ██║   ║
-║     ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚═╝╚═╝  ╚═══╝ ╚═════╝     ╚══════╝   ╚═╝   ╚══════╝   ╚═╝   ║
+║  ██╗    ██╗███████╗██████╗ ██╗  ██╗ ██████╗  ██████╗ ██╗  ██╗    ██████╗  ██████╗ ████████╗  ║
+║  ██║    ██║██╔════╝██╔══██╗██║  ██║██╔═══██╗██╔═══██╗██║ ██╔╝    ██╔══██╗██╔═══██╗╚══██╔══╝  ║
+║  ██║ █╗ ██║█████╗  ██████╔╝███████║██║   ██║██║   ██║█████╔╝     ██████╔╝██║   ██║   ██║     ║
+║  ██║███╗██║██╔══╝  ██╔══██╗██╔══██║██║   ██║██║   ██║██╔═██╗     ██╔══██╗██║   ██║   ██║     ║
+║  ╚███╔███╔╝███████╗██████╔╝██║  ██║╚██████╔╝╚██████╔╝██║  ██╗    ██████╔╝╚██████╔╝   ██║     ║
+║   ╚══╝╚══╝ ╚══════╝╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝    ╚═════╝  ╚═════╝    ╚═╝     ║
 ║                                                                                                ║
-║                              PropFutures Trading System                                ║
+║                              Webhook Trading Bot System                                       ║
 ║                                                                                                ║
 ╚════════════════════════════════════════════════════════════════════════════════════════════════╝
 EOF
 echo -e "${NC}"
 
-echo -e "${PURPLE}🚀 Starting Complete Trading System...${NC}"
-echo -e "${PURPLE}======================================${NC}"
+echo -e "${PURPLE}🚀 Starting Webhook Trading Bot System...${NC}"
+echo -e "${PURPLE}===========================================${NC}"
 
 # Function to safely kill our application processes only
 kill_app_processes() {
@@ -166,7 +165,7 @@ check_directory() {
 
 # Cleanup function
 cleanup() {
-    echo -e "\n${YELLOW}🛑 Shutting down Trading System...${NC}"
+    echo -e "\n${YELLOW}🛑 Shutting down Webhook Trading Bot...${NC}"
     
     # Kill our application processes
     kill_app_processes "$BACKEND_IDENTIFIER" "Backend"
@@ -176,7 +175,6 @@ cleanup() {
     echo -e "${YELLOW}🧹 Cleaning up ports...${NC}"
     kill_port_safely $REACT_PORT "React Frontend"
     kill_port_safely $BACKEND_PORT "Backend API"
-    kill_port_safely $SIGNALR_PORT "SignalR Hub"
     
     # Clean up PID files
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -186,7 +184,7 @@ cleanup() {
     rm -f "$REACT_DIR/logs/frontend.pid" 2>/dev/null || true
     rm -f "$BACKEND_DIR/logs/backend.pid" 2>/dev/null || true
     
-    echo -e "${GREEN}✅ Trading System shutdown complete${NC}"
+    echo -e "${GREEN}✅ Webhook Trading Bot shutdown complete${NC}"
     exit 0
 }
 
@@ -202,13 +200,11 @@ kill_app_processes "$FRONTEND_IDENTIFIER" "Frontend"
 echo -e "${BLUE}🧹 Cleaning up ports...${NC}"
 kill_port_safely $REACT_PORT "React Frontend"
 kill_port_safely $BACKEND_PORT "Backend API" 
-kill_port_safely $SIGNALR_PORT "SignalR Hub"
 
 # Step 3: Verify ports are free
 echo -e "${BLUE}🔍 Verifying ports are free...${NC}"
 verify_port_free $REACT_PORT "React Frontend" || exit 1
 verify_port_free $BACKEND_PORT "Backend API" || exit 1
-verify_port_free $SIGNALR_PORT "SignalR Hub" || exit 1
 
 # Check system requirements
 echo -e "${BLUE}🔍 Checking system requirements...${NC}"
@@ -275,8 +271,8 @@ if [ "$BACKEND_AVAILABLE" = true ]; then
 fi
 
 # Start services
-echo -e "${PURPLE}🚀 Starting Trading System Services...${NC}"
-echo -e "${PURPLE}======================================${NC}"
+echo -e "${PURPLE}🚀 Starting Webhook Bot Services...${NC}"
+echo -e "${PURPLE}====================================${NC}"
 
 # Start Backend first (if available)
 if [ "$BACKEND_AVAILABLE" = true ]; then
@@ -341,13 +337,12 @@ sleep 10
 
 # Display service information
 echo -e "${PURPLE}════════════════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}🎉 Trading System is now running!${NC}"
+echo -e "${GREEN}🎉 Webhook Trading Bot is now running!${NC}"
 echo -e "${PURPLE}════════════════════════════════════════════════════════════════${NC}"
 echo -e "${CYAN}🌐 Frontend Dashboard: http://localhost:${REACT_PORT}${NC}"
 
 if [ "$BACKEND_AVAILABLE" = true ]; then
     echo -e "${CYAN}⚡ Backend API: http://localhost:${BACKEND_PORT}${NC}"
-    echo -e "${CYAN}📡 SignalR Hub: http://localhost:${SIGNALR_PORT}${NC}"
     echo -e "${CYAN}📚 API Docs: http://localhost:${BACKEND_PORT}/docs${NC}"
     echo -e "${CYAN}💻 Health Check: http://localhost:${BACKEND_PORT}/health${NC}"
 fi
@@ -356,7 +351,6 @@ echo -e "${PURPLE}════════════════════�
 echo -e "${YELLOW}📋 Service Status:${NC}"
 echo -e "${GREEN}   ✅ React Frontend (Port ${REACT_PORT})${NC}"
 [ "$BACKEND_AVAILABLE" = true ] && echo -e "${GREEN}   ✅ Backend API (Port ${BACKEND_PORT})${NC}"
-[ "$BACKEND_AVAILABLE" = true ] && echo -e "${GREEN}   ✅ SignalR Hub (Port ${SIGNALR_PORT})${NC}"
 echo -e "${PURPLE}════════════════════════════════════════════════════════════════${NC}"
 echo -e "${YELLOW}📝 Log Files:${NC}"
 echo -e "${CYAN}   Frontend: ${REACT_DIR}/logs/frontend.log${NC}"
@@ -366,14 +360,14 @@ echo -e "${RED}🛑 Press Ctrl+C to stop all services${NC}"
 echo -e "${PURPLE}════════════════════════════════════════════════════════════════${NC}"
 
 # Auto-open browser (optional)
+sleep 5
+echo -e "${BLUE}🌐 Opening browser...${NC}"
 if command -v python3 >/dev/null 2>&1; then
-    sleep 5
-    echo -e "${BLUE}🌐 Opening browser...${NC}"
     python3 -m webbrowser "http://localhost:${REACT_PORT}" 2>/dev/null || true
 elif command -v python >/dev/null 2>&1; then
-    sleep 5
-    echo -e "${BLUE}🌐 Opening browser...${NC}"
     python -m webbrowser "http://localhost:${REACT_PORT}" 2>/dev/null || true
+else
+    echo -e "${YELLOW}⚠️  No Python found, please open http://localhost:${REACT_PORT} manually${NC}"
 fi
 
 # Keep script running and monitor services

@@ -15,7 +15,7 @@ const Login = () => {
     username: '',
     apiKey: '',
     password: '',
-    provider: 'topstepx'
+    provider: 'thefuturesdesk'
   });
   
   const [showPassword, setShowPassword] = useState(false);
