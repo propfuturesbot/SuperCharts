@@ -5,35 +5,4 @@
 ✅ Found existing contracts file with 57 contracts
 🚀 Backend running on http://localhost:8025
 📄 Contracts cached in: /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableContracts.json
-Extracted username: tejashegde@gmail.com from token
-Getting provider for user: tejashegde@gmail.com
-User specific provider: thefuturesdesk
-Default provider: thefuturesdesk
-Final provider: thefuturesdesk
-Using provider: thefuturesdesk for token
-Searching accounts at: https://userapi.thefuturesdesk.projectx.com/Account/search for provider: thefuturesdesk
-Failed to search accounts for provider thefuturesdesk: Request failed with status code 404
-Extracted username: tejashegde@gmail.com from token
-Getting provider for user: tejashegde@gmail.com
-User specific provider: thefuturesdesk
-Default provider: thefuturesdesk
-Final provider: thefuturesdesk
-Using provider: thefuturesdesk for token
-Searching accounts at: https://userapi.thefuturesdesk.projectx.com/Account/search for provider: thefuturesdesk
-Failed to search accounts for provider thefuturesdesk: Request failed with status code 404
-Extracted username: tejashegde@gmail.com from token
-Getting provider for user: tejashegde@gmail.com
-User specific provider: thefuturesdesk
-Default provider: thefuturesdesk
-Final provider: thefuturesdesk
-Using provider: thefuturesdesk for token
-Searching accounts at: https://userapi.thefuturesdesk.projectx.com/Account/search for provider: thefuturesdesk
-Failed to search accounts for provider thefuturesdesk: Request failed with status code 404
-Extracted username: tejashegde@gmail.com from token
-Getting provider for user: tejashegde@gmail.com
-User specific provider: thefuturesdesk
-Default provider: thefuturesdesk
-Final provider: thefuturesdesk
-Using provider: thefuturesdesk for token
-Searching accounts at: https://userapi.thefuturesdesk.projectx.com/Account/search for provider: thefuturesdesk
-Failed to search accounts for provider thefuturesdesk: Request failed with status code 404
+✅ Saved accounts data to /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableAccounts.json

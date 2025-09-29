@@ -28,6 +28,7 @@ const PROVIDER_CONFIG = {
 const CURRENT_PROVIDER = 'topstep';
 
 const CONTRACTS_FILE = path.join(__dirname, 'tradableContracts.json');
+const ACCOUNTS_FILE = path.join(__dirname, 'tradableAccounts.json');
 
 // Fetch contracts from provider and cache them
 async function loadContracts(provider = CURRENT_PROVIDER) {
@@ -188,6 +189,103 @@ function lookupContractProductId(contractName) {
   }
 }
 
+// Contract lookup method - find contract_id by contract name variations
+function lookupContractId(contractName) {
+  try {
+    if (!fs.existsSync(CONTRACTS_FILE)) {
+      throw new Error('Contracts file not found. Please ensure contracts are loaded first.');
+    }
+    
+    const contracts = JSON.parse(fs.readFileSync(CONTRACTS_FILE, 'utf8'));
+    
+    // Clean and normalize the input contract name
+    const cleanContractName = contractName.trim().toUpperCase();
+    
+    // Try multiple matching strategies
+    for (const contract of contracts) {
+      // Strategy 1: Direct match with product_name (e.g., "/MNQ")
+      if (contract.product_name && contract.product_name.toUpperCase() === cleanContractName) {
+        return {
+          success: true,
+          contract_id: contract.contract_id,
+          matched_field: 'product_name',
+          matched_value: contract.product_name,
+          contract_info: contract
+        };
+      }
+      
+      // Strategy 2: Match with product_name without leading slash (e.g., "MNQ" matches "/MNQ")
+      if (contract.product_name && contract.product_name.replace('/', '').toUpperCase() === cleanContractName) {
+        return {
+          success: true,
+          contract_id: contract.contract_id,
+          matched_field: 'product_name',
+          matched_value: contract.product_name,
+          contract_info: contract
+        };
+      }
+      
+      // Strategy 3: Match with symbol (e.g., "MNQ")
+      if (contract.symbol && contract.symbol.toUpperCase() === cleanContractName) {
+        return {
+          success: true,
+          contract_id: contract.contract_id,
+          matched_field: 'symbol',
+          matched_value: contract.symbol,
+          contract_info: contract
+        };
+      }
+      
+      // Strategy 4: Match with contract_name (e.g., "MNQU25")
+      if (contract.contract_name && contract.contract_name.toUpperCase() === cleanContractName) {
+        return {
+          success: true,
+          contract_id: contract.contract_id,
+          matched_field: 'contract_name',
+          matched_value: contract.contract_name,
+          contract_info: contract
+        };
+      }
+      
+      // Strategy 5: Match with exchange field (e.g., "/MNQ")
+      if (contract.exchange && contract.exchange.toUpperCase() === cleanContractName) {
+        return {
+          success: true,
+          contract_id: contract.contract_id,
+          matched_field: 'exchange',
+          matched_value: contract.exchange,
+          contract_info: contract
+        };
+      }
+      
+      // Strategy 6: Handle variations like "MNQ1!" by matching base symbol
+      const baseSymbol = cleanContractName.replace(/[0-9!]+$/, ''); // Remove trailing numbers and !
+      if (contract.symbol && contract.symbol.toUpperCase() === baseSymbol) {
+        return {
+          success: true,
+          contract_id: contract.contract_id,
+          matched_field: 'symbol_base',
+          matched_value: contract.symbol,
+          contract_info: contract
+        };
+      }
+    }
+    
+    // No match found
+    return {
+      success: false,
+      error: `Contract not found for: ${contractName}`,
+      searched_term: cleanContractName
+    };
+    
+  } catch (error) {
+    return {
+      success: false,
+      error: `Error looking up contract: ${error.message}`
+    };
+  }
+}
+
 // Contracts API - read from cached file
 app.get('/api/contracts', (req, res) => {
   try {
@@ -248,6 +346,43 @@ app.get('/api/contracts/lookup/:contractName', (req, res) => {
   }
 });
 
+// Contract lookup API - find contract_id by contract name
+app.get('/api/contracts/lookup-id/:contractName', (req, res) => {
+  try {
+    const { contractName } = req.params;
+    
+    if (!contractName) {
+      return res.status(400).json({
+        success: false,
+        error: 'Contract name parameter is required'
+      });
+    }
+    
+    const result = lookupContractId(contractName);
+    
+    if (result.success) {
+      res.json({
+        success: true,
+        contract_id: result.contract_id,
+        matched_field: result.matched_field,
+        matched_value: result.matched_value,
+        contract_info: result.contract_info
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: result.error,
+        searched_term: result.searched_term
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 // Bulk contract lookup API - find multiple product_ids
 app.post('/api/contracts/lookup', (req, res) => {
   try {
@@ -282,6 +417,82 @@ app.post('/api/contracts/lookup', (req, res) => {
     res.status(500).json({ 
       success: false, 
       error: error.message 
+    });
+  }
+});
+
+// Accounts file API - load accounts from file
+app.get('/api/accounts/file', (req, res) => {
+  try {
+    if (!fs.existsSync(ACCOUNTS_FILE)) {
+      return res.status(404).json({
+        success: false,
+        error: 'Accounts file not found'
+      });
+    }
+
+    const accountsData = JSON.parse(fs.readFileSync(ACCOUNTS_FILE, 'utf8'));
+
+    res.json({
+      success: true,
+      data: accountsData,
+      source: 'file'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Accounts file API - save accounts to file
+app.post('/api/accounts/file', (req, res) => {
+  try {
+    const { accountsData } = req.body;
+
+    if (!accountsData) {
+      return res.status(400).json({
+        success: false,
+        error: 'accountsData is required'
+      });
+    }
+
+    // Save to file
+    fs.writeFileSync(ACCOUNTS_FILE, JSON.stringify(accountsData, null, 2));
+    console.log(`✅ Saved accounts data to ${ACCOUNTS_FILE}`);
+
+    res.json({
+      success: true,
+      message: 'Accounts file saved successfully',
+      filePath: ACCOUNTS_FILE
+    });
+  } catch (error) {
+    console.error('❌ Failed to save accounts file:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Accounts file API - delete accounts file
+app.delete('/api/accounts/file', (req, res) => {
+  try {
+    if (fs.existsSync(ACCOUNTS_FILE)) {
+      fs.unlinkSync(ACCOUNTS_FILE);
+      console.log(`✅ Deleted accounts file: ${ACCOUNTS_FILE}`);
+    }
+
+    res.json({
+      success: true,
+      message: 'Accounts file deleted successfully'
+    });
+  } catch (error) {
+    console.error('❌ Failed to delete accounts file:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });

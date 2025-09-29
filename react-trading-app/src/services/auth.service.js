@@ -78,7 +78,9 @@ class AuthService {
         
         // Set default auth header for axios
         this.setAuthHeader();
-        
+
+        // Note: Accounts file will be initialized by the component after login
+
         return {
           success: true,
           token: this.token,

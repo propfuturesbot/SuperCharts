@@ -5,6 +5,7 @@ import { FaUser, FaKey, FaLock, FaServer, FaEye, FaEyeSlash, FaExclamationCircle
 import { useAuth } from '../../contexts/AuthContext';
 import { PROVIDERS } from '../../config/providers';
 import authService from '../../services/auth.service';
+import accountService from '../../services/account.service';
 import './Login.css';
 
 const Login = () => {
@@ -108,10 +109,26 @@ const Login = () => {
       const result = await login(formData.username, credential, formData.provider, rememberMe, usePassword);
       
       if (result.success) {
-        setSuccess('Login successful! Redirecting...');
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1500);
+        setSuccess('Login successful! Loading accounts...');
+
+        // Initialize accounts file after successful login
+        try {
+          console.log('Initializing accounts file after login...');
+          await accountService.initializeAccountsFile();
+          console.log('Accounts file initialized successfully');
+
+          setSuccess('Login successful! Redirecting...');
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 1500);
+        } catch (accountError) {
+          console.error('Failed to initialize accounts file:', accountError);
+          // Still redirect even if accounts file fails
+          setSuccess('Login successful! Redirecting...');
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 1500);
+        }
       } else {
         setError(result.error || 'Login failed. Please check your credentials.');
       }

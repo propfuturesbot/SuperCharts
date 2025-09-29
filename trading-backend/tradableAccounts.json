@@ -1,0 +1,36 @@
+{
+  "lastUpdated": "2025-09-29T17:26:41.860Z",
+  "provider": "thefuturesdesk",
+  "username": "tejashegde@gmail.com",
+  "totalCount": 4,
+  "accounts": [
+    {
+      "name": "TFDXAP_508PA89",
+      "id": 103075,
+      "canTrade": true,
+      "balance": 12.2,
+      "isVisible": true
+    },
+    {
+      "name": "TFDXA_5083779",
+      "id": 103078,
+      "canTrade": true,
+      "balance": -331,
+      "isVisible": true
+    },
+    {
+      "name": "TFDXAP_509B9PT",
+      "id": 128062,
+      "canTrade": true,
+      "balance": -6.4,
+      "isVisible": true
+    },
+    {
+      "name": "TFDXA_509KHPC",
+      "id": 128237,
+      "canTrade": true,
+      "balance": -197,
+      "isVisible": true
+    }
+  ]
+}

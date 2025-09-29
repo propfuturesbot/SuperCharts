@@ -44,3 +44,13 @@ export const PROVIDERS = {
 export const getProviderConfig = (providerKey) => {
   return PROVIDERS[providerKey] || PROVIDERS.thefuturesdesk;
 };
+
+export const getProviderApiEndpoint = (providerKey) => {
+  const provider = PROVIDERS[providerKey];
+  return provider ? provider.api_endpoint : PROVIDERS.thefuturesdesk.api_endpoint;
+};
+
+export const getProviderUserApiEndpoint = (providerKey) => {
+  const provider = PROVIDERS[providerKey];
+  return provider ? provider.userapi_endpoint : PROVIDERS.thefuturesdesk.userapi_endpoint;
+};

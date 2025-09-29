@@ -10,11 +10,15 @@ import {
   FaSortAmountDown,
   FaSortAmountUp,
   FaEye,
-  FaEyeSlash
+  FaEyeSlash,
+  FaUser,
+  FaWallet
 } from 'react-icons/fa';
 import Layout from '../Layout/Layout';
 import { useAuth } from '../../contexts/AuthContext';
 import authService from '../../services/auth.service';
+import accountManager from '../../managers/AccountManager';
+import orderManager from '../../managers/OrderManager';
 import './TradeOptions.css';
 
 const TradeOptions = () => {
@@ -28,6 +32,12 @@ const TradeOptions = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedContract, setSelectedContract] = useState(null);
   
+  // Account state
+  const [accounts, setAccounts] = useState([]);
+  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [accountsLoading, setAccountsLoading] = useState(false);
+  const [accountsError, setAccountsError] = useState(null);
+  
   // Trading form state
   const [orderType, setOrderType] = useState('Market');
   const [action, setAction] = useState('Buy');
@@ -37,6 +47,14 @@ const TradeOptions = () => {
   const [takeProfitPrice, setTakeProfitPrice] = useState('');
   const [trailingOffset, setTrailingOffset] = useState('');
   const [closeExistingOrders, setCloseExistingOrders] = useState(false);
+
+  // Order execution state
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [orderError, setOrderError] = useState(null);
+  const [orderSuccess, setOrderSuccess] = useState(null);
+  const [isClosingPosition, setIsClosingPosition] = useState(false);
+  const [isReversingPosition, setIsReversingPosition] = useState(false);
+  const [isFlatteningAll, setIsFlatteningAll] = useState(false);
   
   // Table state
   const [sortField, setSortField] = useState('symbol');
@@ -44,10 +62,31 @@ const TradeOptions = () => {
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [showDisabled, setShowDisabled] = useState(false);
 
-  // Fetch contracts from backend
+  // Fetch contracts and accounts from backend
   useEffect(() => {
     fetchContracts();
+    fetchAccounts();
   }, []);
+
+  // Initialize managers when user is authenticated
+  useEffect(() => {
+    const initializeManagers = async () => {
+      if (user && authService.isAuthenticated()) {
+        try {
+          await accountManager.initialize();
+          console.log('AccountManager initialized successfully');
+
+          await orderManager.initialize();
+          console.log('OrderManager initialized successfully');
+        } catch (error) {
+          console.error('Failed to initialize managers:', error);
+          setOrderError('Failed to initialize trading managers: ' + error.message);
+        }
+      }
+    };
+
+    initializeManagers();
+  }, [user]);
 
   const getAuthHeaders = () => {
     const token = authService.getToken();
@@ -60,21 +99,71 @@ const TradeOptions = () => {
   const fetchContracts = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
+      console.log('Fetching contracts from backend...');
+      
       const response = await fetch('http://localhost:8025/api/contracts', {
         headers: getAuthHeaders()
       });
+      
+      console.log('Contracts response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const data = await response.json();
+      console.log('Contracts response data:', data);
       
       if (data.success) {
         setContracts(data.contracts);
         setFilteredContracts(data.contracts);
+        console.log(`Successfully loaded ${data.contracts.length} contracts`);
       } else {
-        setError(data.error);
+        const errorMsg = data.error || 'Unknown error occurred';
+        setError(errorMsg);
+        console.error('Contracts API returned error:', errorMsg);
       }
     } catch (err) {
-      setError('Failed to fetch contracts: ' + err.message);
+      const errorMsg = `Failed to fetch contracts: ${err.message}`;
+      setError(errorMsg);
+      console.error('Error fetching contracts:', err);
+      
+      // Provide fallback message for users
+      if (err.message.includes('fetch')) {
+        setError('Unable to connect to trading backend. Please ensure the backend server is running on port 8025.');
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAccounts = async () => {
+    try {
+      setAccountsLoading(true);
+      setAccountsError(null);
+      
+      if (!authService.isAuthenticated()) {
+        setAccountsError('User not authenticated');
+        return;
+      }
+
+      const accountNames = await accountManager.getAccountNames(true, true);
+      setAccounts(accountNames);
+      
+      // Auto-select first account if available
+      if (accountNames.length > 0 && !selectedAccount) {
+        setSelectedAccount(accountNames[0]);
+      }
+      
+      console.log(`Loaded ${accountNames.length} account names`);
+    } catch (err) {
+      console.error('Failed to fetch accounts:', err);
+      setAccountsError('Failed to fetch accounts: ' + err.message);
+      setAccounts([]);
+    } finally {
+      setAccountsLoading(false);
     }
   };
 
@@ -136,27 +225,242 @@ const TradeOptions = () => {
   };
 
   // Handle order submission
-  const handlePlaceOrder = () => {
-    if (!selectedContract) {
-      alert('Please select a contract first');
+  const handlePlaceOrder = async () => {
+    if (!selectedAccount) {
+      setOrderError('Please select a trading account first');
       return;
     }
-    
 
-    const orderData = {
-      contract: selectedContract,
-      orderType,
-      action,
-      quantity,
-      limitPrice: orderType === 'Limit' || orderType === 'Bracket UI' ? limitPrice : null,
-      stopPrice: orderType === 'Stop Loss UI' || orderType === 'Bracket UI' ? stopPrice : null,
-      takeProfitPrice: orderType === 'Bracket UI' ? takeProfitPrice : null,
-      trailingOffset: orderType === 'Trailing Stop' ? trailingOffset : null,
-      closeExistingOrders
-    };
+    if (!selectedContract) {
+      setOrderError('Please select a contract first');
+      return;
+    }
 
-    console.log('Placing order:', orderData);
-    alert(`Order placed successfully!\n\nContract: ${selectedContract.symbol}\nType: ${orderType}\nAction: ${action}\nQuantity: ${quantity}`);
+    if (!orderManager.isReady()) {
+      setOrderError('Order manager not ready. Please refresh and try again.');
+      return;
+    }
+
+    // Clear previous errors/success
+    setOrderError(null);
+    setOrderSuccess(null);
+    setIsPlacingOrder(true);
+
+    try {
+      const symbol = selectedContract.symbol;
+      let orderId;
+
+      console.log(`Placing ${orderType} order: ${action} ${quantity} ${symbol} for ${selectedAccount}`);
+
+      switch (orderType) {
+        case 'Market':
+          orderId = await orderManager.placeMarketOrder(selectedAccount, symbol, action, quantity);
+          setOrderSuccess(`Market order placed successfully! Order ID: ${orderId}`);
+          break;
+
+        case 'Limit':
+          if (!limitPrice || isNaN(parseFloat(limitPrice))) {
+            throw new Error('Please enter a valid limit price');
+          }
+          orderId = await orderManager.placeLimitOrder(
+            selectedAccount,
+            symbol,
+            action,
+            parseFloat(limitPrice),
+            quantity
+          );
+          setOrderSuccess(`Limit order placed successfully! Order ID: ${orderId}`);
+          break;
+
+        case 'Stop Loss UI':
+          if (!stopPrice || isNaN(parseFloat(stopPrice))) {
+            throw new Error('Please enter a valid stop price in points');
+          }
+          const { marketOrderId, stopOrderId } = await orderManager.placeMarketWithStopLossOrder(
+            selectedAccount,
+            action,
+            symbol,
+            quantity,
+            parseFloat(stopPrice)
+          );
+          setOrderSuccess(`Market order with stop loss placed successfully! Market Order ID: ${marketOrderId}, Stop Order ID: ${stopOrderId}`);
+          break;
+
+        case 'Trailing Stop':
+          if (!trailingOffset || isNaN(parseFloat(trailingOffset))) {
+            throw new Error('Please enter a valid trailing offset in points');
+          }
+          orderId = await orderManager.placeTrailStopOrder(
+            selectedAccount,
+            action,
+            symbol,
+            quantity,
+            parseFloat(trailingOffset)
+          );
+          setOrderSuccess(`Trailing stop order placed successfully! Order ID: ${orderId}`);
+          break;
+
+        case 'Bracket UI':
+          if (!stopPrice || isNaN(parseFloat(stopPrice))) {
+            throw new Error('Please enter a valid stop loss price in points');
+          }
+          if (!takeProfitPrice || isNaN(parseFloat(takeProfitPrice))) {
+            throw new Error('Please enter a valid take profit price in points');
+          }
+          const { marketOrderId: bracketOrderId } = await orderManager.placeBracketOrderWithTPAndSL(
+            selectedAccount,
+            symbol,
+            action,
+            quantity,
+            parseFloat(stopPrice),
+            parseFloat(takeProfitPrice)
+          );
+          setOrderSuccess(`Bracket order placed successfully! Order ID: ${bracketOrderId}`);
+          break;
+
+        default:
+          throw new Error(`Unsupported order type: ${orderType}`);
+      }
+
+      console.log(`Order placed successfully:`, orderId);
+
+      // Clear the success message after 10 seconds
+      setTimeout(() => {
+        setOrderSuccess(null);
+      }, 10000);
+
+    } catch (error) {
+      console.error('Error placing order:', error);
+      setOrderError(error.message || 'Failed to place order');
+    } finally {
+      setIsPlacingOrder(false);
+    }
+  };
+
+  // Handle close position
+  const handleClosePosition = async () => {
+    if (!selectedAccount) {
+      setOrderError('Please select a trading account first');
+      return;
+    }
+
+    if (!selectedContract) {
+      setOrderError('Please select a contract first');
+      return;
+    }
+
+    if (!orderManager.isReady()) {
+      setOrderError('Order manager not ready. Please refresh and try again.');
+      return;
+    }
+
+    setOrderError(null);
+    setOrderSuccess(null);
+    setIsClosingPosition(true);
+
+    try {
+      const symbol = selectedContract.symbol;
+      const success = await orderManager.closeAllPositionsForASymbol(selectedAccount, symbol);
+
+      if (success) {
+        setOrderSuccess(`Successfully closed all positions for ${symbol} in account ${selectedAccount}`);
+      } else {
+        setOrderError('Failed to close positions - no response from server');
+      }
+
+      // Clear the success message after 10 seconds
+      setTimeout(() => {
+        setOrderSuccess(null);
+      }, 10000);
+
+    } catch (error) {
+      console.error('Error closing position:', error);
+      setOrderError(error.message || 'Failed to close position');
+    } finally {
+      setIsClosingPosition(false);
+    }
+  };
+
+  // Handle reverse position
+  const handleReversePosition = async () => {
+    if (!selectedAccount) {
+      setOrderError('Please select a trading account first');
+      return;
+    }
+
+    if (!selectedContract) {
+      setOrderError('Please select a contract first');
+      return;
+    }
+
+    if (!orderManager.isReady()) {
+      setOrderError('Order manager not ready. Please refresh and try again.');
+      return;
+    }
+
+    setOrderError(null);
+    setOrderSuccess(null);
+    setIsReversingPosition(true);
+
+    try {
+      const symbol = selectedContract.symbol;
+      const success = await orderManager.reverseOrder(selectedAccount, symbol);
+
+      if (success) {
+        setOrderSuccess(`Successfully reversed position for ${symbol} in account ${selectedAccount}`);
+      } else {
+        setOrderError('Failed to reverse position - no response from server');
+      }
+
+      // Clear the success message after 10 seconds
+      setTimeout(() => {
+        setOrderSuccess(null);
+      }, 10000);
+
+    } catch (error) {
+      console.error('Error reversing position:', error);
+      setOrderError(error.message || 'Failed to reverse position');
+    } finally {
+      setIsReversingPosition(false);
+    }
+  };
+
+  // Handle flatten all positions
+  const handleFlattenAll = async () => {
+    if (!selectedAccount) {
+      setOrderError('Please select a trading account first');
+      return;
+    }
+
+    if (!orderManager.isReady()) {
+      setOrderError('Order manager not ready. Please refresh and try again.');
+      return;
+    }
+
+    setOrderError(null);
+    setOrderSuccess(null);
+    setIsFlatteningAll(true);
+
+    try {
+      const success = await orderManager.flattenAllPositionsForAccount(selectedAccount);
+
+      if (success) {
+        setOrderSuccess(`Successfully flattened all positions in account ${selectedAccount}`);
+      } else {
+        setOrderError('Failed to flatten all positions - no response from server');
+      }
+
+      // Clear the success message after 10 seconds
+      setTimeout(() => {
+        setOrderSuccess(null);
+      }, 10000);
+
+    } catch (error) {
+      console.error('Error flattening all positions:', error);
+      setOrderError(error.message || 'Failed to flatten all positions');
+    } finally {
+      setIsFlatteningAll(false);
+    }
   };
 
   const renderOrderTypeFields = () => {
@@ -281,27 +585,160 @@ const TradeOptions = () => {
           <div className="panel-header">
             <h2>Trade Execution</h2>
           </div>
-          
+
+          {/* Order Status Messages */}
+          {orderError && (
+            <div className="order-error-message">
+              <span className="error-icon">❌</span>
+              <span>{orderError}</span>
+              <button
+                className="close-message-btn"
+                onClick={() => setOrderError(null)}
+                title="Dismiss error"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
+          {orderSuccess && (
+            <div className="order-success-message">
+              <span className="success-icon">✅</span>
+              <span>{orderSuccess}</span>
+              <button
+                className="close-message-btn"
+                onClick={() => setOrderSuccess(null)}
+                title="Dismiss success message"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           <div className="trading-form">
+
+            {/* Account Selection */}
+            <div className="form-section">
+              <label>
+                <FaUser className="label-icon" />
+                TRADING ACCOUNT
+              </label>
+              <div className="account-selection-container">
+                <select 
+                  value={selectedAccount || ''} 
+                  onChange={(e) => setSelectedAccount(e.target.value)}
+                  className="account-select"
+                  disabled={accountsLoading || accounts.length === 0}
+                >
+                  <option value="" disabled>
+                    {accountsLoading ? 'Loading accounts...' : 
+                     accounts.length === 0 ? 'No accounts available' : 
+                     'Select account'}
+                  </option>
+                  {accounts.map((accountName, index) => (
+                    <option key={`${accountName}-${index}`} value={accountName}>
+                      {accountName}
+                    </option>
+                  ))}
+                </select>
+                <button 
+                  className="refresh-accounts-btn"
+                  onClick={fetchAccounts}
+                  disabled={accountsLoading}
+                  title="Refresh accounts"
+                >
+                  <FaSync className={accountsLoading ? 'spinning' : ''} />
+                </button>
+              </div>
+              {accountsError && (
+                <div className="error-message">
+                  <small>{accountsError}</small>
+                </div>
+              )}
+            </div>
 
             {/* Symbol Selection */}
             <div className="form-section">
-              <label>SYMBOL</label>
+              <label>
+                <FaChartLine className="label-icon" />
+                SYMBOL
+              </label>
               <div className="symbol-input-container">
                 <input
                   type="text"
-                  placeholder="e.g., NQ, ES, CL"
+                  placeholder="Type symbol (e.g., NQ, ES, CL) or select from table below"
                   value={selectedContract?.symbol || ''}
-                  readOnly
-                  className="symbol-input"
+                  onChange={(e) => {
+                    const inputSymbol = e.target.value.toUpperCase();
+                    
+                    if (!inputSymbol) {
+                      setSelectedContract(null);
+                      return;
+                    }
+                    
+                    // Find matching contract from loaded contracts
+                    const matchingContract = contracts.find(contract => 
+                      contract.symbol === inputSymbol || 
+                      contract.product_name === inputSymbol ||
+                      contract.contract_name === inputSymbol
+                    );
+                    
+                    if (matchingContract) {
+                      setSelectedContract(matchingContract);
+                    } else {
+                      // Create a temporary contract object for manual entry
+                      setSelectedContract({
+                        symbol: inputSymbol,
+                        contract_name: inputSymbol,
+                        manual_entry: true
+                      });
+                    }
+                  }}
+                  className={`symbol-input ${selectedContract?.manual_entry ? 'manual-entry' : ''}`}
+                  title={selectedContract?.manual_entry ? 'Manual entry - contract not found in loaded contracts' : ''}
                 />
                 <button 
                   className="select-contract-btn"
-                  onClick={() => document.getElementById('contracts-table').scrollIntoView({ behavior: 'smooth' })}
+                  onClick={() => {
+                    const contractsSection = document.getElementById('contracts-table');
+                    if (contractsSection) {
+                      contractsSection.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      console.warn('Contracts table not found');
+                      // Try to scroll to contracts section instead
+                      const contractsContainer = document.querySelector('.contracts-section');
+                      if (contractsContainer) {
+                        contractsContainer.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }
+                  }}
                 >
-                  Select Contract
+                  Select from Table
                 </button>
               </div>
+              
+              {/* Symbol Status */}
+              {selectedContract && (
+                <div className="symbol-status">
+                  {selectedContract.manual_entry ? (
+                    <small className="manual-entry-notice">
+                      ⚠️ Manual entry: "{selectedContract.symbol}" - Contract details not verified
+                    </small>
+                  ) : (
+                    <small className="contract-verified">
+                      ✅ Contract verified: {selectedContract.name || selectedContract.contract_name}
+                    </small>
+                  )}
+                </div>
+              )}
+              
+              {/* Contracts Loading Error */}
+              {error && (
+                <div className="contracts-error">
+                  <small>⚠️ Contracts unavailable: {error}</small>
+                  <small>You can still enter symbols manually above.</small>
+                </div>
+              )}
             </div>
 
             {/* Order Configuration */}
@@ -361,21 +798,33 @@ const TradeOptions = () => {
 
             {/* Action Buttons */}
             <div className="action-buttons">
-              <button 
+              <button
                 className="place-order-btn"
                 onClick={handlePlaceOrder}
-                disabled={!selectedContract}
+                disabled={!selectedContract || !selectedAccount || isPlacingOrder}
               >
-                PLACE ORDER
+                {isPlacingOrder ? 'PLACING ORDER...' : 'PLACE ORDER'}
               </button>
-              <button className="close-position-btn">
-                CLOSE POSITION
+              <button
+                className="close-position-btn"
+                onClick={handleClosePosition}
+                disabled={!selectedContract || !selectedAccount || isClosingPosition}
+              >
+                {isClosingPosition ? 'CLOSING...' : 'CLOSE POSITION'}
               </button>
-              <button className="reverse-position-btn">
-                REVERSE POSITION
+              <button
+                className="reverse-position-btn"
+                onClick={handleReversePosition}
+                disabled={!selectedContract || !selectedAccount || isReversingPosition}
+              >
+                {isReversingPosition ? 'REVERSING...' : 'REVERSE POSITION'}
               </button>
-              <button className="flatten-all-btn">
-                FLATTEN ALL
+              <button
+                className="flatten-all-btn"
+                onClick={handleFlattenAll}
+                disabled={!selectedAccount || isFlatteningAll}
+              >
+                {isFlatteningAll ? 'FLATTENING...' : 'FLATTEN ALL'}
               </button>
             </div>
           </div>
