@@ -197,6 +197,42 @@ class OrderManager {
   }
 
   /**
+   * Convert points to ticks using contract information
+   * Uses backend tradableContracts.json to get tick_size
+   */
+  async convertPointsToTicks(symbol, points) {
+    try {
+      // Call backend contract lookup API to get contract details
+      const lookupUrl = `http://localhost:8025/api/contracts/lookup/${encodeURIComponent(symbol)}`;
+      console.log(`[DEBUG] Looking up contract for tick conversion: ${lookupUrl}`);
+
+      const response = await axios.get(lookupUrl);
+
+      if (response.status === 200 && response.data.success) {
+        const contractData = response.data.contract_info; // Access nested contract_info
+        const tickSize = contractData?.tick_size;
+
+        if (!tickSize) {
+          throw new Error(`No tick_size found for symbol ${symbol}`);
+        }
+
+        const ticks = points / tickSize;
+        console.log(`[DEBUG] Converted ${points} points to ${ticks} ticks for ${symbol} (tick_size: ${tickSize})`);
+
+        return Math.round(ticks); // Round to nearest whole tick
+      } else {
+        throw new Error(`Failed to lookup contract: ${response.data?.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error(`[ERROR] Failed to convert points to ticks: ${error.message}`);
+      // Fallback: assume 1 point = 4 ticks (common for many futures)
+      const fallbackTicks = points * 4;
+      console.log(`[DEBUG] Using fallback conversion: ${points} points = ${fallbackTicks} ticks`);
+      return fallbackTicks;
+    }
+  }
+
+  /**
    * Get symbol ID for trading
    * Uses backend lookupContractProductId method instead of direct Chart API calls
    */
@@ -513,26 +549,20 @@ class OrderManager {
 
   /**
    * Place a trailing stop order
-   * Based on placeTrailStopOrder from order_manager.py
+   * Places market order first, then sets trailing stop with proper tick distance
    */
-  async placeTrailStopOrder(accountName, orderType, symbol, quantity, trailDistance) {
-    // Determine position size based on order type
-    orderType = orderType.toUpperCase();
-    let positionSize = Math.abs(quantity);
+  async placeTrailStopOrder(accountName, orderType, symbol, quantity, trailDistancePoints) {
+    this.logInfo(`Placing market order with trailing stop: accountName=${accountName}, orderType=${orderType}, symbol=${symbol}, quantity=${quantity}, trailDistancePoints=${trailDistancePoints}`);
 
-    if (['SELL', 'SHORT'].includes(orderType)) {
-      positionSize = -positionSize;
-    } else if (['BUY', 'LONG'].includes(orderType)) {
-      // Position size is already positive
-    } else {
-      const errorMsg = `Invalid order type: ${orderType}. Must be 'Buy' or 'Sell'.`;
-      this.logError(errorMsg);
-      throw new Error(errorMsg);
-    }
+    // 1. Convert trail distance from points to ticks
+    const trailDistanceTicks = await this.convertPointsToTicks(symbol, trailDistancePoints);
+    this.logInfo(`Converted trail distance: ${trailDistancePoints} points = ${trailDistanceTicks} ticks`);
 
-    this.logInfo(`Placing trail stop order: accountName=${accountName}, orderType=${orderType}, symbol=${symbol}, quantity=${quantity}, positionSize=${positionSize}, trailDistance=${trailDistance}`);
+    // 2. Place the market order first
+    const marketOrderId = await this.placeMarketOrder(accountName, symbol, orderType, quantity);
+    this.logInfo(`Market order placed successfully, order ID: ${marketOrderId}`);
 
-    // Get JWT token
+    // 3. Get JWT token and necessary IDs
     const token = authService.getToken();
 
     // Get account ID
@@ -546,13 +576,28 @@ class OrderManager {
       this.logError(errorMsg);
       throw new Error(errorMsg);
     }
-    this.logInfo(`Retrieved symbolId=${symbolId}`);
 
-    // Generate a unique tag for the order
+    // 4. Validate order type
+    orderType = orderType.toUpperCase();
+    if (!['BUY', 'LONG', 'SELL', 'SHORT'].includes(orderType)) {
+      const errorMsg = `Invalid order type: ${orderType}. Must be 'Buy' or 'Sell'.`;
+      this.logError(errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    // 5. Place trailing stop order to exit the position
+    const url = `${this.getBaseUrl()}/Order`;
     const customTag = this.generateCustomTag();
 
-    // Create order payload
-    const url = `${this.getBaseUrl()}/Order`;
+    // For exiting the position, we need opposite direction
+    let exitPositionSize;
+    if (['BUY', 'LONG'].includes(orderType)) {
+      // Exit long position with sell order (negative quantity)
+      exitPositionSize = -Math.abs(quantity);
+    } else {
+      // Exit short position with buy order (positive quantity)
+      exitPositionSize = Math.abs(quantity);
+    }
 
     const payload = {
       accountId,
@@ -560,39 +605,42 @@ class OrderManager {
       type: ORDER_TYPE_TRAIL_STOP,
       limitPrice: null,
       stopPrice: null,
-      trailDistance,
-      positionSize,
+      trailDistance: trailDistanceTicks, // Use ticks for trail distance
+      positionSize: exitPositionSize,
       customTag
     };
 
     const headers = this.getHeaders();
 
-    this.logInfo(`Sending trail stop order request to ${url} with payload: ${JSON.stringify(payload)}`);
+    this.logInfo(`Sending trailing stop order request to ${url} with payload: ${JSON.stringify(payload)}`);
 
     try {
       const response = await axios.post(url, payload, { headers });
-      this.logInfo(`Trail stop order API response status: ${response.status}`);
+      this.logInfo(`Trailing stop order API response status: ${response.status}`);
 
       if (response.status === 200) {
         const data = response.data;
-        this.logInfo(`Trail stop order response data: ${JSON.stringify(data)}`);
+        this.logInfo(`Trailing stop order response data: ${JSON.stringify(data)}`);
 
         if (data.errorMessage == null) { // Success
-          const orderId = data.orderId;
-          this.logInfo(`Trail stop order placed successfully: orderId=${orderId}`);
-          return orderId;
+          const trailStopOrderId = data.orderId;
+          this.logInfo(`Trailing stop order placed successfully: orderId=${trailStopOrderId}`);
+          return {
+            marketOrderId,
+            trailStopOrderId
+          };
         } else {
-          const errorMsg = `Failed to place trail stop order: ${data.errorMessage || 'Unknown error'}`;
+          const errorMsg = `Failed to place trailing stop order: ${data.errorMessage || 'Unknown error'}`;
           this.logError(errorMsg);
           throw new Error(errorMsg);
         }
       } else {
-        const errorMsg = `Trail stop order API returned status ${response.status}: ${response.data}`;
+        const errorMsg = `Trailing stop order API returned status ${response.status}: ${response.data}`;
         this.logError(errorMsg);
         throw new Error(errorMsg);
       }
     } catch (error) {
-      const errorMsg = `Exception while placing trail stop order: ${error.message}`;
+      const errorMsg = `Exception while placing trailing stop order: ${error.message}`;
       this.logError(errorMsg);
       throw new Error(errorMsg);
     }
@@ -627,7 +675,7 @@ class OrderManager {
 
   /**
    * Place a market order with stop loss
-   * Based on placeMarketWithStopLossOrder from order_manager.py
+   * Uses the same logic as placeBracketOrderWithTPAndSL but only with stop loss
    */
   async placeMarketWithStopLossOrder(accountName, orderType, symbol, quantity, stopLossPoints) {
     this.logInfo(`Placing market order with stop loss: accountName=${accountName}, orderType=${orderType}, symbol=${symbol}, quantity=${quantity}, stopLossPoints=${stopLossPoints}`);
@@ -636,11 +684,14 @@ class OrderManager {
     const marketOrderId = await this.placeMarketOrder(accountName, symbol, orderType, quantity);
     this.logInfo(`Market order placed successfully, order ID: ${marketOrderId}`);
 
-    // 2. Get JWT token
+    // 2. Get JWT token and necessary IDs
     const token = authService.getToken();
 
-    // 3. Get account ID and symbol ID
+    // Get account ID
     const { accountId, userId } = await this.getAccountIDAndUserID(accountName, token);
+    this.logInfo(`Retrieved accountId=${accountId}, userId=${userId}`);
+
+    // Get symbol ID
     const symbolId = await this.getSymbolForTrade(symbol, token);
     if (!symbolId) {
       const errorMsg = `Failed to get symbolId for symbol ${symbol}`;
@@ -648,75 +699,65 @@ class OrderManager {
       throw new Error(errorMsg);
     }
 
-    // 4. Poll for the filled price
-    const { averagePrice } = await this.pollForFill(accountId, symbolId, token);
+    // 3. Poll for the filled price and position ID
+    const { averagePrice, positionId } = await this.pollForFill(accountId, symbolId, token);
 
-    // 5. Calculate stop loss price based on order type and stop loss points
+    // 4. Calculate stop loss price based on order type
+    let stopLossPrice;
+
     orderType = orderType.toUpperCase();
-    let stopPrice;
-    let stopLossQty;
-
     if (['BUY', 'LONG'].includes(orderType)) {
       // For buy orders, stop loss is below entry price
-      stopPrice = averagePrice - stopLossPoints;
-      // Stop order to exit a long position should be a sell order (negative quantity)
-      stopLossQty = -Math.abs(quantity);
+      stopLossPrice = averagePrice - stopLossPoints;
     } else if (['SELL', 'SHORT'].includes(orderType)) {
       // For sell orders, stop loss is above entry price
-      stopPrice = averagePrice + stopLossPoints;
-      // Stop order to exit a short position should be a buy order (positive quantity)
-      stopLossQty = Math.abs(quantity);
+      stopLossPrice = averagePrice + stopLossPoints;
     } else {
       const errorMsg = `Invalid order type: ${orderType}. Must be 'Buy' or 'Sell'.`;
       this.logError(errorMsg);
       throw new Error(errorMsg);
     }
 
-    this.logInfo(`Calculated stop loss price: ${stopPrice}`);
+    this.logInfo(`Calculated stop loss price: ${stopLossPrice}`);
 
-    // 6. Place the stop loss order
-    const url = `${this.getBaseUrl()}/Order`;
-    const customTag = this.generateCustomTag();
+    // 5. Set stop loss using editStopLossAccount endpoint (same as bracket order)
+    const url = `${this.getBaseUrl()}/Order/editStopLossAccount`;
 
     const payload = {
-      accountId,
-      symbolId,
-      type: ORDER_TYPE_STOP,
-      limitPrice: null,
-      stopPrice,
-      trailDistance: null,
-      positionSize: stopLossQty,
-      customTag
+      positionId,
+      stopLoss: stopLossPrice,
+      takeProfit: null // No take profit for this method
     };
 
     const headers = this.getHeaders();
 
-    this.logInfo(`Sending stop loss order request to ${url} with payload: ${JSON.stringify(payload)}`);
+    this.logInfo(`Sending editStopLoss request to ${url} with payload: ${JSON.stringify(payload)}`);
 
     try {
       const response = await axios.post(url, payload, { headers });
-      this.logInfo(`Stop loss order API response status: ${response.status}`);
+      this.logInfo(`editStopLoss API response status: ${response.status}`);
 
       if (response.status === 200) {
         const data = response.data;
-        this.logInfo(`Stop loss order response data: ${JSON.stringify(data)}`);
+        this.logInfo(`editStopLoss response data: ${JSON.stringify(data)}`);
 
-        if (data.result === 0) { // Success
-          const stopOrderId = data.orderId;
-          this.logInfo(`Stop loss order placed successfully: orderId=${stopOrderId}`);
-          return { marketOrderId, stopOrderId };
+        if (data.success === true) { // Success
+          this.logInfo(`Stop loss set successfully for position ID: ${positionId}`);
+          return {
+            marketOrderId
+          };
         } else {
-          const errorMsg = `Failed to place stop loss order: ${data.errorMessage || 'Unknown error'}`;
+          const errorMsg = `Failed to set stop loss: ${data.errorMessage || 'Unknown error'}`;
           this.logError(errorMsg);
           throw new Error(errorMsg);
         }
       } else {
-        const errorMsg = `Stop loss order API returned status ${response.status}: ${response.data}`;
+        const errorMsg = `editStopLoss API returned status ${response.status}: ${response.data}`;
         this.logError(errorMsg);
         throw new Error(errorMsg);
       }
     } catch (error) {
-      const errorMsg = `Exception while placing stop loss order: ${error.message}`;
+      const errorMsg = `Exception while setting stop loss: ${error.message}`;
       this.logError(errorMsg);
       throw new Error(errorMsg);
     }
