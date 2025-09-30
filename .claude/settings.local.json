@@ -33,7 +33,9 @@
       "Bash(python3:*)",
       "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_tEtScs/**)",
       "Bash(xargs kill:*)",
-      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_rBPDaa/**)"
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_rBPDaa/**)",
+      "Bash(cat:*)",
+      "Bash(kill:*)"
     ],
     "deny": [],
     "ask": []

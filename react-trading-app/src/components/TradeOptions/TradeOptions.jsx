@@ -241,6 +241,20 @@ const TradeOptions = () => {
       return;
     }
 
+    // ===== TRADING HOURS VALIDATION =====
+    try {
+      const statusResponse = await fetch('/api/trading-hours/status');
+      const statusData = await statusResponse.json();
+
+      if (statusData.success && !statusData.trading_allowed) {
+        setOrderError(`Trading not allowed: ${statusData.reason || 'Trading is currently restricted'}`);
+        return;
+      }
+    } catch (error) {
+      console.error('Failed to check trading hours:', error);
+      // Continue with order placement if validation check fails (fail-open)
+    }
+
     // Clear previous errors/success
     setOrderError(null);
     setOrderSuccess(null);

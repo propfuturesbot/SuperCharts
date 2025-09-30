@@ -1052,6 +1052,17 @@ app.post('/api/orders/market', async (req, res) => {
       });
     }
 
+    // ===== TRADING HOURS VALIDATION =====
+    const timeValidation = orderManager.validateTradingTime();
+    if (!timeValidation.allowed) {
+      console.log(`[VALIDATION BLOCKED] Market order rejected: ${timeValidation.reason}`);
+      return res.status(403).json({
+        success: false,
+        error: `Trading not allowed: ${timeValidation.reason}`,
+        trading_restricted: true
+      });
+    }
+
     // Get auth from current system (same as frontend)
     const auth = getCurrentAuth();
     const provider = auth.provider;
@@ -1624,6 +1635,17 @@ app.post('/api/orders/place', async (req, res) => {
       });
     }
 
+    // ===== TRADING HOURS VALIDATION =====
+    const timeValidation = orderManager.validateTradingTime();
+    if (!timeValidation.allowed) {
+      console.log(`[VALIDATION BLOCKED] Order rejected: ${timeValidation.reason}`);
+      return res.status(403).json({
+        success: false,
+        error: `Trading not allowed: ${timeValidation.reason}`,
+        trading_restricted: true
+      });
+    }
+
     // Get auth from current system
     const auth = getCurrentAuth();
     const provider = auth.provider;
@@ -2168,6 +2190,17 @@ app.post('/webhook/order', async (req, res) => {
       });
     }
 
+    // ===== TRADING HOURS VALIDATION =====
+    const timeValidation = orderManager.validateTradingTime();
+    if (!timeValidation.allowed) {
+      console.log(`[VALIDATION BLOCKED] Webhook order rejected: ${timeValidation.reason}`);
+      return res.status(403).json({
+        success: false,
+        error: `Trading not allowed: ${timeValidation.reason}`,
+        trading_restricted: true
+      });
+    }
+
     // Get auth from current system
     const auth = getCurrentAuth();
     const provider = auth.provider;
@@ -2371,6 +2404,872 @@ app.get('/', (req, res) => {
   });
 });
 
+// ===========================
+// TRADING HOURS ENDPOINTS
+// ===========================
+
+/**
+ * @swagger
+ * /api/trading-hours/status:
+ *   get:
+ *     summary: Get trading hours status
+ *     description: Get current trading status based on all time restrictions
+ *     tags: [Trading Hours]
+ *     responses:
+ *       200:
+ *         description: Trading status retrieved
+ */
+app.get('/api/trading-hours/status', (req, res) => {
+  try {
+    const validation = orderManager.validateTradingTime();
+
+    const now = new Date();
+    const currentTimeGMT = `${now.getUTCHours().toString().padStart(2, '0')}:${now.getUTCMinutes().toString().padStart(2, '0')}`;
+    const currentTimeLocal = now.toLocaleTimeString();
+
+    // Load configs for detailed response
+    const hoursConfigPath = path.join(__dirname, 'config', 'trading_hours_config.json');
+    const sessionsConfigPath = path.join(__dirname, 'config', 'trading_sessions_config.json');
+
+    let hoursConfig = { restrict_hours: false, start_hour: 0, start_minute: 0, end_hour: 23, end_minute: 59 };
+    let sessionsConfig = { enabled: false, allowed_sessions: [], restricted_sessions: [] };
+
+    if (fs.existsSync(hoursConfigPath)) {
+      hoursConfig = JSON.parse(fs.readFileSync(hoursConfigPath, 'utf8'));
+    }
+
+    if (fs.existsSync(sessionsConfigPath)) {
+      sessionsConfig = JSON.parse(fs.readFileSync(sessionsConfigPath, 'utf8'));
+    }
+
+    // Get active sessions
+    const activeSessions = getActiveSessions(now);
+
+    res.json({
+      success: true,
+      trading_allowed: validation.allowed,
+      reason: validation.reason,
+      current_time_gmt: currentTimeGMT,
+      current_time_local: currentTimeLocal,
+      trading_hours: {
+        restrict_enabled: hoursConfig.restrict_hours,
+        start: `${hoursConfig.start_hour.toString().padStart(2, '0')}:${hoursConfig.start_minute.toString().padStart(2, '0')}`,
+        end: `${hoursConfig.end_hour.toString().padStart(2, '0')}:${hoursConfig.end_minute.toString().padStart(2, '0')}`
+      },
+      sessions: {
+        enabled: sessionsConfig.enabled,
+        allowed_sessions: sessionsConfig.allowed_sessions || [],
+        restricted_sessions: sessionsConfig.restricted_sessions || [],
+        active_sessions: activeSessions
+      }
+    });
+  } catch (error) {
+    console.error('[ERROR] Trading hours status error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/trading-hours/config:
+ *   post:
+ *     summary: Save trading hours configuration
+ *     description: Save time-based trading restrictions
+ *     tags: [Trading Hours]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               start_hour:
+ *                 type: integer
+ *               start_minute:
+ *                 type: integer
+ *               end_hour:
+ *                 type: integer
+ *               end_minute:
+ *                 type: integer
+ *               restrict_hours:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Configuration saved
+ */
+app.post('/api/trading-hours/config', (req, res) => {
+  try {
+    const { start_hour, start_minute, end_hour, end_minute, restrict_hours } = req.body;
+
+    const config = {
+      start_hour: start_hour || 0,
+      start_minute: start_minute || 0,
+      end_hour: end_hour || 23,
+      end_minute: end_minute || 59,
+      restrict_hours: restrict_hours || false,
+      last_updated: new Date().toISOString()
+    };
+
+    const configPath = path.join(__dirname, 'config', 'trading_hours_config.json');
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+    console.log('[TRADING HOURS] Configuration saved:', config);
+
+    res.json({
+      success: true,
+      message: 'Trading hours configuration saved successfully',
+      config
+    });
+  } catch (error) {
+    console.error('[ERROR] Trading hours config save error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/trading-hours/sessions:
+ *   get:
+ *     summary: Get trading sessions configuration
+ *     description: Get session-based trading restrictions
+ *     tags: [Trading Hours]
+ *     responses:
+ *       200:
+ *         description: Sessions configuration retrieved
+ */
+app.get('/api/trading-hours/sessions', (req, res) => {
+  try {
+    const configPath = path.join(__dirname, 'config', 'trading_sessions_config.json');
+
+    let config = {
+      enabled: false,
+      allowed_sessions: [],
+      restricted_sessions: [],
+      predefined_sessions: {
+        '2300-0800': 'Asia (Tokyo)',
+        '0700-1600': 'Europe (London)',
+        '1200-2100': 'U.S. (New York)',
+        '0700-0800': 'Asia↔London Overlap',
+        '1200-1600': 'London↔New York Overlap'
+      }
+    };
+
+    if (fs.existsSync(configPath)) {
+      const savedConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      config = { ...config, ...savedConfig };
+    }
+
+    // Get active sessions
+    const now = new Date();
+    const activeSessions = getActiveSessions(now);
+
+    res.json({
+      success: true,
+      ...config,
+      active_sessions: activeSessions
+    });
+  } catch (error) {
+    console.error('[ERROR] Trading sessions get error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/trading-hours/sessions:
+ *   post:
+ *     summary: Save trading sessions configuration
+ *     description: Save session-based trading restrictions
+ *     tags: [Trading Hours]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               enabled:
+ *                 type: boolean
+ *               allowed_sessions:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               restricted_sessions:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: Configuration saved
+ */
+app.post('/api/trading-hours/sessions', (req, res) => {
+  try {
+    const { enabled, allowed_sessions, restricted_sessions } = req.body;
+
+    const config = {
+      enabled: enabled || false,
+      allowed_sessions: allowed_sessions || [],
+      restricted_sessions: restricted_sessions || [],
+      last_updated: new Date().toISOString()
+    };
+
+    const configPath = path.join(__dirname, 'config', 'trading_sessions_config.json');
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+    console.log('[TRADING SESSIONS] Configuration saved:', config);
+
+    res.json({
+      success: true,
+      message: 'Trading sessions configuration saved successfully',
+      config
+    });
+  } catch (error) {
+    console.error('[ERROR] Trading sessions config save error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Helper function to get active sessions
+function getActiveSessions(now) {
+  const currentTimeGMT = now.getUTCHours().toString().padStart(2, '0') +
+                         now.getUTCMinutes().toString().padStart(2, '0');
+
+  const sessions = {
+    'Asia (Tokyo)': ['2300', '0800'],
+    'Europe (London)': ['0700', '1600'],
+    'U.S. (New York)': ['1200', '2100'],
+    'Asia↔London Overlap': ['0700', '0800'],
+    'London↔New York Overlap': ['1200', '1600']
+  };
+
+  const activeSessions = [];
+
+  for (const [sessionName, [start, end]] of Object.entries(sessions)) {
+    if (isTimeInSessionRange(currentTimeGMT, start, end)) {
+      activeSessions.push(sessionName);
+    }
+  }
+
+  return activeSessions;
+}
+
+function isTimeInSessionRange(current, start, end) {
+  const currentInt = parseInt(current);
+  const startInt = parseInt(start);
+  const endInt = parseInt(end);
+
+  if (startInt <= endInt) {
+    return startInt <= currentInt && currentInt <= endInt;
+  } else {
+    return currentInt >= startInt || currentInt <= endInt;
+  }
+}
+
+// ===========================
+// ECONOMIC CALENDAR ENDPOINTS
+// ===========================
+
+/**
+ * @swagger
+ * /api/economic-calendar/config:
+ *   get:
+ *     summary: Get economic calendar configuration
+ *     description: Retrieve the current economic calendar settings including enabled status, buffer times, and events
+ *     tags: [Economic Calendar]
+ *     responses:
+ *       200:
+ *         description: Configuration retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 config:
+ *                   type: object
+ *                   properties:
+ *                     enabled:
+ *                       type: boolean
+ *                     before_event_minutes:
+ *                       type: number
+ *                     after_event_minutes:
+ *                       type: number
+ *                     liquidate_positions_before_event:
+ *                       type: boolean
+ *                     events:
+ *                       type: array
+ *                     last_updated:
+ *                       type: string
+ */
+app.get('/api/economic-calendar/config', (req, res) => {
+  try {
+    const configPath = path.join(__dirname, 'config', 'economic_events_config.json');
+
+    if (!fs.existsSync(configPath)) {
+      return res.json({
+        success: true,
+        config: {
+          enabled: false,
+          before_event_minutes: 30,
+          after_event_minutes: 30,
+          liquidate_positions_before_event: false,
+          events: [],
+          last_updated: null
+        }
+      });
+    }
+
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    res.json({ success: true, config });
+  } catch (error) {
+    console.error('[ERROR] Failed to load economic calendar config:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/economic-calendar/config:
+ *   post:
+ *     summary: Update economic calendar configuration
+ *     description: Save economic calendar settings including buffer times and enabled status
+ *     tags: [Economic Calendar]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               enabled:
+ *                 type: boolean
+ *               before_event_minutes:
+ *                 type: number
+ *               after_event_minutes:
+ *                 type: number
+ *               liquidate_positions_before_event:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Configuration saved successfully
+ */
+app.post('/api/economic-calendar/config', (req, res) => {
+  try {
+    const configPath = path.join(__dirname, 'config', 'economic_events_config.json');
+
+    // Load existing config
+    let config = {};
+    if (fs.existsSync(configPath)) {
+      config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    }
+
+    // Update settings
+    if (req.body.enabled !== undefined) config.enabled = req.body.enabled;
+    if (req.body.before_event_minutes !== undefined) config.before_event_minutes = req.body.before_event_minutes;
+    if (req.body.after_event_minutes !== undefined) config.after_event_minutes = req.body.after_event_minutes;
+    if (req.body.liquidate_positions_before_event !== undefined) config.liquidate_positions_before_event = req.body.liquidate_positions_before_event;
+    config.last_updated = new Date().toISOString();
+
+    // Preserve events array
+    if (!config.events) config.events = [];
+
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    console.log('[SUCCESS] Economic calendar config saved:', config);
+
+    res.json({ success: true, config });
+  } catch (error) {
+    console.error('[ERROR] Failed to save economic calendar config:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/economic-calendar/events:
+ *   get:
+ *     summary: Get all economic events
+ *     description: Retrieve list of all scheduled economic events
+ *     tags: [Economic Calendar]
+ *     responses:
+ *       200:
+ *         description: Events retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 events:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       title:
+ *                         type: string
+ *                       datetime:
+ *                         type: string
+ *                       impact:
+ *                         type: string
+ *                       enabled:
+ *                         type: boolean
+ */
+app.get('/api/economic-calendar/events', (req, res) => {
+  try {
+    const configPath = path.join(__dirname, 'config', 'economic_events_config.json');
+
+    if (!fs.existsSync(configPath)) {
+      return res.json({ success: true, events: [] });
+    }
+
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    res.json({ success: true, events: config.events || [] });
+  } catch (error) {
+    console.error('[ERROR] Failed to load events:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/economic-calendar/events:
+ *   post:
+ *     summary: Add or update economic event
+ *     description: Create new economic event or update existing one
+ *     tags: [Economic Calendar]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - datetime
+ *             properties:
+ *               id:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               datetime:
+ *                 type: string
+ *               impact:
+ *                 type: string
+ *               enabled:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Event saved successfully
+ */
+app.post('/api/economic-calendar/events', (req, res) => {
+  try {
+    const configPath = path.join(__dirname, 'config', 'economic_events_config.json');
+
+    // Load existing config
+    let config = {};
+    if (fs.existsSync(configPath)) {
+      config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    }
+
+    if (!config.events) config.events = [];
+
+    const eventData = {
+      id: req.body.id || `event_${Date.now()}`,
+      title: req.body.title,
+      datetime: req.body.datetime,
+      impact: req.body.impact || 'HIGH',
+      enabled: req.body.enabled !== undefined ? req.body.enabled : true
+    };
+
+    // Check if updating existing event
+    const existingIndex = config.events.findIndex(e => e.id === eventData.id);
+    if (existingIndex >= 0) {
+      config.events[existingIndex] = eventData;
+      console.log('[SUCCESS] Updated event:', eventData.title);
+    } else {
+      config.events.push(eventData);
+      console.log('[SUCCESS] Added event:', eventData.title);
+    }
+
+    config.last_updated = new Date().toISOString();
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+    res.json({ success: true, event: eventData, events: config.events });
+  } catch (error) {
+    console.error('[ERROR] Failed to save event:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/economic-calendar/events/{id}:
+ *   delete:
+ *     summary: Delete economic event
+ *     description: Remove an economic event from the calendar
+ *     tags: [Economic Calendar]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Event deleted successfully
+ */
+app.delete('/api/economic-calendar/events/:id', (req, res) => {
+  try {
+    const configPath = path.join(__dirname, 'config', 'economic_events_config.json');
+
+    if (!fs.existsSync(configPath)) {
+      return res.status(404).json({ success: false, error: 'No events found' });
+    }
+
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+    if (!config.events) {
+      return res.status(404).json({ success: false, error: 'No events found' });
+    }
+
+    const initialLength = config.events.length;
+    config.events = config.events.filter(e => e.id !== req.params.id);
+
+    if (config.events.length === initialLength) {
+      return res.status(404).json({ success: false, error: 'Event not found' });
+    }
+
+    config.last_updated = new Date().toISOString();
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+    console.log('[SUCCESS] Deleted event:', req.params.id);
+    res.json({ success: true, events: config.events });
+  } catch (error) {
+    console.error('[ERROR] Failed to delete event:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ===========================
+// ECONOMIC EVENTS FETCHING
+// ===========================
+
+/**
+ * @swagger
+ * /api/economic-calendar/fetch-events:
+ *   post:
+ *     summary: Fetch economic events from external source
+ *     description: Downloads and imports economic events from external API
+ *     tags: [Economic Calendar]
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               source_url:
+ *                 type: string
+ *                 description: Optional custom URL to fetch events from
+ *     responses:
+ *       200:
+ *         description: Events fetched and imported successfully
+ */
+app.post('/api/economic-calendar/fetch-events', async (req, res) => {
+  try {
+    const sourceUrl = req.body.source_url || 'https://dvs7yi5a78.execute-api.us-east-1.amazonaws.com/api/file/weekly_economic_events/download';
+
+    console.log('[FETCH EVENTS] Downloading from:', sourceUrl);
+
+    // Fetch events from external source
+    const axios = require('axios');
+    const response = await axios.get(sourceUrl, { timeout: 30000 });
+
+    if (!response.data || !response.data.events) {
+      throw new Error('Invalid response format from source');
+    }
+
+    const externalEvents = response.data.events;
+    console.log('[FETCH EVENTS] Downloaded', externalEvents.length, 'events');
+
+    // Filter out past events
+    const today = new Date().toISOString().split('T')[0];
+    const futureEvents = externalEvents.filter(event => {
+      return event.date >= today;
+    });
+
+    console.log('[FETCH EVENTS]', futureEvents.length, 'future events after filtering');
+
+    // Load existing config
+    const configPath = path.join(__dirname, 'config', 'economic_events_config.json');
+    let config = {};
+
+    if (fs.existsSync(configPath)) {
+      config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    }
+
+    // Transform external events to our format
+    const importedEvents = futureEvents.map((event, index) => {
+      // Combine date and time_gmt to create ISO datetime
+      const timeStr = event.time_gmt.split(' ')[0]; // Remove ' GMT' suffix
+      const datetime = event.date + 'T' + timeStr + ':00.000Z';
+
+      return {
+        id: 'imported_' + Date.now() + '_' + index,
+        title: event.event,
+        datetime: datetime,
+        impact: event.impact.toUpperCase(),
+        currency: event.currency || 'Unknown',
+        enabled: false, // Default to disabled - user must explicitly add to restrictions
+        source: 'external',
+        imported_at: new Date().toISOString()
+      };
+    });
+
+    // Merge with existing events (avoid duplicates)
+    const existingEvents = config.events || [];
+    const existingTitles = new Set(existingEvents.map(e => e.title + e.datetime));
+
+    const newEvents = importedEvents.filter(e => {
+      return !existingTitles.has(e.title + e.datetime);
+    });
+
+    config.events = [...existingEvents, ...newEvents];
+    config.last_updated = new Date().toISOString();
+    config.last_fetch = new Date().toISOString();
+    config.source_url = sourceUrl;
+
+    // Save config
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+    console.log('[SUCCESS] Imported', newEvents.length, 'new events,', (importedEvents.length - newEvents.length), 'duplicates skipped');
+
+    res.json({
+      success: true,
+      message: 'Fetched ' + externalEvents.length + ' events, imported ' + newEvents.length + ' new events',
+      total_fetched: externalEvents.length,
+      future_events: futureEvents.length,
+      imported: newEvents.length,
+      duplicates: importedEvents.length - newEvents.length,
+      total_events: config.events.length
+    });
+
+  } catch (error) {
+    console.error('[ERROR] Failed to fetch events:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      details: 'Failed to fetch economic events from external source'
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/economic-calendar/clear-imported:
+ *   delete:
+ *     summary: Clear all imported events
+ *     description: Removes all events that were imported from external sources
+ *     tags: [Economic Calendar]
+ *     responses:
+ *       200:
+ *         description: Imported events cleared successfully
+ */
+app.delete('/api/economic-calendar/clear-imported', (req, res) => {
+  try {
+    const configPath = path.join(__dirname, 'config', 'economic_events_config.json');
+
+    if (!fs.existsSync(configPath)) {
+      return res.json({ success: true, message: 'No events to clear' });
+    }
+
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+    const originalCount = config.events ? config.events.length : 0;
+
+    // Keep only manually added events (those without 'source' field or source !== 'external')
+    config.events = (config.events || []).filter(event => {
+      return event.source !== 'external';
+    });
+
+    const removedCount = originalCount - config.events.length;
+
+    config.last_updated = new Date().toISOString();
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+    console.log('[SUCCESS] Cleared', removedCount, 'imported events');
+
+    res.json({
+      success: true,
+      message: 'Cleared ' + removedCount + ' imported events',
+      removed: removedCount,
+      remaining: config.events.length
+    });
+
+  } catch (error) {
+    console.error('[ERROR] Failed to clear imported events:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/economic-calendar/add-restrictions:
+ *   post:
+ *     summary: Add events to trading restrictions
+ *     description: Enable trading restrictions for selected events with custom buffer times
+ *     tags: [Economic Calendar]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               event_ids:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               before_minutes:
+ *                 type: number
+ *               after_minutes:
+ *                 type: number
+ *               enabled:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Successfully added restrictions
+ */
+app.post('/api/economic-calendar/add-restrictions', (req, res) => {
+  try {
+    const { event_ids, before_minutes, after_minutes, enabled } = req.body;
+
+    if (!event_ids || !Array.isArray(event_ids) || event_ids.length === 0) {
+      return res.status(400).json({ success: false, error: 'event_ids array required' });
+    }
+
+    const configPath = path.join(__dirname, 'config', 'economic_events_config.json');
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+    // Enable global event restrictions and set buffer times
+    config.enabled = true;
+    config.before_event_minutes = before_minutes || 30;
+    config.after_event_minutes = after_minutes || 30;
+
+    // Enable the selected events
+    config.events = config.events.map(event => {
+      if (event_ids.includes(event.id)) {
+        return { ...event, enabled: true };
+      }
+      return event;
+    });
+
+    config.last_updated = new Date().toISOString();
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+    console.log(`[ADD RESTRICTIONS] Enabled ${event_ids.length} events with ${before_minutes}min before, ${after_minutes}min after`);
+
+    res.json({
+      success: true,
+      message: `Added ${event_ids.length} events to restrictions`,
+      count: event_ids.length,
+      config: {
+        enabled: config.enabled,
+        before_event_minutes: config.before_event_minutes,
+        after_event_minutes: config.after_event_minutes
+      }
+    });
+  } catch (error) {
+    console.error('[ERROR] Failed to add restrictions:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/economic-calendar/clear-restrictions:
+ *   post:
+ *     summary: Clear trading restrictions for selected events
+ *     description: Disable trading restrictions for the specified events
+ *     tags: [Economic Calendar]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               event_ids:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: Successfully cleared restrictions
+ */
+app.post('/api/economic-calendar/clear-restrictions', (req, res) => {
+  try {
+    const { event_ids } = req.body;
+
+    if (!event_ids || !Array.isArray(event_ids) || event_ids.length === 0) {
+      return res.status(400).json({ success: false, error: 'event_ids array required' });
+    }
+
+    const configPath = path.join(__dirname, 'config', 'economic_events_config.json');
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+    // Disable the selected events
+    let clearedCount = 0;
+    config.events = config.events.map(event => {
+      if (event_ids.includes(event.id) && event.enabled) {
+        clearedCount++;
+        return { ...event, enabled: false };
+      }
+      return event;
+    });
+
+    // Check if any events are still enabled
+    const hasEnabledEvents = config.events.some(event => event.enabled);
+    if (!hasEnabledEvents) {
+      config.enabled = false; // Disable global restriction if no events are enabled
+    }
+
+    config.last_updated = new Date().toISOString();
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+    console.log(`[CLEAR RESTRICTIONS] Disabled ${clearedCount} events`);
+
+    res.json({
+      success: true,
+      message: `Cleared restrictions for ${clearedCount} events`,
+      count: clearedCount,
+      global_enabled: config.enabled
+    });
+  } catch (error) {
+    console.error('[ERROR] Failed to clear restrictions:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ===========================
+// SYSTEM ENDPOINTS
+// ===========================
+
 /**
  * @swagger
  * /api/health:
@@ -2431,3 +3330,164 @@ async function initializeServer() {
 }
 
 initializeServer();
+// ===========================
+// ECONOMIC EVENTS FETCHING
+// ===========================
+
+/**
+ * @swagger
+ * /api/economic-calendar/fetch-events:
+ *   post:
+ *     summary: Fetch economic events from external source
+ *     description: Downloads and imports economic events from external API
+ *     tags: [Economic Calendar]
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               source_url:
+ *                 type: string
+ *                 description: Optional custom URL to fetch events from
+ *     responses:
+ *       200:
+ *         description: Events fetched and imported successfully
+ */
+app.post('/api/economic-calendar/fetch-events', async (req, res) => {
+  try {
+    const sourceUrl = req.body.source_url || 'https://dvs7yi5a78.execute-api.us-east-1.amazonaws.com/api/file/weekly_economic_events/download';
+    
+    console.log(`[FETCH EVENTS] Downloading from: ${sourceUrl}`);
+    
+    // Fetch events from external source
+    const axios = require('axios');
+    const response = await axios.get(sourceUrl, { timeout: 30000 });
+    
+    if (!response.data || !response.data.events) {
+      throw new Error('Invalid response format from source');
+    }
+    
+    const externalEvents = response.data.events;
+    console.log(`[FETCH EVENTS] Downloaded ${externalEvents.length} events`);
+    
+    // Filter out past events
+    const today = new Date().toISOString().split('T')[0];
+    const futureEvents = externalEvents.filter(event => {
+      return event.date >= today;
+    });
+    
+    console.log(`[FETCH EVENTS] ${futureEvents.length} future events after filtering`);
+    
+    // Load existing config
+    const configPath = path.join(__dirname, 'config', 'economic_events_config.json');
+    let config = {};
+    
+    if (fs.existsSync(configPath)) {
+      config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    }
+    
+    // Transform external events to our format
+    const importedEvents = futureEvents.map((event, index) => {
+      // Combine date and time_gmt to create ISO datetime
+      const datetime = `${event.date}T${event.time_gmt.replace(' GMT', '')}:00.000Z`;
+      
+      return {
+        id: `imported_${Date.now()}_${index}`,
+        title: event.event,
+        datetime: datetime,
+        impact: event.impact.toUpperCase(),
+        currency: event.currency || 'Unknown',
+        enabled: true,
+        source: 'external',
+        imported_at: new Date().toISOString()
+      };
+    });
+    
+    // Merge with existing events (avoid duplicates)
+    const existingEvents = config.events || [];
+    const existingTitles = new Set(existingEvents.map(e => e.title + e.datetime));
+    
+    const newEvents = importedEvents.filter(e => {
+      return !existingTitles.has(e.title + e.datetime);
+    });
+    
+    config.events = [...existingEvents, ...newEvents];
+    config.last_updated = new Date().toISOString();
+    config.last_fetch = new Date().toISOString();
+    config.source_url = sourceUrl;
+    
+    // Save config
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    
+    console.log(`[SUCCESS] Imported ${newEvents.length} new events, ${importedEvents.length - newEvents.length} duplicates skipped`);
+    
+    res.json({
+      success: true,
+      message: `Fetched ${externalEvents.length} events, imported ${newEvents.length} new events`,
+      total_fetched: externalEvents.length,
+      future_events: futureEvents.length,
+      imported: newEvents.length,
+      duplicates: importedEvents.length - newEvents.length,
+      total_events: config.events.length
+    });
+    
+  } catch (error) {
+    console.error('[ERROR] Failed to fetch events:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      details: 'Failed to fetch economic events from external source'
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/economic-calendar/clear-imported:
+ *   delete:
+ *     summary: Clear all imported events
+ *     description: Removes all events that were imported from external sources
+ *     tags: [Economic Calendar]
+ *     responses:
+ *       200:
+ *         description: Imported events cleared successfully
+ */
+app.delete('/api/economic-calendar/clear-imported', (req, res) => {
+  try {
+    const configPath = path.join(__dirname, 'config', 'economic_events_config.json');
+    
+    if (!fs.existsSync(configPath)) {
+      return res.json({ success: true, message: 'No events to clear' });
+    }
+    
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    
+    const originalCount = config.events ? config.events.length : 0;
+    
+    // Keep only manually added events (those without 'source' field or source !== 'external')
+    config.events = (config.events || []).filter(event => {
+      return event.source !== 'external';
+    });
+    
+    const removedCount = originalCount - config.events.length;
+    
+    config.last_updated = new Date().toISOString();
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    
+    console.log(`[SUCCESS] Cleared ${removedCount} imported events`);
+    
+    res.json({
+      success: true,
+      message: `Cleared ${removedCount} imported events`,
+      removed: removedCount,
+      remaining: config.events.length
+    });
+    
+  } catch (error) {
+    console.error('[ERROR] Failed to clear imported events:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+

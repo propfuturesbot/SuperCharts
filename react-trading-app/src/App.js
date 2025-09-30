@@ -7,6 +7,7 @@ import Login from './components/Login/Login';
 import Dashboard from './components/Dashboard/Dashboard';
 import TradeOptions from './components/TradeOptions/TradeOptions';
 import WebhookGenerator from './components/WebhookGenerator/WebhookGenerator';
+import TradingSchedule from './components/TradingSchedule/TradingSchedule';
 import ThemeCustomizer from './components/ThemeCustomizer/ThemeCustomizer';
 import './App.css';
 
@@ -39,15 +40,24 @@ function App() {
                 } 
               />
               
-              <Route 
-                path="/webhook-generator" 
+              <Route
+                path="/webhook-generator"
                 element={
                   <ProtectedRoute>
                     <WebhookGenerator />
                   </ProtectedRoute>
-                } 
+                }
               />
-              
+
+              <Route
+                path="/trading-schedule"
+                element={
+                  <ProtectedRoute>
+                    <TradingSchedule />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Default route - redirect to dashboard */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               

@@ -1,0 +1,2461 @@
+{
+  "enabled": false,
+  "before_event_minutes": 30,
+  "after_event_minutes": 30,
+  "liquidate_positions_before_event": false,
+  "events": [
+    {
+      "id": "imported_1759244144536_0",
+      "title": "RBA Cash Rate",
+      "datetime": "2025-09-30T04:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "AUD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_1",
+      "title": "RBA Rate Statement",
+      "datetime": "2025-09-30T04:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "AUD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_2",
+      "title": "Japanese Housing Starts YoY",
+      "datetime": "2025-09-30T05:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_3",
+      "title": "RBA Press Conference w/ Gov. Bullock",
+      "datetime": "2025-09-30T05:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "AUD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_4",
+      "title": "German Real Retail Sales MoM",
+      "datetime": "2025-09-30T06:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_5",
+      "title": "German Imports Prices MoM",
+      "datetime": "2025-09-30T06:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_6",
+      "title": "German Real Retail Sales YoY",
+      "datetime": "2025-09-30T06:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_7",
+      "title": "UK Current Account",
+      "datetime": "2025-09-30T06:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "GBP",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_8",
+      "title": "UK Business Investment QoQ",
+      "datetime": "2025-09-30T06:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_9",
+      "title": "UK GDP QoQ",
+      "datetime": "2025-09-30T06:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "GBP",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_10",
+      "title": "UK GDP YoY",
+      "datetime": "2025-09-30T06:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "GBP",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_11",
+      "title": "French PPI YoY",
+      "datetime": "2025-09-30T06:45:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_12",
+      "title": "French PPI MoM",
+      "datetime": "2025-09-30T06:45:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_13",
+      "title": "French Consumer Spending MoM",
+      "datetime": "2025-09-30T06:45:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_14",
+      "title": "French HICP MoM Prelim",
+      "datetime": "2025-09-30T06:45:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_15",
+      "title": "French CPI MoM NSA Prelim",
+      "datetime": "2025-09-30T06:45:00.000Z",
+      "impact": "HIGH",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_16",
+      "title": "French CPI YoY NSA Prelim",
+      "datetime": "2025-09-30T06:45:00.000Z",
+      "impact": "HIGH",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_17",
+      "title": "French HICP YoY Prelim",
+      "datetime": "2025-09-30T06:45:00.000Z",
+      "impact": "HIGH",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_18",
+      "title": "Swiss KOF Indicator",
+      "datetime": "2025-09-30T07:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "CHF",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_19",
+      "title": "German Unemployment Total NSA",
+      "datetime": "2025-09-30T07:55:00.000Z",
+      "impact": "LOW",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_20",
+      "title": "German Unemployment Total SA",
+      "datetime": "2025-09-30T07:55:00.000Z",
+      "impact": "LOW",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_21",
+      "title": "German Unemployment Rate",
+      "datetime": "2025-09-30T07:55:00.000Z",
+      "impact": "HIGH",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_22",
+      "title": "German Unemployment Change SA",
+      "datetime": "2025-09-30T07:55:00.000Z",
+      "impact": "HIGH",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_23",
+      "title": "Italian PPI YoY",
+      "datetime": "2025-09-30T08:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_24",
+      "title": "Italian PPI MoM",
+      "datetime": "2025-09-30T08:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_25",
+      "title": "North Rhine CPI MoM",
+      "datetime": "2025-09-30T08:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_26",
+      "title": "North-Rhine CPI YoY",
+      "datetime": "2025-09-30T08:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_27",
+      "title": "Saxony CPI MoM",
+      "datetime": "2025-09-30T08:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144536_28",
+      "title": "Saxony CPI YoY",
+      "datetime": "2025-09-30T08:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.536Z"
+    },
+    {
+      "id": "imported_1759244144537_29",
+      "title": "Spanish Current Account Balance",
+      "datetime": "2025-09-30T08:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_30",
+      "title": "Bavaria CPI MoM",
+      "datetime": "2025-09-30T08:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_31",
+      "title": "Bavaria CPI YoY",
+      "datetime": "2025-09-30T08:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_32",
+      "title": "Italian CPI MoM Prelim",
+      "datetime": "2025-09-30T09:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_33",
+      "title": "Italian CPI YoY Prelim",
+      "datetime": "2025-09-30T09:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_34",
+      "title": "Italian HICP Prelim MoM",
+      "datetime": "2025-09-30T09:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_35",
+      "title": "Italian HICP Prelim YoY",
+      "datetime": "2025-09-30T09:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_36",
+      "title": "ECB's Rehn & Pres. Lagarde Speak",
+      "datetime": "2025-09-30T09:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_37",
+      "title": "Italian Industrial Sales MoM",
+      "datetime": "2025-09-30T10:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_38",
+      "title": "Fed's Jefferson Speaks",
+      "datetime": "2025-09-30T10:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_39",
+      "title": "Fed's Logan Speaks",
+      "datetime": "2025-09-30T10:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_40",
+      "title": "ECB's Cipollone Speaks",
+      "datetime": "2025-09-30T11:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_41",
+      "title": "BoE's Lombardeli Speaks",
+      "datetime": "2025-09-30T11:50:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "GBP",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_42",
+      "title": "German HICP MoM Prelim",
+      "datetime": "2025-09-30T12:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_43",
+      "title": "German CPI MoM Prelim",
+      "datetime": "2025-09-30T12:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_44",
+      "title": "German HICP YoY Prelim",
+      "datetime": "2025-09-30T12:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_45",
+      "title": "German CPI YoY Prelim",
+      "datetime": "2025-09-30T12:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_46",
+      "title": "US Redbook YoY",
+      "datetime": "2025-09-30T12:55:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_47",
+      "title": "US House Price Index MoM",
+      "datetime": "2025-09-30T13:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_48",
+      "title": "US House Price Index YoY",
+      "datetime": "2025-09-30T13:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_49",
+      "title": "ECB's Elderson Speaks",
+      "datetime": "2025-09-30T13:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_50",
+      "title": "US CaseShiller 20 YoY",
+      "datetime": "2025-09-30T13:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_51",
+      "title": "BoE's Mann Speaks",
+      "datetime": "2025-09-30T13:25:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "GBP",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_52",
+      "title": "US Chicago PMI",
+      "datetime": "2025-09-30T13:45:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_53",
+      "title": "ECB's Pres. Lagarde Speaks",
+      "datetime": "2025-09-30T13:50:00.000Z",
+      "impact": "HIGH",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_54",
+      "title": "US JOLTS Job Openings",
+      "datetime": "2025-09-30T14:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_55",
+      "title": "US CB Consumer Confidence",
+      "datetime": "2025-09-30T14:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_56",
+      "title": "US 52-Week Bill Bid-to-Cover",
+      "datetime": "2025-09-30T15:30:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_57",
+      "title": "US 52-Week Bill High Yield",
+      "datetime": "2025-09-30T15:30:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_58",
+      "title": "BoE's Breeden Speaks",
+      "datetime": "2025-09-30T15:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "GBP",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_59",
+      "title": "ECB's Nagel Speaks",
+      "datetime": "2025-09-30T17:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_60",
+      "title": "Fed's Goolsbee Speaks",
+      "datetime": "2025-09-30T17:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_61",
+      "title": "Nike Q1 2026 Earnings",
+      "datetime": "2025-09-30T20:15:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_62",
+      "title": "US API Crude Oil Stock Change (Tentative)",
+      "datetime": "2025-09-30T20:30:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_63",
+      "title": "US API Cushing Stock Change (Tentative)",
+      "datetime": "2025-09-30T20:30:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_64",
+      "title": "US API Distillate Stock Change (Tentative)",
+      "datetime": "2025-09-30T20:30:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_65",
+      "title": "US API Gasoline Stock Change (Tentative)",
+      "datetime": "2025-09-30T20:30:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_66",
+      "title": "Nike Earnings Call",
+      "datetime": "2025-09-30T21:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_67",
+      "title": "New Zealand Building Consents",
+      "datetime": "2025-09-30T21:45:00.000Z",
+      "impact": "LOW",
+      "currency": "NZD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_68",
+      "title": "AIG Construction Index",
+      "datetime": "2025-09-30T23:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_69",
+      "title": "AIG Manufacturing Index",
+      "datetime": "2025-09-30T23:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_70",
+      "title": "Fed's Logan Speaks",
+      "datetime": "2025-09-30T23:10:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_71",
+      "title": "Japanese Tankan Big Mfg Index",
+      "datetime": "2025-09-30T23:50:00.000Z",
+      "impact": "HIGH",
+      "currency": "JPY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_72",
+      "title": "Japanese Tankan Big Non-Mfg Index",
+      "datetime": "2025-09-30T23:50:00.000Z",
+      "impact": "HIGH",
+      "currency": "JPY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_73",
+      "title": "NBNZ Business Outlook",
+      "datetime": "2025-09-30T00:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_74",
+      "title": "NBNZ Own Activity",
+      "datetime": "2025-09-30T00:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_75",
+      "title": "Australian Private House Approvals",
+      "datetime": "2025-09-30T01:30:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_76",
+      "title": "Chinese NBS Non-Manufacturing PMI",
+      "datetime": "2025-09-30T01:30:00.000Z",
+      "impact": "LOW",
+      "currency": "CNY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_77",
+      "title": "Chinese Composite PMI",
+      "datetime": "2025-09-30T01:30:00.000Z",
+      "impact": "LOW",
+      "currency": "CNY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_78",
+      "title": "Australian Private Sector Credit",
+      "datetime": "2025-09-30T01:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_79",
+      "title": "Australian Housing Credit",
+      "datetime": "2025-09-30T01:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_80",
+      "title": "Chinese NBS Manufacturing PMI",
+      "datetime": "2025-09-30T01:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "CNY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_81",
+      "title": "Australian Building Approvals",
+      "datetime": "2025-09-30T01:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_82",
+      "title": "OPEC+ JMMC Meeting (All Day)",
+      "datetime": "2025-10-01T04:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_83",
+      "title": "Dutch Retail Sales YoY",
+      "datetime": "2025-10-01T04:30:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_84",
+      "title": "UK Nationwide House Price MoM",
+      "datetime": "2025-10-01T06:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_85",
+      "title": "UK Nationwide House Price YoY",
+      "datetime": "2025-10-01T06:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_86",
+      "title": "ECB's Muller Speaks",
+      "datetime": "2025-10-01T06:20:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_87",
+      "title": "Swiss Retail Sales YoY",
+      "datetime": "2025-10-01T06:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "CHF",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_88",
+      "title": "Spanish Manufacturing PMI",
+      "datetime": "2025-10-01T07:15:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_89",
+      "title": "ECB's Kazimir & Simkus Speak",
+      "datetime": "2025-10-01T07:15:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_90",
+      "title": "ECB's Elderson Speaks",
+      "datetime": "2025-10-01T07:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_91",
+      "title": "Swiss Manufacturing PMI",
+      "datetime": "2025-10-01T07:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "CHF",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_92",
+      "title": "Italian Manufacturing PMI",
+      "datetime": "2025-10-01T07:45:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_93",
+      "title": "French Manufacturing PMI",
+      "datetime": "2025-10-01T07:50:00.000Z",
+      "impact": "HIGH",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_94",
+      "title": "ECB's de Guindos Speaks",
+      "datetime": "2025-10-01T07:55:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_95",
+      "title": "German Manufacturing PMI Final",
+      "datetime": "2025-10-01T07:55:00.000Z",
+      "impact": "HIGH",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_96",
+      "title": "Norwegian Manufacturing PMI",
+      "datetime": "2025-10-01T08:00:00.000Z",
+      "impact": "LOW",
+      "currency": "NOK",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_97",
+      "title": "ECB's Rehn Speaks",
+      "datetime": "2025-10-01T08:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_98",
+      "title": "Eurozone Manufacturing PMI Final",
+      "datetime": "2025-10-01T08:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_99",
+      "title": "UK Manufacturing PMI Final",
+      "datetime": "2025-10-01T08:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "GBP",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_100",
+      "title": "Eurozone CPI MoM Flash",
+      "datetime": "2025-10-01T09:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_101",
+      "title": "Eurozone Core CPI YoY Flash",
+      "datetime": "2025-10-01T09:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_102",
+      "title": "Eurozone CPI YoY Flash",
+      "datetime": "2025-10-01T09:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_103",
+      "title": "German 10 Yr Bund Bid-to-Cover",
+      "datetime": "2025-10-01T09:30:00.000Z",
+      "impact": "LOW",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_104",
+      "title": "German 10 Yr Bund Yield",
+      "datetime": "2025-10-01T09:30:00.000Z",
+      "impact": "LOW",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_105",
+      "title": "BoE's Mann Speaks",
+      "datetime": "2025-10-01T09:55:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "GBP",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_106",
+      "title": "US MBA 30-Yr Mortgage Rate",
+      "datetime": "2025-10-01T11:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_107",
+      "title": "US MBA Mortgage Applications",
+      "datetime": "2025-10-01T11:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_108",
+      "title": "ECB's Nagel Speaks",
+      "datetime": "2025-10-01T11:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_109",
+      "title": "US ADP Employment Change",
+      "datetime": "2025-10-01T12:15:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_110",
+      "title": "Canadian Manufacturing PMI",
+      "datetime": "2025-10-01T13:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "CAD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_111",
+      "title": "US S&P Manufacturing PMI Final",
+      "datetime": "2025-10-01T13:45:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_112",
+      "title": "US ISM Mfg. New Orders Index",
+      "datetime": "2025-10-01T14:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_113",
+      "title": "US Construction Spending MoM",
+      "datetime": "2025-10-01T14:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_114",
+      "title": "US ISM Mfg. Employment Index",
+      "datetime": "2025-10-01T14:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_115",
+      "title": "US ISM Mfg. Prices Paid",
+      "datetime": "2025-10-01T14:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_116",
+      "title": "US ISM Manufacturing PMI",
+      "datetime": "2025-10-01T14:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_117",
+      "title": "EIA Crude Cushing Inventories",
+      "datetime": "2025-10-01T14:30:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_118",
+      "title": "EIA Distillate Inventories",
+      "datetime": "2025-10-01T14:30:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_119",
+      "title": "EIA Gasoline Inventories",
+      "datetime": "2025-10-01T14:30:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_120",
+      "title": "EIA Crude Oil Inventories",
+      "datetime": "2025-10-01T14:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_121",
+      "title": "BoC Meeting Minutes",
+      "datetime": "2025-10-01T17:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "CAD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_122",
+      "title": "BoC's Senior Dep. Gov. Rogers Speaks",
+      "datetime": "2025-10-01T18:05:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "CAD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_123",
+      "title": "S. Korean CPI MoM",
+      "datetime": "2025-10-01T23:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_124",
+      "title": "S. Korean CPI YoY",
+      "datetime": "2025-10-01T23:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_125",
+      "title": "S. Korean Current Account Bal NSA",
+      "datetime": "2025-10-01T23:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_126",
+      "title": "Japanese Foreign Bond Investment",
+      "datetime": "2025-10-01T23:50:00.000Z",
+      "impact": "LOW",
+      "currency": "JPY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_127",
+      "title": "Foreign Investment Japanese Bonds",
+      "datetime": "2025-10-01T23:50:00.000Z",
+      "impact": "LOW",
+      "currency": "JPY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_128",
+      "title": "Foreign Investment Japanese Stocks",
+      "datetime": "2025-10-01T23:50:00.000Z",
+      "impact": "LOW",
+      "currency": "JPY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_129",
+      "title": "Japanese Foreign Stock Investment",
+      "datetime": "2025-10-01T23:50:00.000Z",
+      "impact": "LOW",
+      "currency": "JPY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_130",
+      "title": "Japanese Monetary Base YoY",
+      "datetime": "2025-10-01T23:50:00.000Z",
+      "impact": "LOW",
+      "currency": "JPY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_131",
+      "title": "S. Korean Exports Prelim",
+      "datetime": "2025-10-01T00:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_132",
+      "title": "S. Korean Trade Balance Prelim",
+      "datetime": "2025-10-01T00:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_133",
+      "title": "S. Korean Imports Prelim",
+      "datetime": "2025-10-01T00:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_134",
+      "title": "S. Korean Manufacturing PMI",
+      "datetime": "2025-10-01T00:30:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_135",
+      "title": "Japanese Consumer Confidence",
+      "datetime": "2025-10-02T05:00:00.000Z",
+      "impact": "LOW",
+      "currency": "JPY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_136",
+      "title": "Swiss Core CPI YoY",
+      "datetime": "2025-10-02T06:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "CHF",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_137",
+      "title": "Swiss CPI MoM",
+      "datetime": "2025-10-02T06:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "CHF",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_138",
+      "title": "Swiss CPI YoY",
+      "datetime": "2025-10-02T06:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "CHF",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_139",
+      "title": "BoJ's Uchida Speaks",
+      "datetime": "2025-10-02T06:35:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "JPY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_140",
+      "title": "French Budget Balance",
+      "datetime": "2025-10-02T06:45:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_141",
+      "title": "Italian Unemployment Rate",
+      "datetime": "2025-10-02T08:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_142",
+      "title": "Eurozone Unemployment Rate",
+      "datetime": "2025-10-02T09:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_143",
+      "title": "US Challenger Layoffs",
+      "datetime": "2025-10-02T11:30:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_144",
+      "title": "US Continued Jobless Claims",
+      "datetime": "2025-10-02T12:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_145",
+      "title": "US Initial Jobless Claims",
+      "datetime": "2025-10-02T12:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_146",
+      "title": "ECB's Makhlouf Speaks",
+      "datetime": "2025-10-02T13:35:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_147",
+      "title": "US Durable Goods Revised",
+      "datetime": "2025-10-02T14:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_148",
+      "title": "US Core Durable Goods Revised",
+      "datetime": "2025-10-02T14:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_149",
+      "title": "US Factory Orders MoM",
+      "datetime": "2025-10-02T14:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_150",
+      "title": "EIA Natural Gas Change BCF",
+      "datetime": "2025-10-02T14:30:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_151",
+      "title": "Fed's Logan Speaks",
+      "datetime": "2025-10-02T14:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_152",
+      "title": "US 4-Week Bill Bid-to-Cover",
+      "datetime": "2025-10-02T15:30:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_153",
+      "title": "US 4-Week Bill High Yield",
+      "datetime": "2025-10-02T15:30:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_154",
+      "title": "SNB's Schlegel Speaks",
+      "datetime": "2025-10-02T15:35:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "CHF",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_155",
+      "title": "ECB's Villeroy Speaks",
+      "datetime": "2025-10-02T16:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_156",
+      "title": "ECB's de Guindos Speaks",
+      "datetime": "2025-10-02T17:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_157",
+      "title": "Japanese Jobs/Applicants Ratio",
+      "datetime": "2025-10-02T23:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "JPY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_158",
+      "title": "Japanese Unemployment Rate",
+      "datetime": "2025-10-02T23:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "JPY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_159",
+      "title": "Australian Exports",
+      "datetime": "2025-10-02T00:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_160",
+      "title": "Australian Imports",
+      "datetime": "2025-10-02T00:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_161",
+      "title": "Australian Trade Balance",
+      "datetime": "2025-10-02T00:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_162",
+      "title": "RBA Financial Stability Review",
+      "datetime": "2025-10-02T01:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "AUD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_163",
+      "title": "Singapore Retail Sales YoY",
+      "datetime": "2025-10-03T05:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_164",
+      "title": "Singapore Retail Sales MoM",
+      "datetime": "2025-10-03T05:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_165",
+      "title": "Norwegian Unemployment Rate NSA",
+      "datetime": "2025-10-03T06:00:00.000Z",
+      "impact": "LOW",
+      "currency": "NOK",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_166",
+      "title": "Turkish CPI YoY",
+      "datetime": "2025-10-03T07:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_167",
+      "title": "Turkish CPI MoM",
+      "datetime": "2025-10-03T07:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_168",
+      "title": "Spanish Composite PMI",
+      "datetime": "2025-10-03T07:15:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_169",
+      "title": "Spanish Services PMI",
+      "datetime": "2025-10-03T07:15:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_170",
+      "title": "Italian Services PMI",
+      "datetime": "2025-10-03T07:45:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_171",
+      "title": "Italian Composite PMI",
+      "datetime": "2025-10-03T07:45:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_172",
+      "title": "French Industrial Production MoM",
+      "datetime": "2025-10-03T07:45:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_173",
+      "title": "French Composite PMI",
+      "datetime": "2025-10-03T07:50:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_174",
+      "title": "French Services PMI",
+      "datetime": "2025-10-03T07:50:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_175",
+      "title": "German Composite PMI Final",
+      "datetime": "2025-10-03T07:55:00.000Z",
+      "impact": "HIGH",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_176",
+      "title": "German Services PMI Final",
+      "datetime": "2025-10-03T07:55:00.000Z",
+      "impact": "HIGH",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_177",
+      "title": "Italian Retail Sales NSA YoY",
+      "datetime": "2025-10-03T08:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_178",
+      "title": "Italian Retail Sales MoM",
+      "datetime": "2025-10-03T08:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_179",
+      "title": "Eurozone Services PMI Final",
+      "datetime": "2025-10-03T08:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_180",
+      "title": "Eurozone Composite Final PMI",
+      "datetime": "2025-10-03T08:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_181",
+      "title": "UK Composite PMI Final",
+      "datetime": "2025-10-03T08:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "GBP",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_182",
+      "title": "UK Services PMI Final",
+      "datetime": "2025-10-03T08:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "GBP",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_183",
+      "title": "ECB's Sleijpen Speaks",
+      "datetime": "2025-10-03T09:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_184",
+      "title": "ECB's Schnabel & Pres. Lagarde Speak",
+      "datetime": "2025-10-03T09:40:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_185",
+      "title": "Eurozone PPI YoY",
+      "datetime": "2025-10-03T10:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_186",
+      "title": "Eurozone PPI MoM",
+      "datetime": "2025-10-03T10:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_187",
+      "title": "Fed's Williams Speaks",
+      "datetime": "2025-10-03T10:05:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_188",
+      "title": "ECB's Villeroy & IMF's Gopinath Speak",
+      "datetime": "2025-10-03T10:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_189",
+      "title": "US Government Payrolls",
+      "datetime": "2025-10-03T12:30:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_190",
+      "title": "US Labor Force Participation",
+      "datetime": "2025-10-03T12:30:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_191",
+      "title": "US Manufacturing Payrolls",
+      "datetime": "2025-10-03T12:30:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_192",
+      "title": "US Average Earnings MoM",
+      "datetime": "2025-10-03T12:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_193",
+      "title": "US Average Workweek Hrs",
+      "datetime": "2025-10-03T12:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_194",
+      "title": "US Private Payrolls",
+      "datetime": "2025-10-03T12:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_195",
+      "title": "US Average Earnings YoY",
+      "datetime": "2025-10-03T12:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_196",
+      "title": "US Unemployment Rate",
+      "datetime": "2025-10-03T12:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_197",
+      "title": "US Nonfarm Payrolls",
+      "datetime": "2025-10-03T12:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_198",
+      "title": "BoE's Gov. Bailey Speaks",
+      "datetime": "2025-10-03T13:20:00.000Z",
+      "impact": "HIGH",
+      "currency": "GBP",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_199",
+      "title": "US S&P Composite PMI Final",
+      "datetime": "2025-10-03T13:45:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_200",
+      "title": "US S&P Services PMI Final",
+      "datetime": "2025-10-03T13:45:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_201",
+      "title": "ECB's Schnabel Speaks",
+      "datetime": "2025-10-03T13:50:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "EUR",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_202",
+      "title": "US ISM Services New Orders",
+      "datetime": "2025-10-03T14:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_203",
+      "title": "US ISM Services Prices Paid",
+      "datetime": "2025-10-03T14:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_204",
+      "title": "US ISM Services Employment",
+      "datetime": "2025-10-03T14:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_205",
+      "title": "US ISM Services PMI",
+      "datetime": "2025-10-03T14:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_206",
+      "title": "US Baker Hughes Oil Rig Count",
+      "datetime": "2025-10-03T17:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_207",
+      "title": "US Baker Hughes Total Rig Count",
+      "datetime": "2025-10-03T17:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_208",
+      "title": "Fed's Jefferson Speaks",
+      "datetime": "2025-10-03T17:40:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_209",
+      "title": "Japanese Composite PMI",
+      "datetime": "2025-10-03T00:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "JPY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_210",
+      "title": "BoJ's Gov. Ueda Speaks",
+      "datetime": "2025-10-03T01:05:00.000Z",
+      "impact": "HIGH",
+      "currency": "JPY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_211",
+      "title": "Japan LDP Election",
+      "datetime": "2025-10-04T00:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "JPY",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_212",
+      "title": "EIA STEO Report (Tentative)",
+      "datetime": "2025-10-07T17:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_213",
+      "title": "Fed Comunity Banking Conference (All Day)",
+      "datetime": "2025-10-09T12:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_214",
+      "title": "Fed's Powell Pre Recorded Speech",
+      "datetime": "2025-10-09T12:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_215",
+      "title": "Fed's Bowman Speaks",
+      "datetime": "2025-10-09T12:35:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_216",
+      "title": "Treasury Sec. Bessent Speaks",
+      "datetime": "2025-10-09T12:45:00.000Z",
+      "impact": "HIGH",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_217",
+      "title": "OPEC Monthly Report (Tentative)",
+      "datetime": "2025-10-13T12:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_218",
+      "title": "IEA Monthly Report",
+      "datetime": "2025-10-14T09:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_219",
+      "title": "Monthly OPEX",
+      "datetime": "2025-10-17T21:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_220",
+      "title": "Fed Payments & Innoation Conf. (Tent.)",
+      "datetime": "2025-10-21T15:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_221",
+      "title": "IMF World Economic Outlook",
+      "datetime": "2025-10-22T14:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_222",
+      "title": "US Holiday",
+      "datetime": "2025-10-25T05:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_223",
+      "title": "BLS Consumer Spending 2024 Report",
+      "datetime": "2025-10-30T15:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_224",
+      "title": "APEC Summit (All Day)",
+      "datetime": "2025-10-31T05:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_225",
+      "title": "APEC Summit (All Day)",
+      "datetime": "2025-11-01T05:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_226",
+      "title": "US Treasury QRA Estimates",
+      "datetime": "2025-11-03T20:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_227",
+      "title": "US Treasury QRA",
+      "datetime": "2025-11-05T13:30:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_228",
+      "title": "US-China Tariff Deadline",
+      "datetime": "2025-11-10T05:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_229",
+      "title": "OPEC Monthly Report (Tentative)",
+      "datetime": "2025-11-12T12:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_230",
+      "title": "EIA STEO Report (Tentative)",
+      "datetime": "2025-11-12T17:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_231",
+      "title": "IEA Monthly Report",
+      "datetime": "2025-11-13T09:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_232",
+      "title": "Monthly OPEX",
+      "datetime": "2025-11-21T21:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_233",
+      "title": "UK Autumn Budget (Tentative)",
+      "datetime": "2025-11-26T12:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "GBP",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_234",
+      "title": "US Holiday",
+      "datetime": "2025-11-27T05:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_235",
+      "title": "US Holiday (Early Close)",
+      "datetime": "2025-11-28T05:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_236",
+      "title": "OPEC+ Meeting",
+      "datetime": "2025-11-30T04:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_237",
+      "title": "US Quarterly Employment & Wages Q2",
+      "datetime": "2025-12-03T15:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_238",
+      "title": "EIA STEO Report (Tentative)",
+      "datetime": "2025-12-09T17:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_239",
+      "title": "IEA Monthly Report",
+      "datetime": "2025-12-11T09:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_240",
+      "title": "OPEC Monthly Report (Tentative)",
+      "datetime": "2025-12-11T12:00:00.000Z",
+      "impact": "HIGH",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_241",
+      "title": "Dallas Fed Energy Survey",
+      "datetime": "2025-12-17T14:30:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_242",
+      "title": "Monthly OPEX (Triple Withcing)",
+      "datetime": "2025-12-19T21:00:00.000Z",
+      "impact": "MEDIUM",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_243",
+      "title": "US Holiday (Early Close)",
+      "datetime": "2025-12-24T05:00:00.000Z",
+      "impact": "LOW",
+      "currency": "USD",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    },
+    {
+      "id": "imported_1759244144537_244",
+      "title": "First Round Votes on French President (Tentative)",
+      "datetime": "2027-04-01T05:00:00.000Z",
+      "impact": "LOW",
+      "currency": "Unknown",
+      "enabled": false,
+      "source": "external",
+      "imported_at": "2025-09-30T14:55:44.537Z"
+    }
+  ],
+  "last_updated": "2025-09-30T14:56:05.524Z",
+  "last_fetch": "2025-09-30T14:55:44.537Z",
+  "source_url": "https://dvs7yi5a78.execute-api.us-east-1.amazonaws.com/api/file/weekly_economic_events/download"
+}

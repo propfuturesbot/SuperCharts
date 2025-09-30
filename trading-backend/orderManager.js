@@ -1,4 +1,6 @@
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 
 // Provider configuration mapping
 const PROVIDER_ENDPOINTS = {
@@ -16,11 +18,268 @@ const PROVIDER_ENDPOINTS = {
   }
 };
 
+// Configuration file paths
+const TRADING_HOURS_CONFIG = path.join(__dirname, 'config', 'trading_hours_config.json');
+const TRADING_SESSIONS_CONFIG = path.join(__dirname, 'config', 'trading_sessions_config.json');
+const ECONOMIC_EVENTS_CONFIG = path.join(__dirname, 'config', 'economic_events_config.json');
+
 // Order types
 const ORDER_TYPE_MARKET = 2;
 const ORDER_TYPE_LIMIT = 1;
 const ORDER_TYPE_STOP = 4;
 const ORDER_TYPE_TRAIL_STOP = 5;
+
+/**
+ * Trading Hours Validation Functions
+ */
+
+/**
+ * Load trading hours configuration
+ */
+function loadTradingHoursConfig() {
+  try {
+    if (fs.existsSync(TRADING_HOURS_CONFIG)) {
+      const data = fs.readFileSync(TRADING_HOURS_CONFIG, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (error) {
+    console.error(`[ERROR] Failed to load trading hours config: ${error.message}`);
+  }
+
+  // Return default config
+  return {
+    start_hour: 0,
+    start_minute: 0,
+    end_hour: 23,
+    end_minute: 59,
+    restrict_hours: false
+  };
+}
+
+/**
+ * Load trading sessions configuration
+ */
+function loadTradingSessionsConfig() {
+  try {
+    if (fs.existsSync(TRADING_SESSIONS_CONFIG)) {
+      const data = fs.readFileSync(TRADING_SESSIONS_CONFIG, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (error) {
+    console.error(`[ERROR] Failed to load trading sessions config: ${error.message}`);
+  }
+
+  // Return default config
+  return {
+    enabled: false,
+    allowed_sessions: [],
+    restricted_sessions: []
+  };
+}
+
+/**
+ * Check if current time is within a time range (handles overnight ranges)
+ */
+function isTimeInRange(currentTime, startTime, endTime) {
+  const current = parseInt(currentTime);
+  const start = parseInt(startTime);
+  const end = parseInt(endTime);
+
+  if (start <= end) {
+    // Same day range (e.g., 0700-1600)
+    return start <= current && current <= end;
+  } else {
+    // Overnight range (e.g., 2300-0800)
+    return current >= start || current <= end;
+  }
+}
+
+/**
+ * Check if trading is allowed based on session configuration
+ */
+function isSessionTradingAllowed(allowedSessions, restrictedSessions) {
+  const now = new Date();
+  const currentTimeGMT = now.getUTCHours().toString().padStart(2, '0') +
+                         now.getUTCMinutes().toString().padStart(2, '0');
+
+  console.log(`[DEBUG] Current GMT time: ${currentTimeGMT}`);
+  console.log(`[DEBUG] Allowed sessions: ${JSON.stringify(allowedSessions)}`);
+  console.log(`[DEBUG] Restricted sessions: ${JSON.stringify(restrictedSessions)}`);
+
+  // If there are allowed sessions, current time must be within at least one of them
+  if (allowedSessions && allowedSessions.length > 0 && allowedSessions.some(s => s.trim())) {
+    let sessionAllowed = false;
+
+    for (const sessionRange of allowedSessions) {
+      if (!sessionRange || !sessionRange.trim()) continue;
+
+      try {
+        const [startTime, endTime] = sessionRange.split('-');
+        if (isTimeInRange(currentTimeGMT, startTime, endTime)) {
+          console.log(`[DEBUG] Current time ${currentTimeGMT} is within allowed session ${sessionRange}`);
+          sessionAllowed = true;
+          break;
+        }
+      } catch (error) {
+        console.error(`[ERROR] Error parsing allowed session range '${sessionRange}': ${error.message}`);
+      }
+    }
+
+    if (!sessionAllowed) {
+      console.log('[DEBUG] Current time not within any allowed session range');
+      return { allowed: false, reason: 'Trading not allowed in current session' };
+    }
+  }
+
+  // If there are restricted sessions, current time must NOT be within any of them
+  if (restrictedSessions && restrictedSessions.length > 0 && restrictedSessions.some(s => s.trim())) {
+    for (const sessionRange of restrictedSessions) {
+      if (!sessionRange || !sessionRange.trim()) continue;
+
+      try {
+        const [startTime, endTime] = sessionRange.split('-');
+        if (isTimeInRange(currentTimeGMT, startTime, endTime)) {
+          console.log(`[DEBUG] Current time ${currentTimeGMT} is within restricted session ${sessionRange} - trading blocked`);
+          return { allowed: false, reason: `Trading restricted during session ${sessionRange}` };
+        }
+      } catch (error) {
+        console.error(`[ERROR] Error parsing restricted session range '${sessionRange}': ${error.message}`);
+      }
+    }
+  }
+
+  console.log('[DEBUG] Session-based trading is allowed');
+  return { allowed: true, reason: null };
+}
+
+/**
+ * Load economic events configuration
+ */
+function loadEconomicEventsConfig() {
+  try {
+    if (fs.existsSync(ECONOMIC_EVENTS_CONFIG)) {
+      const data = fs.readFileSync(ECONOMIC_EVENTS_CONFIG, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (error) {
+    console.error(`[ERROR] Failed to load economic events config: ${error.message}`);
+  }
+
+  // Return default config
+  return {
+    enabled: false,
+    before_event_minutes: 30,
+    after_event_minutes: 30,
+    liquidate_positions_before_event: false,
+    events: []
+  };
+}
+
+/**
+ * Check if trading is restricted due to economic events
+ */
+function isEventRestrictionActive(currentTime) {
+  const eventsConfig = loadEconomicEventsConfig();
+
+  if (!eventsConfig.enabled || !eventsConfig.events || eventsConfig.events.length === 0) {
+    return { restricted: false, reason: null, event: null };
+  }
+
+  const now = currentTime || new Date();
+  const beforeBuffer = eventsConfig.before_event_minutes || 0;
+  const afterBuffer = eventsConfig.after_event_minutes || 0;
+
+  console.log(`[DEBUG] Checking ${eventsConfig.events.length} economic events with buffer: ${beforeBuffer}min before, ${afterBuffer}min after`);
+
+  for (const event of eventsConfig.events) {
+    if (!event.enabled) continue;
+
+    try {
+      const eventTime = new Date(event.datetime);
+      const timeDiffMinutes = (eventTime - now) / (1000 * 60);
+
+      console.log(`[DEBUG] Event: ${event.title} at ${event.datetime}, time diff: ${timeDiffMinutes.toFixed(1)} minutes`);
+
+      // Check if we're within the restricted window
+      if (timeDiffMinutes >= -afterBuffer && timeDiffMinutes <= beforeBuffer) {
+        const reason = timeDiffMinutes > 0
+          ? `Economic event "${event.title}" in ${Math.round(timeDiffMinutes)} minutes (${beforeBuffer}min buffer)`
+          : `Economic event "${event.title}" occurred ${Math.abs(Math.round(timeDiffMinutes))} minutes ago (${afterBuffer}min buffer)`;
+
+        console.log(`[DEBUG] Trading restricted: ${reason}`);
+        return { restricted: true, reason, event };
+      }
+    } catch (error) {
+      console.error(`[ERROR] Error processing economic event: ${error.message}`);
+    }
+  }
+
+  return { restricted: false, reason: null, event: null };
+}
+
+/**
+ * Validate if trading is allowed based on all restrictions
+ */
+function validateTradingTime() {
+  const now = new Date();
+  const currentHour = now.getUTCHours();
+  const currentMinute = now.getUTCMinutes();
+  const currentTimeFormatted = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')} GMT`;
+
+  console.log(`[VALIDATION] Checking trading time restrictions at ${currentTimeFormatted}`);
+
+  // Load configurations
+  const hoursConfig = loadTradingHoursConfig();
+  const sessionsConfig = loadTradingSessionsConfig();
+
+  // Check hours-based restrictions
+  if (hoursConfig.restrict_hours) {
+    const currentMinutes = currentHour * 60 + currentMinute;
+    const startMinutes = hoursConfig.start_hour * 60 + hoursConfig.start_minute;
+    const endMinutes = hoursConfig.end_hour * 60 + hoursConfig.end_minute;
+
+    let hoursAllowed = false;
+
+    if (startMinutes <= endMinutes) {
+      // Normal time range (e.g., 09:00 to 17:00)
+      hoursAllowed = startMinutes <= currentMinutes && currentMinutes <= endMinutes;
+    } else {
+      // Overnight time range (e.g., 22:00 to 06:00)
+      hoursAllowed = currentMinutes >= startMinutes || currentMinutes <= endMinutes;
+    }
+
+    if (!hoursAllowed) {
+      const startTime = `${hoursConfig.start_hour.toString().padStart(2, '0')}:${hoursConfig.start_minute.toString().padStart(2, '0')}`;
+      const endTime = `${hoursConfig.end_hour.toString().padStart(2, '0')}:${hoursConfig.end_minute.toString().padStart(2, '0')}`;
+      const reason = `Trading hours restricted. Allowed: ${startTime} - ${endTime} GMT. Current: ${currentTimeFormatted}`;
+      console.log(`[VALIDATION] ${reason}`);
+      return { allowed: false, reason };
+    }
+  }
+
+  // Check session-based restrictions
+  if (sessionsConfig.enabled) {
+    const sessionValidation = isSessionTradingAllowed(
+      sessionsConfig.allowed_sessions || [],
+      sessionsConfig.restricted_sessions || []
+    );
+
+    if (!sessionValidation.allowed) {
+      console.log(`[VALIDATION] ${sessionValidation.reason}`);
+      return sessionValidation;
+    }
+  }
+
+  // Check economic event restrictions
+  const eventValidation = isEventRestrictionActive(now);
+  if (eventValidation.restricted) {
+    console.log(`[VALIDATION] ${eventValidation.reason}`);
+    return { allowed: false, reason: eventValidation.reason };
+  }
+
+  console.log('[VALIDATION] Trading is allowed');
+  return { allowed: true, reason: null };
+}
 
 /**
  * Backend Order Manager - Thin wrapper around existing OrderManager logic
@@ -30,6 +289,13 @@ class BackendOrderManager {
   constructor() {
     // Use the existing contract lookup we already have
     this.lookupContractProductId = require('./simple-backend').lookupContractProductId || this.fallbackLookup;
+  }
+
+  /**
+   * Validate trading time before placing orders
+   */
+  validateTradingTime() {
+    return validateTradingTime();
   }
 
   /**
