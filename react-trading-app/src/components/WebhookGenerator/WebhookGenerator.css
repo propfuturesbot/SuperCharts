@@ -635,6 +635,43 @@
   line-height: 1.5;
 }
 
+/* Toast Notifications */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 20px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  z-index: 10000;
+  transform: translateX(400px);
+  transition: transform 0.3s ease;
+  max-width: 350px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.toast.show {
+  transform: translateX(0);
+}
+
+.toast-success {
+  background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.toast-error {
+  background: linear-gradient(135deg, #dc3545, #fd7e14);
+}
+
+.toast-info {
+  background: linear-gradient(135deg, #17a2b8, #3498db);
+}
+
+.toast-warning {
+  background: linear-gradient(135deg, #ffc107, #fd7e14);
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .webhook-content {

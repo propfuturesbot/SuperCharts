@@ -73,7 +73,7 @@
   font-size: 1rem;
 }
 
-.settings-button,
+.docs-button,
 .logout-button {
   padding: 12px 20px;
   background: var(--primary-color-10);
@@ -89,7 +89,7 @@
   transition: all 0.3s ease;
 }
 
-.settings-button:hover,
+.docs-button:hover,
 .logout-button:hover {
   background: var(--primary-color-20);
   border-color: var(--primary-color);
@@ -97,7 +97,7 @@
   transform: translateY(-2px);
 }
 
-.settings-button {
+.docs-button {
   padding: 12px;
   font-size: 1.1rem;
 }

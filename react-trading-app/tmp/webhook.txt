@@ -1,0 +1,2541 @@
+I'll gather all the webhook generator and Cloudflare tunnel related code from your project. Let me search for and read all the relevant files.
+
+[2 tools called]
+
+Let me search for more specific files and read them completely.
+
+[4 tools called]
+
+Now let me read the backend webhook/cloudflare tunnel related files:
+
+[4 tools called]
+
+Now let me get the backend webhook endpoints from the main api file:
+
+[2 tools called]
+
+Let me now extract the complete backend endpoints from main.py and provide you with all the files:
+
+[2 tools called]
+
+Perfect! I have gathered all the webhook generator and Cloudflare tunnel related code from your project. Here's the complete collection of all the files you'll need for your new project:
+
+[1 tool called]
+
+## Complete Webhook Generator & Cloudflare Tunnel Code
+
+I've extracted all the webhook generator and Cloudflare tunnel related code from your ProjectX AutoTrader. Here are all the files you need:
+
+## 1. Backend Code
+
+### **Main API Endpoints (for integration into your FastAPI app):**
+
+```python
+# Webhook Generator & Cloudflare Tunnel API Endpoints
+# Add these to your main FastAPI application
+
+import asyncio
+import json
+import logging
+import os
+import re
+import subprocess
+import traceback
+from datetime import datetime, timezone
+from fastapi import HTTPException
+from fastapi.responses import JSONResponse
+
+# Global variables
+tunnel_process = None
+webhook_config_file = os.path.join("config", "webhook_config.json")
+SERVER_START_TIME = datetime.now()
+
+# Ensure config directory exists
+os.makedirs("config", exist_ok=True)
+
+@app.get("/api/check-cloudflared", tags=["webhook"])
+async def check_cloudflared():
+    """Check if cloudflared is installed on the system"""
+    try:
+        # Try common locations for cloudflared binary
+        cloudflared_paths = [
+            "cloudflared",
+            "/usr/bin/cloudflared",
+            "/usr/local/bin/cloudflared",
+            "/bin/cloudflared",
+            "/opt/homebrew/bin/cloudflared",  # Apple Silicon homebrew
+        ]
+        
+        for path in cloudflared_paths:
+            try:
+                # Try to run cloudflared version command
+                process = await asyncio.create_subprocess_exec(
+                    path, "--version",
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                
+                stdout, stderr = await process.communicate()
+                
+                # If returncode is 0, cloudflared is installed
+                if process.returncode == 0:
+                    return {"installed": True, "version": stdout.decode().strip(), "path": path}
+            except:
+                # Continue to try next path
+                continue
+                
+        # If we've tried all paths and none worked
+        return {"installed": False, "error": "Cloudflared not found in PATH or common locations"}
+    except Exception as e:
+        # If any exception occurs, cloudflared is not installed
+        return {"installed": False, "error": str(e)}
+
+@app.post("/api/kill-cloudflared", tags=["webhook"])
+async def kill_cloudflared():
+    """Kill all cloudflared processes on the system using pkill or alternative methods"""
+    try:
+        # Try different process killing methods
+        methods = [
+            # Try pkill first (most common on Linux/macOS)
+            ["pkill", "cloudflared"],
+            # Try killall as an alternative
+            ["killall", "cloudflared"],
+            # If on Windows system, try taskkill
+            ["taskkill", "/F", "/IM", "cloudflared.exe"]
+        ]
+        
+        for cmd in methods:
+            try:
+                process = await asyncio.create_subprocess_exec(
+                    *cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                
+                stdout, stderr = await process.communicate()
+                
+                # pkill returns 0 if processes were killed, 1 if no processes matched
+                if process.returncode in [0, 1]:  # Accept both 0 (killed) and 1 (none found) as success
+                    return {"success": True, "message": f"Cloudflared processes killed using {cmd[0]}", "method": cmd[0]}
+            except:
+                # Continue to next method if this one fails
+                continue
+                
+        # If we've exhausted all methods, try a more direct approach with ps and kill
+        try:
+            # Find cloudflared PIDs
+            ps_process = await asyncio.create_subprocess_exec(
+                "ps", "aux",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            
+            stdout, stderr = await ps_process.communicate()
+            output = stdout.decode()
+            
+            # Extract PIDs of cloudflared processes
+            pids = []
+            for line in output.split("\n"):
+                if "cloudflared" in line and "grep" not in line:
+                    parts = line.strip().split()
+                    if len(parts) > 1:
+                        try:
+                            pid = int(parts[1])
+                            pids.append(pid)
+                        except:
+                            pass
+            
+            # Kill each process by PID
+            for pid in pids:
+                kill_process = await asyncio.create_subprocess_exec(
+                    "kill", "-9", str(pid),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                await kill_process.communicate()
+            
+            if pids:
+                return {"success": True, "message": f"Killed {len(pids)} cloudflared processes using manual PID method", "method": "manual_kill"}
+        except Exception as e:
+            logging.error(f"Error trying manual kill method: {str(e)}")
+        
+        # If we reach here, all methods failed
+        return {"success": False, "error": "All process kill methods failed. Try stopping cloudflared manually."}
+    except Exception as e:
+        # If any exception occurs, return error
+        error_details = traceback.format_exc()
+        logging.error(f"Error killing cloudflared processes: {str(e)}\n{error_details}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": f"Error killing cloudflared processes: {str(e)}"}
+        )
+
+@app.post("/api/save-webhook-url", tags=["webhook"])
+async def save_webhook_url(url: str):
+    """Save the webhook URL to a config file for persistence"""
+    try:
+        # Create config object with timestamp
+        config = {
+            "url": url,
+            "timestamp": datetime.now().isoformat(),
+            "active": True
+        }
+        
+        # Save to file
+        with open(webhook_config_file, "w") as f:
+            json.dump(config, f, indent=2)
+        
+        return {"success": True, "message": "Webhook URL saved successfully"}
+    except Exception as e:
+        # If any exception occurs, return error
+        error_details = traceback.format_exc()
+        logging.error(f"Error saving webhook URL: {str(e)}\n{error_details}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": f"Error saving webhook URL: {str(e)}"}
+        )
+
+@app.get("/api/get-webhook-url", tags=["webhook"])
+async def get_webhook_url():
+    """Get the saved webhook URL from config file"""
+    try:
+        # Check if config file exists
+        if not os.path.exists(webhook_config_file):
+            return {"success": True, "url": None, "active": False}
+        
+        # Read from file
+        with open(webhook_config_file, "r") as f:
+            config = json.load(f)
+        
+        return {
+            "success": True, 
+            "url": config.get("url"), 
+            "active": config.get("active", False),
+            "timestamp": config.get("timestamp")
+        }
+    except Exception as e:
+        # If any exception occurs, return error
+        error_details = traceback.format_exc()
+        logging.error(f"Error getting webhook URL: {str(e)}\n{error_details}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": f"Error getting webhook URL: {str(e)}"}
+        )
+
+@app.post("/api/start-tunnel", tags=["webhook"])
+async def start_tunnel():
+    """Start a Cloudflare tunnel and return the generated URL"""
+    global tunnel_process
+    
+    try:
+        # Check if cloudflared is installed
+        check_result = await check_cloudflared()
+        if not check_result["installed"]:
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "error": f"Cloudflare tunnel is not installed on your system. Please install it first. Details: {check_result['error']}"}
+            )
+        
+        # Get the cloudflared path that worked
+        cloudflared_path = check_result.get("path", "cloudflared")
+        logging.info(f"Using cloudflared at: {cloudflared_path}")
+        
+        # Get the port from environment variable or default to 8000
+        app_port = os.getenv("APP_PORT", "8000")
+        tunnel_url = f"http://localhost:{app_port}"
+        logging.info(f"Starting tunnel for: {tunnel_url}")
+            
+        # If there's already a running tunnel, stop it first
+        if 'tunnel_process' in globals() and tunnel_process and tunnel_process.returncode is None:
+            try:
+                tunnel_process.terminate()
+                await tunnel_process.wait()
+                logging.info("Terminated existing tunnel process")
+            except Exception as e:
+                logging.error(f"Error terminating existing tunnel: {str(e)}")
+        
+        # Start the cloudflared tunnel process with configurable port
+        tunnel_process = await asyncio.create_subprocess_exec(
+            cloudflared_path, "tunnel", "--url", tunnel_url, "--no-autoupdate",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        
+        # We need to read the output to find the URL
+        url_pattern = re.compile(r"https?://[a-zA-Z0-9-]+\.trycloudflare\.com")
+        
+        # Read the output line by line to find the URL
+        url = None
+        output_lines = []
+        
+        # Read for maximum 30 seconds or until URL is found
+        start_time = datetime.now()
+        while (datetime.now() - start_time).total_seconds() < 30 and tunnel_process.returncode is None:
+            # Read a line from stderr (where cloudflared outputs status)
+            line = await tunnel_process.stderr.readline()
+            if not line:
+                # Try stdout if stderr is empty
+                line = await tunnel_process.stdout.readline()
+                if not line:
+                    break
+            
+            line_str = line.decode().strip()
+            output_lines.append(line_str)
+            logging.info(f"Cloudflared output: {line_str}")
+            
+            # Check if the line contains a URL
+            match = url_pattern.search(line_str)
+            if match:
+                url = match.group(0)
+                # Don't terminate the process - keep it running
+                break
+        
+        # If we didn't find a URL, terminate the process
+        if url is None:
+            tunnel_process.terminate()
+            await tunnel_process.wait()
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "success": False, 
+                    "error": "Could not generate tunnel URL. Output: " + " ".join(output_lines)
+                }
+            )
+        
+        # Create a background task to keep reading from process stdout/stderr to prevent pipe buffer from filling up
+        asyncio.create_task(drain_process_pipes(tunnel_process))
+        
+        # Save the URL to config file
+        try:
+            # Create config object with timestamp
+            config = {
+                "url": url,
+                "timestamp": datetime.now().isoformat(),
+                "active": True,
+                "port": app_port
+            }
+            
+            # Save to file
+            with open(webhook_config_file, "w") as f:
+                json.dump(config, f, indent=2)
+        except Exception as e:
+            logging.error(f"Error saving webhook URL to config: {str(e)}")
+        
+        # Return the URL
+        return {"success": True, "url": url, "port": app_port, "output": output_lines}
+        
+    except Exception as e:
+        # If any exception occurs, return error
+        error_details = traceback.format_exc()
+        logging.error(f"Error starting tunnel: {str(e)}\n{error_details}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": f"Error starting tunnel: {str(e)}"}
+        )
+
+@app.post("/api/stop-tunnel", tags=["webhook"])
+async def stop_tunnel():
+    """Stop the running Cloudflare tunnel"""
+    global tunnel_process
+    
+    try:
+        if 'tunnel_process' in globals() and tunnel_process and tunnel_process.returncode is None:
+            # Terminate the process
+            tunnel_process.terminate()
+            await tunnel_process.wait()
+            logging.info("Terminated tunnel process")
+            
+            # Update config to mark tunnel as inactive
+            try:
+                if os.path.exists(webhook_config_file):
+                    with open(webhook_config_file, "r") as f:
+                        config = json.load(f)
+                    
+                    config["active"] = False
+                    
+                    with open(webhook_config_file, "w") as f:
+                        json.dump(config, f, indent=2)
+            except Exception as e:
+                logging.error(f"Error updating webhook config: {str(e)}")
+            
+            return {"success": True, "message": "Tunnel stopped successfully"}
+        else:
+            return {"success": False, "message": "No active tunnel to stop"}
+    except Exception as e:
+        error_details = traceback.format_exc()
+        logging.error(f"Error stopping tunnel: {str(e)}\n{error_details}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": f"Error stopping tunnel: {str(e)}"}
+        )
+
+# Add a helper function to drain process pipes
+async def drain_process_pipes(process):
+    """Helper function to continuously read from process pipes to prevent them from filling up"""
+    try:
+        while process.returncode is None:
+            # Read from stdout and stderr
+            stdout_line = await process.stdout.readline()
+            stderr_line = await process.stderr.readline()
+            
+            # If both are empty, sleep a bit
+            if not stdout_line and not stderr_line:
+                await asyncio.sleep(0.1)
+                continue
+            
+            # Log any output
+            if stdout_line:
+                logging.info(f"Tunnel stdout: {stdout_line.decode().strip()}")
+            if stderr_line:
+                logging.info(f"Tunnel stderr: {stderr_line.decode().strip()}")
+    except Exception as e:
+        logging.error(f"Error in drain_process_pipes: {str(e)}")
+
+# Add page route for webhook generator
+@app.get("/webhook-generator", tags=["pages"])
+async def webhook_generator_page(request: Request):
+    """Webhook Generator Page"""
+    # Add your authentication logic here if needed
+    return templates.TemplateResponse("webhook_generator.html", {"request": request})
+```
+
+### **Standalone Webhook App (webhook_app.py):**
+
+```python
+#!/usr/bin/env python3
+"""
+Complete Webhook URL Generator with Cloudflared Tunnel Support
+FastAPI backend for generating secure webhook URLs using Cloudflared tunnels.
+"""
+
+import asyncio
+import json
+import logging
+import os
+import re
+import subprocess
+import traceback
+from datetime import datetime, timezone
+from typing import Optional, Dict, Any
+
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Global variables
+tunnel_process = None
+SERVER_START_TIME = datetime.now()
+
+# Configuration files
+WEBHOOK_CONFIG_FILE = "config/webhook_config.json"
+CONFIG_DIR = "config"
+
+# Ensure config directory exists
+os.makedirs(CONFIG_DIR, exist_ok=True)
+
+# Initialize FastAPI app
+app = FastAPI(
+    title="Webhook Generator API",
+    description="Generate secure webhook URLs using Cloudflared tunnels",
+    version="1.0.0"
+)
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Setup templates
+templates = Jinja2Templates(directory="templates")
+
+# Pydantic models
+class WebhookURLRequest(BaseModel):
+    url: str
+
+class TunnelResponse(BaseModel):
+    success: bool
+    url: Optional[str] = None
+    error: Optional[str] = None
+    message: Optional[str] = None
+    port: Optional[str] = None
+
+# Routes
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    """Serve the main webhook generator page"""
+    return templates.TemplateResponse("webhook_generator.html", {"request": request})
+
+@app.get("/api/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+@app.get("/api/server/uptime")
+async def get_server_uptime():
+    """Get server uptime information"""
+    try:
+        current_time = datetime.now()
+        uptime_delta = current_time - SERVER_START_TIME
+        
+        # Calculate days, hours, minutes, seconds
+        total_seconds = int(uptime_delta.total_seconds())
+        days = uptime_delta.days
+        hours = (total_seconds % 86400) // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        
+        # Format current times
+        local_time_str = current_time.strftime("%H:%M:%S")
+        gmt_time = datetime.now(timezone.utc)
+        gmt_time_str = gmt_time.strftime("%H:%M:%S")
+        
+        return {
+            "success": True,
+            "uptime": {
+                "days": days,
+                "hours": hours,
+                "minutes": minutes,
+                "seconds": seconds
+            },
+            "current_time": {
+                "local": local_time_str,
+                "gmt": gmt_time_str
+            },
+            "server_start_time": SERVER_START_TIME.isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error getting uptime: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": f"Error getting uptime: {str(e)}"}
+        )
+
+@app.get("/api/check-cloudflared")
+async def check_cloudflared():
+    """Check if cloudflared is installed on the system"""
+    try:
+        # Try common locations for cloudflared binary
+        cloudflared_paths = [
+            "cloudflared",
+            "/usr/bin/cloudflared",
+            "/usr/local/bin/cloudflared",
+            "/bin/cloudflared",
+            "/opt/homebrew/bin/cloudflared",  # Apple Silicon homebrew
+        ]
+        
+        for path in cloudflared_paths:
+            try:
+                # Try to run cloudflared version command
+                process = await asyncio.create_subprocess_exec(
+                    path, "--version",
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                
+                stdout, stderr = await process.communicate()
+                
+                # If returncode is 0, cloudflared is installed
+                if process.returncode == 0:
+                    version_info = stdout.decode().strip()
+                    logger.info(f"Found cloudflared at {path}: {version_info}")
+                    return {
+                        "installed": True, 
+                        "version": version_info, 
+                        "path": path
+                    }
+            except Exception as e:
+                logger.debug(f"Failed to check cloudflared at {path}: {str(e)}")
+                continue
+                
+        # If we've tried all paths and none worked
+        return {
+            "installed": False, 
+            "error": "Cloudflared not found in PATH or common locations"
+        }
+    except Exception as e:
+        logger.error(f"Error checking cloudflared: {str(e)}")
+        return {
+            "installed": False, 
+            "error": str(e)
+        }
+
+@app.post("/api/start-tunnel")
+async def start_tunnel():
+    """Start a Cloudflare tunnel and return the generated URL"""
+    global tunnel_process
+    
+    try:
+        # Check if cloudflared is installed
+        check_result = await check_cloudflared()
+        if not check_result["installed"]:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False, 
+                    "error": f"Cloudflare tunnel is not installed on your system. Please install it first. Details: {check_result['error']}"
+                }
+            )
+        
+        # Get the cloudflared path that worked
+        cloudflared_path = check_result.get("path", "cloudflared")
+        logger.info(f"Using cloudflared at: {cloudflared_path}")
+        
+        # Get the port from environment variable or default to 8000
+        app_port = os.getenv("APP_PORT", "8000")
+        tunnel_url = f"http://localhost:{app_port}"
+        logger.info(f"Starting tunnel for: {tunnel_url}")
+            
+        # If there's already a running tunnel, stop it first
+        if tunnel_process and tunnel_process.returncode is None:
+            try:
+                tunnel_process.terminate()
+                await tunnel_process.wait()
+                logger.info("Terminated existing tunnel process")
+            except Exception as e:
+                logger.error(f"Error terminating existing tunnel: {str(e)}")
+        
+        # Start the cloudflared tunnel process with configurable port
+        tunnel_process = await asyncio.create_subprocess_exec(
+            cloudflared_path, "tunnel", "--url", tunnel_url, "--no-autoupdate",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        
+        # We need to read the output to find the URL
+        url_pattern = re.compile(r"https?://[a-zA-Z0-9-]+\.trycloudflare\.com")
+        
+        # Read the output line by line to find the URL
+        url = None
+        output_lines = []
+        
+        # Read for maximum 30 seconds or until URL is found
+        start_time = datetime.now()
+        while (datetime.now() - start_time).total_seconds() < 30 and tunnel_process.returncode is None:
+            # Read a line from stderr (where cloudflared outputs status)
+            try:
+                line = await asyncio.wait_for(tunnel_process.stderr.readline(), timeout=1.0)
+            except asyncio.TimeoutError:
+                continue
+                
+            if not line:
+                # Try stdout if stderr is empty
+                try:
+                    line = await asyncio.wait_for(tunnel_process.stdout.readline(), timeout=1.0)
+                except asyncio.TimeoutError:
+                    continue
+                if not line:
+                    continue
+            
+            line_str = line.decode().strip()
+            if line_str:  # Only log non-empty lines
+                output_lines.append(line_str)
+                logger.info(f"Cloudflared output: {line_str}")
+                
+                # Check if the line contains a URL
+                match = url_pattern.search(line_str)
+                if match:
+                    url = match.group(0)
+                    logger.info(f"Found tunnel URL: {url}")
+                    break
+        
+        # If we didn't find a URL, terminate the process
+        if url is None:
+            if tunnel_process and tunnel_process.returncode is None:
+                tunnel_process.terminate()
+                await tunnel_process.wait()
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "success": False, 
+                    "error": "Could not generate tunnel URL. Output: " + " | ".join(output_lines[-10:])  # Show last 10 lines
+                }
+            )
+        
+        # Create a background task to keep reading from process stdout/stderr
+        asyncio.create_task(drain_process_pipes(tunnel_process))
+        
+        # Save the URL to config file
+        try:
+            config = {
+                "url": url,
+                "timestamp": datetime.now().isoformat(),
+                "active": True,
+                "port": app_port
+            }
+            
+            with open(WEBHOOK_CONFIG_FILE, "w") as f:
+                json.dump(config, f, indent=2)
+            logger.info(f"Saved tunnel config to {WEBHOOK_CONFIG_FILE}")
+        except Exception as e:
+            logger.error(f"Error saving webhook URL to config: {str(e)}")
+        
+        # Return the URL
+        return {
+            "success": True, 
+            "url": url, 
+            "port": app_port, 
+            "message": "Tunnel started successfully"
+        }
+        
+    except Exception as e:
+        error_details = traceback.format_exc()
+        logger.error(f"Error starting tunnel: {str(e)}\n{error_details}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": f"Error starting tunnel: {str(e)}"}
+        )
+
+@app.post("/api/stop-tunnel")
+async def stop_tunnel():
+    """Stop the running Cloudflare tunnel"""
+    global tunnel_process
+    
+    try:
+        if tunnel_process and tunnel_process.returncode is None:
+            # Terminate the process
+            tunnel_process.terminate()
+            await tunnel_process.wait()
+            logger.info("Terminated tunnel process")
+            
+            # Update config to mark tunnel as inactive
+            try:
+                if os.path.exists(WEBHOOK_CONFIG_FILE):
+                    with open(WEBHOOK_CONFIG_FILE, "r") as f:
+                        config = json.load(f)
+                    
+                    config["active"] = False
+                    config["stopped_at"] = datetime.now().isoformat()
+                    
+                    with open(WEBHOOK_CONFIG_FILE, "w") as f:
+                        json.dump(config, f, indent=2)
+                    logger.info("Updated webhook config - marked as inactive")
+            except Exception as e:
+                logger.error(f"Error updating webhook config: {str(e)}")
+            
+            return {"success": True, "message": "Tunnel stopped successfully"}
+        else:
+            return {"success": False, "message": "No active tunnel to stop"}
+    except Exception as e:
+        error_details = traceback.format_exc()
+        logger.error(f"Error stopping tunnel: {str(e)}\n{error_details}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": f"Error stopping tunnel: {str(e)}"}
+        )
+
+@app.post("/api/kill-cloudflared")
+async def kill_cloudflared():
+    """Kill all cloudflared processes on the system"""
+    try:
+        # Try different process killing methods
+        methods = [
+            ["pkill", "cloudflared"],  # Most common on Linux/macOS
+            ["killall", "cloudflared"],  # Alternative
+            ["taskkill", "/F", "/IM", "cloudflared.exe"]  # Windows
+        ]
+        
+        for cmd in methods:
+            try:
+                process = await asyncio.create_subprocess_exec(
+                    *cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                
+                stdout, stderr = await process.communicate()
+                
+                # pkill returns 0 if processes were killed, 1 if no processes matched
+                if process.returncode in [0, 1]:
+                    logger.info(f"Killed cloudflared processes using {cmd[0]}")
+                    
+                    # Update config to mark tunnel as inactive
+                    try:
+                        if os.path.exists(WEBHOOK_CONFIG_FILE):
+                            with open(WEBHOOK_CONFIG_FILE, "r") as f:
+                                config = json.load(f)
+                            
+                            config["active"] = False
+                            config["force_killed_at"] = datetime.now().isoformat()
+                            
+                            with open(WEBHOOK_CONFIG_FILE, "w") as f:
+                                json.dump(config, f, indent=2)
+                    except Exception as e:
+                        logger.error(f"Error updating webhook config after kill: {str(e)}")
+                    
+                    return {
+                        "success": True, 
+                        "message": f"Cloudflared processes killed using {cmd[0]}", 
+                        "method": cmd[0]
+                    }
+            except Exception as e:
+                logger.debug(f"Failed to kill with {cmd}: {str(e)}")
+                continue
+                
+        # Manual PID-based killing as fallback
+        try:
+            ps_process = await asyncio.create_subprocess_exec(
+                "ps", "aux",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            
+            stdout, stderr = await ps_process.communicate()
+            output = stdout.decode()
+            
+            # Extract PIDs of cloudflared processes
+            pids = []
+            for line in output.split("\n"):
+                if "cloudflared" in line and "grep" not in line:
+                    parts = line.strip().split()
+                    if len(parts) > 1:
+                        try:
+                            pid = int(parts[1])
+                            pids.append(pid)
+                        except ValueError:
+                            pass
+            
+            # Kill each process by PID
+            for pid in pids:
+                kill_process = await asyncio.create_subprocess_exec(
+                    "kill", "-9", str(pid),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+                await kill_process.communicate()
+            
+            if pids:
+                logger.info(f"Manually killed {len(pids)} cloudflared processes")
+                return {
+                    "success": True, 
+                    "message": f"Killed {len(pids)} cloudflared processes using manual PID method", 
+                    "method": "manual_kill"
+                }
+        except Exception as e:
+            logger.error(f"Error trying manual kill method: {str(e)}")
+        
+        # If we reach here, all methods failed
+        return {"success": False, "error": "All process kill methods failed. Try stopping cloudflared manually."}
+    except Exception as e:
+        error_details = traceback.format_exc()
+        logger.error(f"Error killing cloudflared processes: {str(e)}\n{error_details}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": f"Error killing cloudflared processes: {str(e)}"}
+        )
+
+@app.post("/api/save-webhook-url")
+async def save_webhook_url(request: WebhookURLRequest):
+    """Save the webhook URL to a config file for persistence"""
+    try:
+        config = {
+            "url": request.url,
+            "timestamp": datetime.now().isoformat(),
+            "active": True,
+            "manually_saved": True
+        }
+        
+        with open(WEBHOOK_CONFIG_FILE, "w") as f:
+            json.dump(config, f, indent=2)
+        
+        logger.info(f"Manually saved webhook URL: {request.url}")
+        return {"success": True, "message": "Webhook URL saved successfully"}
+    except Exception as e:
+        error_details = traceback.format_exc()
+        logger.error(f"Error saving webhook URL: {str(e)}\n{error_details}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": f"Error saving webhook URL: {str(e)}"}
+        )
+
+@app.get("/api/get-webhook-url")
+async def get_webhook_url():
+    """Get the saved webhook URL from config file"""
+    try:
+        # Check if config file exists
+        if not os.path.exists(WEBHOOK_CONFIG_FILE):
+            return {"success": True, "url": None, "active": False}
+        
+        # Read from file
+        with open(WEBHOOK_CONFIG_FILE, "r") as f:
+            config = json.load(f)
+        
+        return {
+            "success": True, 
+            "url": config.get("url"), 
+            "active": config.get("active", False),
+            "timestamp": config.get("timestamp"),
+            "port": config.get("port")
+        }
+    except Exception as e:
+        error_details = traceback.format_exc()
+        logger.error(f"Error getting webhook URL: {str(e)}\n{error_details}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": f"Error getting webhook URL: {str(e)}"}
+        )
+
+async def drain_process_pipes(process):
+    """Helper function to continuously read from process pipes to prevent them from filling up"""
+    try:
+        while process.returncode is None:
+            # Read from stdout and stderr
+            tasks = []
+            if process.stdout:
+                tasks.append(process.stdout.readline())
+            if process.stderr:
+                tasks.append(process.stderr.readline())
+            
+            if not tasks:
+                await asyncio.sleep(0.1)
+                continue
+            
+            try:
+                results = await asyncio.wait_for(asyncio.gather(*tasks, return_exceptions=True), timeout=1.0)
+                
+                for i, result in enumerate(results):
+                    if isinstance(result, bytes) and result:
+                        output_type = "stdout" if i == 0 else "stderr"
+                        logger.debug(f"Tunnel {output_type}: {result.decode().strip()}")
+            except asyncio.TimeoutError:
+                continue
+            except Exception as e:
+                logger.debug(f"Error reading process pipes: {str(e)}")
+                await asyncio.sleep(0.1)
+                
+    except Exception as e:
+        logger.error(f"Error in drain_process_pipes: {str(e)}")
+
+# Webhook endpoints for your application
+@app.post("/webhook/test")
+async def webhook_test(request: Request):
+    """Test webhook endpoint to verify tunnel is working"""
+    try:
+        # Get request body
+        body = await request.body()
+        headers = dict(request.headers)
+        
+        # Log the webhook request
+        webhook_data = {
+            "timestamp": datetime.now().isoformat(),
+            "method": request.method,
+            "url": str(request.url),
+            "headers": headers,
+            "body": body.decode() if body else None,
+            "source_ip": request.client.host if request.client else None
+        }
+        
+        logger.info(f"Webhook test received: {webhook_data}")
+        
+        return {
+            "success": True,
+            "message": "Webhook test successful",
+            "received_at": webhook_data["timestamp"],
+            "data": webhook_data
+        }
+    except Exception as e:
+        logger.error(f"Error processing webhook test: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": f"Error processing webhook: {str(e)}"}
+        )
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    port = int(os.getenv("APP_PORT", "8000"))
+    logger.info(f"Starting webhook server on port {port}")
+    
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=port,
+        log_level="info"
+    )
+```
+
+## 2. Frontend Code
+
+### **HTML Template (webhook_generator.html):**
+
+```html
+{% extends "base.html" %}
+
+{% block title %}Webhook Generator - PropFuturesBot{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', path='/css/webhook_generator.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Webhook Generation Section -->
+<section class="account-info">
+  <h2 class="panel-title">Trading Dashboard URL Generator</h2>
+  <div class="alerts-config">
+    <div class="form-group">
+      <p>Generate a secure tunnel URL to access your trading dashboard and webhook endpoints from external platforms.</p>
+      <div id="webhook-reminder" class="webhook-reminder">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>IMPORTANT: You need to regenerate the tunnel URL after restarting your computer or the trading bot. The tunnel needs to be active for external access to work.</span>
+      </div>
+      <div class="form-actions webhook-actions">
+        <button id="generate-webhook" class="btn-generate">Start Dashboard Tunnel</button>
+        <button id="kill-cloudflared" class="btn-danger">Kill Switch</button>
+      </div>
+      <div id="webhook-status" class="webhook-output">
+        <div class="webhook-waiting hidden">
+          <i class="fas fa-spinner fa-spin"></i> Generating dashboard URL...
+        </div>
+        <div class="webhook-error hidden">
+          <div class="error-message"></div>
+        </div>
+        <div class="webhook-success hidden">
+          <div class="success-message">
+            <h4>Your trading dashboard URL:</h4>
+            <div class="url-display">
+              <input type="text" id="webhook-url" readonly />
+              <button id="copy-webhook" class="btn-copy" title="Copy to clipboard">
+                <i class="fas fa-copy"></i>
+              </button>
+            </div>
+            <div class="webhook-note">
+              <i class="fas fa-info-circle"></i>
+              <span>This URL provides secure access to your trading dashboard. For TradingView webhook configuration, use the <strong>Webhook Payload Builder</strong> section below.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Webhook Payload Builder Section -->
+<section class="account-info">
+  <h2 class="panel-title">TradingView Webhook Configuration</h2>
+  <div class="alerts-config">
+    <div class="form-group">
+      <p>Configure your TradingView alerts with the correct webhook URL and JSON payload. Generate both the specific endpoint URL and payload for your trading alerts.</p>
+      
+      <div class="info-banner">
+        <i class="fas fa-lightbulb"></i>
+        <span><strong>Note:</strong> Make sure to generate your Dashboard URL above first, then use this section to create TradingView-specific webhook configurations.</span>
+      </div>
+
+      <!-- Order Type Selection -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="payload-order-type">Order Type</label>
+          <select id="payload-order-type" class="order-dropdown">
+            <option value="market">Market Order</option>
+            <option value="limit">Limit Order</option>
+            <!-- <option value="stoploss">Stop Loss Order</option> -->
+            <option value="stoplossui">Stop Loss UI</option>
+            <option value="trailing">Trailing Stop Order</option>
+            <!-- <option value="bracket">Bracket Order</option> -->
+            <option value="bracketui">Bracket UI</option>
+            <option value="close">Close Position</option>
+            <option value="reverse">Reverse Position</option>
+            <option value="flatten">Flatten All Positions</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Basic Order Fields -->
+      <div id="basic-order-fields">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="payload-account">Account Name</label>
+            <select id="payload-account" class="order-dropdown">
+              <option value="">Select an account</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="payload-symbol">Symbol</label>
+            <input type="text" id="payload-symbol" value="{{ticker}}" readonly>
+            <small class="field-note">Use {{ticker}} for dynamic symbol from TradingView</small>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="payload-action">Action</label>
+            <select id="payload-action" class="order-dropdown">
+              <option value="buy">Buy</option>
+              <option value="sell">Sell</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="payload-qty">Quantity</label>
+            <input type="number" id="payload-qty" min="1" value="1">
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Type Specific Fields -->
+      <div id="limit-price-field" class="form-row hidden">
+        <div class="form-group">
+          <label for="payload-limit-price">Limit Price</label>
+          <input type="number" id="payload-limit-price" step="0.01" value="21160">
+        </div>
+      </div>
+
+      <div id="stop-price-field" class="form-row hidden">
+        <div class="form-group">
+          <label for="payload-stop-price">Stop Price (points)</label>
+          <input type="number" id="payload-stop-price" min="1" value="20">
+        </div>
+      </div>
+
+      <div id="take-profit-field" class="form-row hidden">
+        <div class="form-group">
+          <label for="payload-take-profit">Take Profit (points)</label>
+          <input type="number" id="payload-take-profit" min="1" value="20">
+        </div>
+      </div>
+
+      <div id="trailing-offset-field" class="form-row hidden">
+        <div class="form-group">
+          <label for="payload-trailing-offset">Trailing Offset (points)</label>
+          <input type="number" id="payload-trailing-offset" min="1" value="20">
+        </div>
+      </div>
+
+      <!-- Advanced Options -->
+      <div id="advanced-options">
+        <h4>Advanced Options</h4>
+        <div class="options-container">
+          <label class="checkbox-label">
+            <input type="checkbox" id="payload-close-existing-orders" class="toggle-checkbox">
+            <span class="checkbox-text">Close Existing Orders</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="payload-enable-break-even" class="toggle-checkbox">
+            <span class="checkbox-text">Enable Break-Even Stop</span>
+          </label>
+        </div>
+
+        <!-- Break-Even Stop Options -->
+        <div class="form-row" id="break-even-offset-field" style="display: none;">
+          <div class="form-group">
+            <label for="payload-break-even-offset">Break-Even Activation Offset (points)</label>
+            <input type="number" id="payload-break-even-offset" min="1" value="2">
+          </div>
+        </div>
+      </div>
+
+      <!-- Generate Payload Button -->
+      <div class="form-actions">
+        <button id="generate-payload-btn" class="btn-generate">Generate Payload</button>
+      </div>
+
+      <!-- Generated Payload Display -->
+      <div id="generated-payload" class="payload-output hidden">
+        <h4>Generated Webhook Configuration:</h4>
+        
+        <!-- Webhook URL Section -->
+        <div class="config-section">
+          <h5>Webhook URL:</h5>
+          <div class="url-display">
+            <input type="text" id="generated-webhook-url" readonly />
+            <button id="copy-url-btn" class="btn-copy" title="Copy URL">
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+          <div class="config-note">
+            <i class="fas fa-info-circle"></i>
+            <span>Use this URL in your TradingView alert webhook configuration.</span>
+          </div>
+        </div>
+
+        <!-- JSON Payload Section -->
+        <div class="config-section">
+          <h5>JSON Payload:</h5>
+          <div class="payload-display">
+            <pre id="payload-json"></pre>
+          </div>
+          <div class="payload-actions">
+            <button id="copy-payload-btn" class="btn-copy">Copy Payload</button>
+          </div>
+          <div class="config-note">
+            <i class="fas fa-info-circle"></i>
+            <span>Copy this JSON payload and paste it in your TradingView alert message.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Usage Instructions -->
+      <div class="usage-instructions">
+        <h4>Usage Instructions</h4>
+        <ul>
+          <li>Configure your order parameters using the form above</li>
+          <li>Click "Generate Payload" to create both the webhook URL and JSON payload</li>
+          <li>Copy the webhook URL and use it in your TradingView alert webhook URL field</li>
+          <li>Copy the JSON payload and paste it into your TradingView alert message</li>
+          <li>The symbol {{ticker}} will automatically be replaced with the actual symbol from TradingView</li>
+          <li>Price values (stop price, take profit, trailing offset) are in <strong>points</strong>, not dollars</li>
+          <li>For TradingView setup guide, visit: <a href="https://www.tradingview.com/support/solutions/43000529348-about-webhooks/" target="_blank">TradingView Webhook Support</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Cloudflare Installation Modal -->
+<div id="cloudflare-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Install Cloudflare Tunnel</h2>
+      <span class="close">&times;</span>
+    </div>
+    <div class="modal-body">
+      <h3>Installation Instructions:</h3>
+      <div class="install-steps">
+        <h4>macOS:</h4>
+        <pre class="code-block">brew install cloudflared</pre>
+        
+        <h4>Windows:</h4>
+        <p>Download from: <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation#windows" target="_blank">Cloudflare Downloads</a></p>
+        
+        <h4>Linux:</h4>
+        <pre class="code-block">wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+sudo dpkg -i cloudflared-linux-amd64.deb</pre>
+      </div>
+      
+      <p class="install-note">After installation, refresh this page and try generating a webhook URL again.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', path='/js/webhook_generator.js') }}"></script>
+{% endblock %}
+```
+
+### **JavaScript (webhook_generator.js):**
+
+```javascript
+// Webhook Generator Page JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM Elements - Webhook Generation
+    const generateWebhookBtn = document.getElementById('generate-webhook');
+    const killCloudflaredBtn = document.getElementById('kill-cloudflared');
+    const cloudflareInstallLink = document.getElementById('cloudflare-install-link');
+    const webhookOutput = document.getElementById('webhook-status');
+    const webhookWaiting = webhookOutput.querySelector('.webhook-waiting');
+    const webhookError = webhookOutput.querySelector('.webhook-error');
+    const webhookSuccess = webhookOutput.querySelector('.webhook-success');
+    const webhookUrlInput = document.getElementById('webhook-url');
+    const copyWebhookBtn = document.getElementById('copy-webhook');
+    
+    // DOM Elements - Payload Builder
+    const payloadOrderType = document.getElementById('payload-order-type');
+    const basicOrderFields = document.getElementById('basic-order-fields');
+    const limitPriceField = document.getElementById('limit-price-field');
+    const stopPriceField = document.getElementById('stop-price-field');
+    const takeProfitField = document.getElementById('take-profit-field');
+    const trailingOffsetField = document.getElementById('trailing-offset-field');
+    const advancedOptions = document.getElementById('advanced-options');
+    const breakEvenOffsetField = document.getElementById('break-even-offset-field');
+    const generatePayloadBtn = document.getElementById('generate-payload-btn');
+    const copyPayloadBtn = document.getElementById('copy-payload-btn');
+    const copyUrlBtn = document.getElementById('copy-url-btn');
+    const generatedPayload = document.getElementById('generated-payload');
+    const payloadJson = document.getElementById('payload-json');
+    const generatedWebhookUrl = document.getElementById('generated-webhook-url');
+    
+    // Payload form elements
+    const payloadAccount = document.getElementById('payload-account');
+    const payloadSymbol = document.getElementById('payload-symbol');
+    const payloadAction = document.getElementById('payload-action');
+    const payloadQty = document.getElementById('payload-qty');
+    const payloadLimitPrice = document.getElementById('payload-limit-price');
+    const payloadStopPrice = document.getElementById('payload-stop-price');
+    const payloadTakeProfit = document.getElementById('payload-take-profit');
+    const payloadTrailingOffset = document.getElementById('payload-trailing-offset');
+    const payloadCloseExistingOrders = document.getElementById('payload-close-existing-orders');
+    const payloadEnableBreakEven = document.getElementById('payload-enable-break-even');
+    const payloadBreakEvenOffset = document.getElementById('payload-break-even-offset');
+    
+    // State variables
+    let savedWebhookUrl = null;
+    let webhookActive = false;
+    
+    // Initialize event handlers - Webhook Generation
+    if (generateWebhookBtn) {
+        generateWebhookBtn.addEventListener('click', handleWebhookButton);
+    }
+    
+    if (killCloudflaredBtn) {
+        killCloudflaredBtn.addEventListener('click', killCloudflared);
+    }
+    
+    if (cloudflareInstallLink) {
+        cloudflareInstallLink.addEventListener('click', showCloudflareModal);
+    }
+    
+    if (copyWebhookBtn) {
+        copyWebhookBtn.addEventListener('click', copyWebhookUrl);
+    }
+    
+    // Initialize event handlers - Payload Builder
+    if (payloadOrderType) {
+        payloadOrderType.addEventListener('change', updatePayloadFormFields);
+    }
+    
+    if (generatePayloadBtn) {
+        generatePayloadBtn.addEventListener('click', generatePayload);
+    }
+    
+    if (copyPayloadBtn) {
+        copyPayloadBtn.addEventListener('click', copyPayload);
+    }
+    
+    if (copyUrlBtn) {
+        copyUrlBtn.addEventListener('click', copyGeneratedUrl);
+    }
+    
+    if (payloadEnableBreakEven) {
+        payloadEnableBreakEven.addEventListener('change', toggleBreakEvenField);
+    }
+    
+    // Initialize Cloudflare modal
+    initializeCloudflareModal();
+    
+    // Load any saved webhook URL
+    loadSavedWebhookUrl();
+    
+    // Filter accounts based on balance criteria
+    function shouldShowAccount(account) {
+        if (!account || account.id === "8734161") {
+            return false;
+        }
+        
+        const accountName = account.name || '';
+        const balance = parseFloat(account.balance) || 0;
+        
+        // Apply balance filtering based on account name prefixes
+        if (accountName.startsWith('100')) {
+            return balance >= 97000;
+        } else if (accountName.startsWith('150K')) {
+            return balance >= 145500;
+        } else if (accountName.startsWith('50')) {
+            return balance >= 48000;
+        }
+        
+        // For accounts that don't match the specified prefixes, show them (no filtering)
+        return true;
+    }
+
+    // Load accounts and initialize payload form
+    loadAccounts();
+    updatePayloadFormFields();
+    
+    // Load Accounts Function
+    async function loadAccounts() {
+        try {
+            const response = await fetch('/accounts/');
+            if (!response.ok) {
+                throw new Error('Failed to fetch accounts');
+            }
+            
+            const data = await response.json();
+            
+            // Clear existing options (except the first one)
+            while (payloadAccount.options.length > 1) {
+                payloadAccount.remove(1);
+            }
+            
+            // Add only accounts that meet the balance criteria
+            if (data.accounts && data.accounts.length > 0) {
+                data.accounts.forEach(account => {
+                    // Apply balance-based filtering
+                    if (shouldShowAccount(account)) {
+                        const option = document.createElement('option');
+                        option.value = account.name;
+                        option.textContent = `${account.name} ($${parseFloat(account.balance).toLocaleString()})`;
+                        payloadAccount.appendChild(option);
+                    }
+                });
+                
+                // Select first account by default
+                if (payloadAccount.options.length > 1) {
+                    payloadAccount.selectedIndex = 1;
+                }
+            } else {
+                console.log('No accounts found for payload builder');
+            }
+        } catch (error) {
+            console.error('Error loading accounts for payload builder:', error);
+        }
+    }
+    
+    // Payload Builder Functions
+    function updatePayloadFormFields() {
+        const orderType = payloadOrderType.value;
+        
+        // Hide all conditional fields first
+        basicOrderFields.classList.add('hidden');
+        limitPriceField.classList.add('hidden');
+        stopPriceField.classList.add('hidden');
+        takeProfitField.classList.add('hidden');
+        trailingOffsetField.classList.add('hidden');
+        advancedOptions.classList.add('hidden');
+        
+        // Show fields based on order type
+        switch (orderType) {
+            case 'market':
+                basicOrderFields.classList.remove('hidden');
+                advancedOptions.classList.remove('hidden');
+                break;
+            case 'limit':
+                basicOrderFields.classList.remove('hidden');
+                limitPriceField.classList.remove('hidden');
+                advancedOptions.classList.remove('hidden');
+                break;
+            case 'stoploss':
+                basicOrderFields.classList.remove('hidden');
+                stopPriceField.classList.remove('hidden');
+                advancedOptions.classList.remove('hidden');
+                break;
+            case 'stoplossui':
+                basicOrderFields.classList.remove('hidden');
+                stopPriceField.classList.remove('hidden');
+                advancedOptions.classList.remove('hidden');
+                break;
+            case 'trailing':
+                basicOrderFields.classList.remove('hidden');
+                trailingOffsetField.classList.remove('hidden');
+                advancedOptions.classList.remove('hidden');
+                break;
+            case 'bracket':
+                basicOrderFields.classList.remove('hidden');
+                limitPriceField.classList.remove('hidden');
+                stopPriceField.classList.remove('hidden');
+                takeProfitField.classList.remove('hidden');
+                trailingOffsetField.classList.remove('hidden');
+                advancedOptions.classList.remove('hidden');
+                break;
+            case 'bracketui':
+                basicOrderFields.classList.remove('hidden');
+                stopPriceField.classList.remove('hidden');
+                takeProfitField.classList.remove('hidden');
+                advancedOptions.classList.remove('hidden');
+                break;
+            case 'close':
+                // Only show account and symbol for close position
+                basicOrderFields.classList.remove('hidden');
+                // Hide action and qty for close position
+                document.querySelector('#payload-action').parentElement.style.display = 'none';
+                document.querySelector('#payload-qty').parentElement.style.display = 'none';
+                break;
+            case 'reverse':
+                // Only show account and symbol for reverse position
+                basicOrderFields.classList.remove('hidden');
+                // Hide action and qty for reverse position
+                document.querySelector('#payload-action').parentElement.style.display = 'none';
+                document.querySelector('#payload-qty').parentElement.style.display = 'none';
+                break;
+            case 'flatten':
+                // Only show account for flatten all
+                basicOrderFields.classList.remove('hidden');
+                // Hide symbol, action and qty for flatten all
+                document.querySelector('#payload-symbol').parentElement.style.display = 'none';
+                document.querySelector('#payload-action').parentElement.style.display = 'none';
+                document.querySelector('#payload-qty').parentElement.style.display = 'none';
+                break;
+        }
+        
+        // Reset field visibility for standard order types (show all basic fields)
+        if (orderType !== 'close' && orderType !== 'flatten' && orderType !== 'reverse') {
+            document.querySelector('#payload-action').parentElement.style.display = 'block';
+            document.querySelector('#payload-qty').parentElement.style.display = 'block';
+            document.querySelector('#payload-symbol').parentElement.style.display = 'block';
+        }
+        
+        // Ensure symbol is always {{ticker}}
+        if (payloadSymbol) {
+            payloadSymbol.value = '{{ticker}}';
+        }
+        
+        // Update break-even field visibility
+        toggleBreakEvenField();
+    }
+    
+    function toggleBreakEvenField() {
+        if (payloadEnableBreakEven && breakEvenOffsetField) {
+            if (payloadEnableBreakEven.checked) {
+                breakEvenOffsetField.style.display = 'block';
+            } else {
+                breakEvenOffsetField.style.display = 'none';
+            }
+        }
+    }
+    
+    function getWebhookEndpoint(orderType) {
+        // Get the base webhook URL
+        const baseUrl = savedWebhookUrl || webhookUrlInput?.value;
+        if (!baseUrl) {
+            return null;
+        }
+        
+        // Remove trailing slash if present
+        const cleanBaseUrl = baseUrl.replace(/\/$/, '');
+        
+        // Determine endpoint based on order type
+        switch (orderType) {
+            case 'close':
+                return `${cleanBaseUrl}/positions/close`;
+            case 'reverse':
+                return `${cleanBaseUrl}/orders/reverse`;
+            case 'flatten':
+                return `${cleanBaseUrl}/positions/flattenAllForAccount`;
+            case 'stoplossui':
+                return `${cleanBaseUrl}/orders/stop-loss`;
+            default:
+                // All other order types use the place endpoint
+                return `${cleanBaseUrl}/orders/place`;
+        }
+    }
+    
+    function generatePayload() {
+        const orderType = payloadOrderType.value;
+        let payload = {};
+        
+        // Check if webhook URL is available
+        const webhookEndpoint = getWebhookEndpoint(orderType);
+        if (!webhookEndpoint) {
+            showToast('Please generate a webhook URL first', 'error');
+            return;
+        }
+        
+        // Validate account selection
+        if (!payloadAccount.value) {
+            showToast('Please select an account', 'error');
+            return;
+        }
+        
+        // Build payload based on order type
+        switch (orderType) {
+            case 'flatten':
+                payload = {
+                    accountName: payloadAccount.value
+                };
+                break;
+                
+            case 'close':
+                payload = {
+                    accountName: payloadAccount.value,
+                    symbol: '{{ticker}}'
+                };
+                break;
+                
+            case 'reverse':
+                payload = {
+                    accountName: payloadAccount.value,
+                    symbol: '{{ticker}}'
+                };
+                break;
+                
+            default:
+                // Standard order payload
+                payload = {
+                    accountName: payloadAccount.value,
+                    action: payloadAction.value,
+                    orderType: orderType,
+                    symbol: '{{ticker}}',
+                    qty: parseInt(payloadQty.value) || 1
+                };
+                
+                // Add order-type specific fields
+                if (orderType === 'limit' || orderType === 'bracket') {
+                    payload.limitPrice = parseFloat(payloadLimitPrice.value) || 21160;
+                }
+                
+                if (orderType === 'stoploss' || orderType === 'bracket') {
+                    payload.stopPrice = parseFloat(payloadStopPrice.value) || 20;
+                }
+                
+                // For stoplossui, use stopLossPoints instead of stopPrice
+                if (orderType === 'stoplossui') {
+                    payload.stopLossPoints = parseFloat(payloadStopPrice.value) || 20;
+                }
+                
+                if (orderType === 'bracket') {
+                    payload.takeProfit = parseFloat(payloadTakeProfit.value) || 20;
+                    payload.trailingOffset = parseFloat(payloadTrailingOffset.value) || 20;
+                }
+                
+                // For bracketui, use stopPrice and takeProfit (like bracket_topstepx)
+                if (orderType === 'bracketui') {
+                    payload.stopPrice = parseFloat(payloadStopPrice.value) || 20;
+                    payload.takeProfit = parseFloat(payloadTakeProfit.value) || 20;
+                }
+                
+                if (orderType === 'trailing') {
+                    payload.trailingOffset = parseFloat(payloadTrailingOffset.value) || 20;
+                }
+                
+                // Add advanced options
+                payload.closeExistingOrders = payloadCloseExistingOrders.checked ? "Y" : "N";
+                payload.tradeTimeRanges = [];
+                payload.avoidTradeTimeRanges = [];
+                
+                // Add break-even stop if enabled
+                if (payloadEnableBreakEven.checked) {
+                    payload.enableBreakEvenStop = "Y";
+                    payload.breakEvenActivationOffset = parseFloat(payloadBreakEvenOffset.value) || 2;
+                } else {
+                    payload.enableBreakEvenStop = "N";
+                }
+                break;
+        }
+        
+        // Display the generated webhook URL and payload
+        generatedWebhookUrl.value = webhookEndpoint;
+        const formattedJson = JSON.stringify(payload, null, 2);
+        payloadJson.textContent = formattedJson;
+        generatedPayload.classList.remove('hidden');
+        
+        // Scroll to the generated payload
+        generatedPayload.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        showToast('Webhook configuration generated successfully!', 'success');
+    }
+    
+    function copyPayload() {
+        const payloadText = payloadJson.textContent;
+        
+        navigator.clipboard.writeText(payloadText).then(() => {
+            // Show success feedback
+            const originalText = copyPayloadBtn.textContent;
+            copyPayloadBtn.textContent = 'Copied!';
+            copyPayloadBtn.classList.add('copied');
+            
+            setTimeout(() => {
+                copyPayloadBtn.textContent = originalText;
+                copyPayloadBtn.classList.remove('copied');
+            }, 2000);
+            
+            showToast('Payload copied to clipboard!', 'success');
+        }).catch(err => {
+            console.error('Failed to copy payload: ', err);
+            showToast('Failed to copy payload to clipboard', 'error');
+        });
+    }
+    
+    function copyGeneratedUrl() {
+        const urlText = generatedWebhookUrl.value;
+        
+        navigator.clipboard.writeText(urlText).then(() => {
+            // Show success feedback
+            const originalHtml = copyUrlBtn.innerHTML;
+            copyUrlBtn.innerHTML = '<i class="fas fa-check"></i>';
+            copyUrlBtn.classList.add('copied');
+            
+            setTimeout(() => {
+                copyUrlBtn.innerHTML = originalHtml;
+                copyUrlBtn.classList.remove('copied');
+            }, 2000);
+            
+            showToast('Dashboard URL copied to clipboard!', 'success');
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            // Fallback for older browsers
+            document.execCommand('copy');
+            showToast('Dashboard URL copied to clipboard!', 'success');
+        });
+    }
+    
+    // Webhook Generation Functions (existing)
+    function handleWebhookButton() {
+        if (webhookActive) {
+            stopCloudflaredTunnel();
+        } else {
+            generateWebhook();
+        }
+    }
+    
+    function generateWebhook() {
+        // Clear previous output
+        hideAllWebhookOutputs();
+        webhookWaiting.classList.remove('hidden');
+        
+        // Disable generate button while processing
+        generateWebhookBtn.disabled = true;
+        
+        // Test if cloudflared is installed first
+        testCloudflared()
+            .then(installed => {
+                if (!installed) {
+                    showWebhookError('Cloudflare Tunnel is not installed on your system. Please install it first.');
+                    return;
+                }
+                
+                // Start the tunnel to generate a webhook URL
+                return runCloudflaredTunnel();
+            })
+            .catch(error => {
+                showWebhookError(`Error: ${error.message}`);
+            })
+            .finally(() => {
+                generateWebhookBtn.disabled = false;
+            });
+    }
+    
+    function testCloudflared() {
+        return new Promise((resolve) => {
+            fetch('/api/check-cloudflared')
+                .then(response => response.json())
+                .then(data => {
+                    resolve(data.installed === true);
+                })
+                .catch(() => {
+                    resolve(false);
+                });
+        });
+    }
+    
+    function runCloudflaredTunnel() {
+        return fetch('/api/start-tunnel', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.url) {
+                savedWebhookUrl = data.url;
+                webhookActive = true;
+                showWebhookSuccess(data.url);
+                
+                // Update button to show stop option
+                generateWebhookBtn.textContent = 'Stop Dashboard Tunnel';
+                generateWebhookBtn.classList.add('btn-stop');
+                
+                showToast('Dashboard URL generated successfully!', 'success');
+            } else {
+                throw new Error(data.error || 'Failed to generate webhook URL');
+            }
+        });
+    }
+    
+    function stopCloudflaredTunnel() {
+        // Show loading state
+        hideAllWebhookOutputs();
+        webhookWaiting.classList.remove('hidden');
+        
+        // Disable button while processing
+        generateWebhookBtn.disabled = true;
+        
+        fetch('/api/stop-tunnel', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                webhookActive = false;
+                
+                // Update button back to generate
+                generateWebhookBtn.textContent = 'Start Dashboard Tunnel';
+                generateWebhookBtn.classList.remove('btn-stop');
+                
+                // Show the URL but mark as inactive
+                if (savedWebhookUrl) {
+                    showWebhookSuccess(savedWebhookUrl);
+                    const webhookNote = webhookSuccess.querySelector('.webhook-note span');
+                    if (webhookNote) {
+                        webhookNote.innerHTML = 'This tunnel has been stopped. Generate a new URL to access your dashboard.';
+                    }
+                } else {
+                    hideAllWebhookOutputs();
+                }
+                
+                showToast('Dashboard tunnel stopped successfully', 'info');
+            } else if (data.message && data.message === 'No active tunnel to stop') {
+                webhookActive = false;
+                generateWebhookBtn.textContent = 'Start Dashboard Tunnel';
+                generateWebhookBtn.classList.remove('btn-stop');
+                hideAllWebhookOutputs();
+                showToast('No active tunnel to stop. You can start a new tunnel.', 'info');
+            } else {
+                showWebhookError(`Error: ${data.error || data.message || 'Failed to stop tunnel'}`);
+            }
+        })
+        .catch(error => {
+            showWebhookError(`Error: ${error.message}`);
+        })
+        .finally(() => {
+            generateWebhookBtn.disabled = false;
+        });
+    }
+    
+    function killCloudflared() {
+        // Disable button while processing
+        killCloudflaredBtn.disabled = true;
+        
+        // Display waiting state
+        hideAllWebhookOutputs();
+        webhookWaiting.classList.remove('hidden');
+        
+        // Call API to kill all cloudflared processes
+        fetch('/api/kill-cloudflared', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('All Cloudflare processes killed successfully', 'success');
+                
+                // Reset UI state
+                webhookActive = false;
+                generateWebhookBtn.textContent = 'Start Dashboard Tunnel';
+                generateWebhookBtn.classList.remove('btn-stop');
+                
+                // Show URL but mark as inactive
+                if (savedWebhookUrl) {
+                    showWebhookSuccess(savedWebhookUrl);
+                    const webhookNote = webhookSuccess.querySelector('.webhook-note span');
+                    if (webhookNote) {
+                        webhookNote.innerHTML = 'This tunnel has been forcibly terminated. Generate a new URL to access your dashboard.';
+                    }
+                } else {
+                    hideAllWebhookOutputs();
+                }
+            } else {
+                showWebhookError(`Error: ${data.error || 'Failed to kill Cloudflare processes'}`);
+            }
+        })
+        .catch(error => {
+            showWebhookError(`Error: ${error.message}`);
+        })
+        .finally(() => {
+            killCloudflaredBtn.disabled = false;
+        });
+    }
+    
+    function loadSavedWebhookUrl() {
+        fetch('/api/get-webhook-url')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.url) {
+                    savedWebhookUrl = data.url;
+                    
+                    if (data.active) {
+                        webhookActive = true;
+                        generateWebhookBtn.textContent = 'Stop Dashboard Tunnel';
+                        generateWebhookBtn.classList.add('btn-stop');
+                        showWebhookSuccess(data.url);
+                    } else {
+                        webhookActive = false;
+                        showWebhookSuccess(data.url);
+                        const webhookNote = webhookSuccess.querySelector('.webhook-note span');
+                        if (webhookNote) {
+                            webhookNote.innerHTML = 'This tunnel is not currently active. Start the tunnel to access your dashboard.';
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.log('No saved webhook URL found');
+            });
+    }
+    
+    function showWebhookError(message) {
+        hideAllWebhookOutputs();
+        webhookError.classList.remove('hidden');
+        webhookError.querySelector('.error-message').textContent = message;
+    }
+    
+    function showWebhookSuccess(url) {
+        hideAllWebhookOutputs();
+        webhookSuccess.classList.remove('hidden');
+        webhookUrlInput.value = url;
+    }
+    
+    function hideAllWebhookOutputs() {
+        webhookWaiting.classList.add('hidden');
+        webhookError.classList.add('hidden');
+        webhookSuccess.classList.add('hidden');
+    }
+    
+    function copyWebhookUrl() {
+        webhookUrlInput.select();
+        webhookUrlInput.setSelectionRange(0, 99999); // For mobile devices
+        
+        navigator.clipboard.writeText(webhookUrlInput.value).then(() => {
+            // Show success feedback
+            const originalText = copyWebhookBtn.innerHTML;
+            copyWebhookBtn.innerHTML = '<i class="fas fa-check"></i>';
+            copyWebhookBtn.classList.add('copied');
+            
+            setTimeout(() => {
+                copyWebhookBtn.innerHTML = originalText;
+                copyWebhookBtn.classList.remove('copied');
+            }, 2000);
+            
+            showToast('Webhook URL copied to clipboard!', 'success');
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            // Fallback for older browsers
+            document.execCommand('copy');
+            showToast('Webhook URL copied to clipboard!', 'success');
+        });
+    }
+    
+    function showCloudflareModal(e) {
+        e.preventDefault();
+        const modal = document.getElementById('cloudflare-modal');
+        if (modal) {
+            modal.style.display = 'block';
+        }
+    }
+    
+    function initializeCloudflareModal() {
+        const modal = document.getElementById('cloudflare-modal');
+        const closeBtn = modal?.querySelector('.close');
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+        }
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+    
+    function showToast(message, type = 'info') {
+        // Create toast element if it doesn't exist
+        let toast = document.getElementById('toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'toast';
+            toast.className = 'toast';
+            document.body.appendChild(toast);
+        }
+        
+        // Set toast content and type
+        toast.textContent = message;
+        toast.className = `toast toast-${type} show`;
+        
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+});
+```
+
+### **CSS (webhook_generator.css):**
+
+```css
+/* Webhook Generator Page Specific Styles */
+
+.webhook-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.install-link {
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.install-link:hover {
+    color: var(--button-hover);
+}
+
+.webhook-output {
+    margin-top: 20px;
+}
+
+.webhook-waiting,
+.webhook-error,
+.webhook-success {
+    padding: 20px;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.webhook-waiting {
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.webhook-waiting i {
+    font-size: 1.2rem;
+}
+
+.webhook-error {
+    background-color: rgba(var(--danger-rgb), 0.1);
+    color: var(--danger-color);
+    border-left: 4px solid var(--danger-color);
+}
+
+.webhook-success {
+    background-color: rgba(var(--success-rgb), 0.1);
+    color: var(--text-color);
+    border-left: 4px solid var(--success-color);
+}
+
+.success-message h4 {
+    color: var(--success-color);
+    margin-bottom: 15px;
+}
+
+.btn-stop {
+    background-color: #dc3545;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 12px 20px;
+    border: 2px solid #dc3545;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-stop:hover {
+    background-color: #bb2d3b;
+    border-color: #bb2d3b;
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-stop:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+}
+
+/* Add pulsing animation for extra visibility */
+.btn-stop::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: inherit;
+    animation: pulse-stop 2s infinite;
+}
+
+@keyframes pulse-stop {
+    0% {
+        opacity: 0;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1);
+    }
+}
+
+/* Light theme specific styling */
+.light-theme .btn-stop {
+    background-color: #dc3545;
+    color: #ffffff;
+    border-color: #dc3545;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.25);
+}
+
+.light-theme .btn-stop:hover {
+    background-color: #bb2d3b;
+    border-color: #bb2d3b;
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.35);
+}
+
+.btn-copy.copied {
+    background-color: var(--success-color);
+    color: white;
+}
+
+/* Help Section */
+.help-section {
+    margin-top: 20px;
+}
+
+.help-section h4 {
+    color: var(--primary-color);
+    margin: 20px 0 10px;
+}
+
+.help-section ul {
+    margin-left: 20px;
+    line-height: 1.8;
+}
+
+.command-examples {
+    margin-top: 20px;
+}
+
+.command-example {
+    margin-bottom: 20px;
+}
+
+.command-example h5 {
+    color: var(--text-color);
+    margin-bottom: 10px;
+}
+
+/* Installation Modal */
+.install-steps {
+    margin: 20px 0;
+}
+
+.install-steps h4 {
+    color: var(--primary-color);
+    margin: 15px 0 10px;
+}
+
+.code-block {
+    background-color: var(--code-bg);
+    color: var(--code-color);
+    padding: 15px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin: 10px 0;
+}
+
+.install-note {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: rgba(var(--info-rgb), 0.1);
+    border-left: 4px solid var(--info-color);
+    border-radius: 4px;
+    color: var(--info-color);
+}
+
+/* Payload Builder Styles */
+.form-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    align-items: flex-end;
+}
+
+.form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.field-note {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-style: italic;
+}
+
+.order-dropdown,
+.form-group input[type="text"],
+.form-group input[type="number"] {
+    padding: 12px 15px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.order-dropdown:focus,
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Advanced Options Section */
+#advanced-options {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: rgba(var(--primary-rgb), 0.05);
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+}
+
+#advanced-options h4 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+/* Options Container - Vertical Layout */
+.options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.checkbox-label:hover {
+    background-color: rgba(var(--primary-rgb), 0.05);
+    border-radius: 6px;
+    padding: 10px 8px;
+}
+
+.toggle-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+    margin: 0;
+}
+
+.checkbox-text {
+    font-weight: 500;
+    color: var(--text-color);
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+/* Payload Output Styles */
+.payload-output {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: rgba(var(--success-rgb), 0.05);
+    border-radius: 8px;
+    border-left: 4px solid var(--success-color);
+}
+
+.payload-output h4 {
+    color: var(--success-color);
+    margin-bottom: 20px;
+}
+
+/* Config Sections */
+.config-section {
+    margin-bottom: 25px;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(var(--success-rgb), 0.2);
+}
+
+.config-section h5 {
+    color: var(--success-color);
+    margin-bottom: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.config-section:last-child {
+    margin-bottom: 0;
+}
+
+.payload-display {
+    background-color: var(--code-bg);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 15px 0;
+    overflow-x: auto;
+}
+
+.payload-display pre {
+    margin: 0;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--code-color);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.payload-actions {
+    margin: 15px 0;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.config-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: rgba(var(--info-rgb), 0.1);
+    border-radius: 6px;
+    color: var(--info-color);
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.config-note i {
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+/* Usage Instructions */
+.usage-instructions {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: rgba(var(--info-rgb), 0.05);
+    border-radius: 8px;
+    border-left: 4px solid var(--info-color);
+}
+
+.usage-instructions h4 {
+    color: var(--info-color);
+    margin-bottom: 15px;
+}
+
+.usage-instructions ul {
+    margin-left: 20px;
+    line-height: 1.8;
+}
+
+.usage-instructions li {
+    margin-bottom: 8px;
+}
+
+.usage-instructions code {
+    background-color: var(--code-bg);
+    color: var(--code-color);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.usage-instructions a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.usage-instructions a:hover {
+    text-decoration: underline;
+}
+
+/* Toast Notifications */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    z-index: 10000;
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+    max-width: 350px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toast.show {
+    transform: translateX(0);
+}
+
+.toast-success {
+    background-color: var(--success-color);
+}
+
+.toast-error {
+    background-color: var(--danger-color);
+}
+
+.toast-info {
+    background-color: var(--info-color);
+}
+
+.toast-warning {
+    background-color: var(--warning-color);
+}
+
+@media (prefers-color-scheme: dark) {
+    .webhook-waiting,
+    .webhook-error,
+    .webhook-success {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    
+    .order-dropdown,
+    .form-group input[type="text"],
+    .form-group input[type="number"] {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .config-section {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-color: rgba(var(--success-rgb), 0.3);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .webhook-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .toast {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        transform: translateY(-100px);
+    }
+    
+    .toast.show {
+        transform: translateY(0);
+    }
+    
+    .options-container {
+        gap: 15px;
+    }
+    
+    .checkbox-label {
+        padding: 12px 0;
+    }
+    
+    .checkbox-label:hover {
+        padding: 12px 8px;
+    }
+}
+
+/* Info Banner */
+.info-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 20px 0;
+    padding: 15px;
+    background-color: rgba(var(--info-rgb), 0.1);
+    border-left: 4px solid var(--info-color);
+    border-radius: 6px;
+    color: var(--info-color);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.info-banner i {
+    margin-top: 2px;
+    flex-shrink: 0;
+    font-size: 1rem;
+}
+
+.info-banner strong {
+    color: var(--info-color);
+    font-weight: 600;
+}
+```
+
+## 3. Configuration Files
+
+### **Config directory structure:**
+```
+config/
+└── webhook_config.json
+```
+
+**webhook_config.json** (automatically created):
+```json
+{
+  "url": "https://example.trycloudflare.com",
+  "timestamp": "2025-09-29T12:00:00.000000",
+  "active": true,
+  "port": "8000"
+}
+```
+
+## 4. Requirements
+
+### **Python Dependencies:**
+```txt
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+jinja2>=3.1.2
+python-multipart>=0.0.6
+pydantic>=2.4.2
+```
+
+### **System Requirements:**
+- Cloudflare tunnel binary (`cloudflared`) must be installed on the system
+- Python 3.8+
+- FastAPI application framework
+
+## Installation Instructions
+
+1. **Install Cloudflare Tunnel:**
+   - **macOS:** `brew install cloudflared`
+   - **Windows:** Download from [Cloudflare Downloads](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation#windows)
+   - **Linux:** 
+     ```bash
+     wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+     sudo dpkg -i cloudflared-linux-amd64.deb
+     ```
+
+2. **Python Setup:**
+   ```bash
+   pip install fastapi uvicorn jinja2 python-multipart pydantic
+   ```
+
+3. **Directory Structure:**
+   ```
+   your_project/
+   ├── api/
+   │   ├── main.py (with webhook endpoints)
+   │   ├── static/
+   │   │   ├── css/
+   │   │   │   └── webhook_generator.css
+   │   │   └── js/
+   │   │       └── webhook_generator.js
+   │   └── templates/
+   │       └── webhook_generator.html
+   ├── config/
+   └── webhook_app.py (standalone version)
+   ```
+
+4. **Usage:**
+   - **Integrated:** Add the API endpoints to your existing FastAPI app
+   - **Standalone:** Run `python webhook_app.py` for a dedicated webhook service
+
+This complete code package provides all the functionality for webhook generation and Cloudflare tunnel management that's used in your ProjectX AutoTrader system.

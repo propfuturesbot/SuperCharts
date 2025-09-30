@@ -23,6 +23,9 @@ export const AuthProvider = ({ children }) => {
         username: authService.getUsername(),
         provider: authService.getProvider()
       });
+
+      // Save authentication to backend file
+      authService.saveToBackend();
     }
     setLoading(false);
   }, []);
@@ -36,6 +39,10 @@ export const AuthProvider = ({ children }) => {
         username: result.username,
         provider: result.provider
       });
+
+      // Save authentication to backend file after successful login
+      authService.saveToBackend();
+
       return { success: true };
     } catch (err) {
       setError(err.message);

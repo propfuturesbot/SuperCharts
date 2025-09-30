@@ -28,7 +28,12 @@
       "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_daOHDt/**)",
       "Bash(PORT=3001 npm start)",
       "Bash(npx eslint:*)",
-      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_l7bfw6/**)"
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_l7bfw6/**)",
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_KtBqZC/**)",
+      "Bash(python3:*)",
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_tEtScs/**)",
+      "Bash(xargs kill:*)",
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_rBPDaa/**)"
     ],
     "deny": [],
     "ask": []

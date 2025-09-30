@@ -2226,115 +2226,276 @@ app.post('/webhook/order', async (req, res) => {
   }
 });
 
-// Webhook position management endpoints (simplified)
 /**
  * @swagger
- * /webhook/close:
- *   delete:
- *     summary: Close position via webhook
- *     description: Close all positions for a specific symbol
+ * /webhook/limit-order:
+ *   post:
+ *     summary: Place limit order via webhook
  *     tags: [Webhook]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [accountName, symbol]
- *             properties:
- *               accountName:
- *                 type: string
- *                 example: TFDXAP_508PA89
- *               symbol:
- *                 type: string
- *                 example: MNQ
- *     responses:
- *       200:
- *         description: Position closed successfully
  */
-app.delete('/webhook/close', async (req, res) => {
+app.post('/webhook/limit-order', async (req, res) => {
   try {
-    const auth = getCurrentAuth();
+    const authData = loadAuthFromFile();
+    if (!authData) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const { accountName, symbol, action, quantity, limitPrice } = req.body;
+
+    const orderResult = await orderManager.placeLimitOrder(
+      authData.provider,
+      authData.token,
+      accountName,
+      symbol,
+      action.toUpperCase(),
+      quantity,
+      limitPrice
+    );
+
+    res.json(orderResult);
+  } catch (error) {
+    console.error('[WEBHOOK] Limit order error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /webhook/stop-loss-ui:
+ *   post:
+ *     summary: Place stop loss order via webhook
+ *     tags: [Webhook]
+ */
+app.post('/webhook/stop-loss-ui', async (req, res) => {
+  try {
+    const authData = loadAuthFromFile();
+    if (!authData) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const { accountName, symbol, action, quantity, stopLossPoints } = req.body;
+
+    // Convert points to ticks
+    const stopLossTicks = await orderManager.convertPointsToTicks(symbol, stopLossPoints);
+
+    const orderResult = await orderManager.placeMarketOrder(
+      authData.provider,
+      authData.token,
+      accountName,
+      symbol,
+      action.toUpperCase(),
+      quantity,
+      { stopLoss: stopLossTicks }
+    );
+
+    res.json(orderResult);
+  } catch (error) {
+    console.error('[WEBHOOK] Stop loss order error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /webhook/trailing-stop-order:
+ *   post:
+ *     summary: Place trailing stop order via webhook
+ *     tags: [Webhook]
+ */
+app.post('/webhook/trailing-stop-order', async (req, res) => {
+  try {
+    const authData = loadAuthFromFile();
+    if (!authData) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const { accountName, symbol, action, quantity, trailDistancePoints } = req.body;
+
+    const orderResult = await orderManager.placeTrailStopOrder(
+      authData.provider,
+      authData.token,
+      accountName,
+      action.toUpperCase(),
+      symbol,
+      quantity,
+      trailDistancePoints
+    );
+
+    res.json(orderResult);
+  } catch (error) {
+    console.error('[WEBHOOK] Trailing stop error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /webhook/bracket-ui:
+ *   post:
+ *     summary: Place bracket order via webhook
+ *     tags: [Webhook]
+ */
+app.post('/webhook/bracket-ui', async (req, res) => {
+  try {
+    const authData = loadAuthFromFile();
+    if (!authData) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const { accountName, symbol, action, quantity, stopPrice, takeProfitPrice } = req.body;
+
+    // Convert points to ticks
+    const stopLossTicks = await orderManager.convertPointsToTicks(symbol, stopPrice);
+    const takeProfitTicks = await orderManager.convertPointsToTicks(symbol, takeProfitPrice);
+
+    const orderResult = await orderManager.placeMarketOrder(
+      authData.provider,
+      authData.token,
+      accountName,
+      symbol,
+      action.toUpperCase(),
+      quantity,
+      {
+        stopLoss: stopLossTicks,
+        takeProfit: takeProfitTicks
+      }
+    );
+
+    res.json(orderResult);
+  } catch (error) {
+    console.error('[WEBHOOK] Bracket order error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /webhook/close-position:
+ *   post:
+ *     summary: Close position via webhook
+ *     tags: [Webhook]
+ */
+app.post('/webhook/close-position', async (req, res) => {
+  try {
+    const authData = loadAuthFromFile();
+    if (!authData) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
     const { accountName, symbol } = req.body;
 
-    const result = await orderManager.closeAllPositionsForASymbol(auth.provider, auth.token, accountName, symbol);
-    res.json(result);
+    const orderResult = await orderManager.closeAllPositionsForASymbol(
+      authData.provider,
+      authData.token,
+      accountName,
+      symbol
+    );
+
+    res.json(orderResult);
   } catch (error) {
-    console.error('[WEBHOOK] Close error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('[WEBHOOK] Close position error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
   }
 });
 
 /**
  * @swagger
- * /webhook/flatten:
- *   delete:
- *     summary: Flatten all positions via webhook
- *     description: Close all positions for an account
- *     tags: [Webhook]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [accountName]
- *             properties:
- *               accountName:
- *                 type: string
- *                 example: TFDXAP_508PA89
- *     responses:
- *       200:
- *         description: All positions flattened successfully
- */
-app.delete('/webhook/flatten', async (req, res) => {
-  try {
-    const auth = getCurrentAuth();
-    const { accountName } = req.body;
-
-    const result = await orderManager.flattenAllPositionsForAccount(auth.provider, auth.token, accountName);
-    res.json(result);
-  } catch (error) {
-    console.error('[WEBHOOK] Flatten error:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-/**
- * @swagger
- * /webhook/reverse:
+ * /webhook/reverse-position:
  *   post:
  *     summary: Reverse position via webhook
- *     description: Close current position and open opposite direction
  *     tags: [Webhook]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [accountName, symbol]
- *             properties:
- *               accountName:
- *                 type: string
- *                 example: TFDXAP_508PA89
- *               symbol:
- *                 type: string
- *                 example: MNQ
- *     responses:
- *       200:
- *         description: Position reversed successfully
  */
-app.post('/webhook/reverse', async (req, res) => {
+app.post('/webhook/reverse-position', async (req, res) => {
   try {
-    const auth = getCurrentAuth();
+    const authData = loadAuthFromFile();
+    if (!authData) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
     const { accountName, symbol } = req.body;
 
-    const result = await orderManager.reverseOrder(auth.provider, auth.token, accountName, symbol);
-    res.json(result);
+    const orderResult = await orderManager.reverseOrder(
+      authData.provider,
+      authData.token,
+      accountName,
+      symbol
+    );
+
+    res.json(orderResult);
   } catch (error) {
-    console.error('[WEBHOOK] Reverse error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('[WEBHOOK] Reverse position error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /webhook/flatten-all-positions:
+ *   post:
+ *     summary: Flatten all positions via webhook
+ *     tags: [Webhook]
+ */
+app.post('/webhook/flatten-all-positions', async (req, res) => {
+  try {
+    const authData = loadAuthFromFile();
+    if (!authData) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const { accountName } = req.body;
+
+    const orderResult = await orderManager.flattenAllPositionsForAccount(
+      authData.provider,
+      authData.token,
+      accountName
+    );
+
+    res.json(orderResult);
+  } catch (error) {
+    console.error('[WEBHOOK] Flatten all error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
   }
 });
 

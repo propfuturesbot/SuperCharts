@@ -103,7 +103,7 @@ const TradeOptions = () => {
       
       console.log('Fetching contracts from backend...');
       
-      const response = await fetch('http://localhost:8025/api/contracts', {
+      const response = await fetch('/api/contracts', {
         headers: getAuthHeaders()
       });
       
@@ -132,7 +132,7 @@ const TradeOptions = () => {
       
       // Provide fallback message for users
       if (err.message.includes('fetch')) {
-        setError('Unable to connect to trading backend. Please ensure the backend server is running on port 8025.');
+        setError('Unable to connect to trading backend. Please ensure the backend server is running.');
       }
     } finally {
       setLoading(false);

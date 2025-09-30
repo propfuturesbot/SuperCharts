@@ -216,6 +216,28 @@ class AuthService {
   getRememberCredentials() {
     return this.rememberCredentials;
   }
+
+  // Save authentication to backend file
+  async saveToBackend() {
+    if (!this.isAuthenticated()) {
+      return;
+    }
+
+    try {
+      const expiresAt = localStorage.getItem('token_expiry');
+      const response = await axios.post('http://localhost:8025/api/auth/save', {
+        provider: this.provider,
+        token: this.token,
+        username: this.username,
+        expiresAt: parseInt(expiresAt) || Date.now() + 3600000
+      });
+
+      console.log('[AUTH] Saved authentication to backend file:', response.data);
+    } catch (error) {
+      console.warn('[AUTH] Failed to save authentication to backend:', error.message);
+      // Don't throw error - saving is optional, frontend should still work
+    }
+  }
 }
 
 export default new AuthService();

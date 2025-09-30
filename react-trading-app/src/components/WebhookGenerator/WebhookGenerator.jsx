@@ -17,15 +17,17 @@ import './WebhookGenerator.css';
 
 const WebhookGenerator = () => {
   const { user } = useAuth();
-  
+
   // Dashboard URL Generator State
-  const [dashboardUrl, setDashboardUrl] = useState('https://administration-storage-battery-synopsis.trycloudflare.com');
+  const [dashboardUrl, setDashboardUrl] = useState('');
   const [tunnelActive, setTunnelActive] = useState(false);
   const [tunnelStatus, setTunnelStatus] = useState('inactive');
+  const [isStartingTunnel, setIsStartingTunnel] = useState(false);
 
   // Webhook Configuration State
   const [orderType, setOrderType] = useState('Market Order');
-  const [accountName, setAccountName] = useState('150KTC-V2-111791-89166097 ($155,519.48)');
+  const [accounts, setAccounts] = useState([]);
+  const [accountName, setAccountName] = useState('');
   const [symbol, setSymbol] = useState('{{ticker}}');
   const [action, setAction] = useState('Buy');
   const [quantity, setQuantity] = useState('1');
@@ -41,7 +43,7 @@ const WebhookGenerator = () => {
 
   const orderTypes = [
     'Market Order',
-    'Limit Order', 
+    'Limit Order',
     'Stop Loss UI',
     'Trailing Stop Order',
     'Bracket UI',
@@ -52,60 +54,256 @@ const WebhookGenerator = () => {
 
   const actions = ['Buy', 'Sell'];
 
+  // Load accounts and saved webhook URL on mount
+  useEffect(() => {
+    loadAccounts();
+    loadSavedWebhookUrl();
+  }, []);
+
   useEffect(() => {
     generateWebhookUrl();
   }, [dashboardUrl, orderType]);
 
+  // Filter accounts based on balance criteria
+  const shouldShowAccount = (account) => {
+    if (!account || account.id === '8734161') {
+      return false;
+    }
+
+    const accountNameStr = account.name || '';
+    const balance = parseFloat(account.balance) || 0;
+
+    // Apply balance filtering based on account name prefixes
+    if (accountNameStr.startsWith('100')) {
+      return balance >= 97000;
+    } else if (accountNameStr.startsWith('150K')) {
+      return balance >= 145500;
+    } else if (accountNameStr.startsWith('50')) {
+      return balance >= 48000;
+    }
+
+    // For accounts that don't match the specified prefixes, show them (no filtering)
+    return true;
+  };
+
+  // Load accounts from backend
+  const loadAccounts = async () => {
+    try {
+      const response = await fetch('/api/accounts/file');
+      const data = await response.json();
+
+      if (data.success && data.data && data.data.accounts) {
+        const filteredAccounts = data.data.accounts.filter(shouldShowAccount);
+        setAccounts(filteredAccounts);
+
+        // Set first account as default
+        if (filteredAccounts.length > 0) {
+          setAccountName(filteredAccounts[0].name);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading accounts:', error);
+    }
+  };
+
+  // Load saved webhook URL from backend
+  const loadSavedWebhookUrl = async () => {
+    try {
+      const response = await fetch('/api/get-webhook-url');
+      const data = await response.json();
+
+      if (data.success) {
+        if (data.url) {
+          setDashboardUrl(data.url);
+        }
+        // Backend now returns actual process state
+        setTunnelActive(data.active || false);
+        setTunnelStatus(data.active ? 'active' : 'inactive');
+      }
+    } catch (error) {
+      console.error('Error loading saved webhook URL:', error);
+    }
+  };
+
   const generateWebhookUrl = () => {
     if (dashboardUrl) {
       const baseUrl = dashboardUrl.replace(/\/$/, '');
-      const endpoint = `/webhook/${orderType.toLowerCase().replace(/\s+/g, '-')}`;
+      let endpoint = '';
+
+      // Map order types to simplified webhook endpoints
+      switch (orderType) {
+        case 'Close Position':
+          endpoint = '/webhook/close';
+          break;
+        case 'Reverse Position':
+          endpoint = '/webhook/reverse';
+          break;
+        case 'Flatten All Positions':
+          endpoint = '/webhook/flatten';
+          break;
+        default:
+          // All order types use the unified endpoint
+          endpoint = '/webhook/order';
+      }
+
       setWebhookUrl(`${baseUrl}${endpoint}`);
     }
   };
 
   const generatePayload = () => {
-    const payload = {
-      orderType,
-      account: {
-        name: accountName,
-        id: accountName.split(' ')[0]
-      },
-      symbol,
-      action,
-      quantity: parseInt(quantity),
-      ...(orderType === 'Limit Order' && { limitPrice: parseFloat(limitPrice) }),
-      ...(orderType === 'Stop Loss UI' && { stopPrice: parseFloat(stopPrice) }),
-      ...(orderType === 'Bracket UI' && { 
-        stopPrice: parseFloat(stopPrice),
-        takeProfitPrice: parseFloat(takeProfitPrice)
-      }),
-      ...(orderType === 'Trailing Stop Order' && { trailingOffset: parseFloat(stopPrice) }),
-      options: {
-        closeExistingOrders,
-        enableBreakEvenStop
-      },
-      timestamp: new Date().toISOString()
-    };
+    let payload = {};
+
+    // Extract just the account name without balance
+    const cleanAccountName = accountName.split(' ($')[0];
+
+    // Build payload based on order type
+    switch (orderType) {
+      case 'Flatten All Positions':
+        payload = {
+          accountName: cleanAccountName
+        };
+        break;
+
+      case 'Close Position':
+      case 'Reverse Position':
+        payload = {
+          accountName: cleanAccountName,
+          symbol: symbol
+        };
+        break;
+
+      default:
+        // Standard order payload with orderType field
+        payload = {
+          orderType: orderType === 'Market Order' ? 'MARKET' :
+                     orderType === 'Limit Order' ? 'LIMIT' :
+                     orderType === 'Stop Loss UI' ? 'STOP_LOSS' :
+                     orderType === 'Trailing Stop Order' ? 'TRAILING_STOP' :
+                     orderType === 'Bracket UI' ? 'BRACKET' : 'MARKET',
+          accountName: cleanAccountName,
+          symbol: symbol,
+          action: action.toUpperCase(),
+          quantity: parseInt(quantity) || 1
+        };
+
+        // Add order-type specific fields
+        if (orderType === 'Limit Order') {
+          payload.limitPrice = parseFloat(limitPrice);
+        }
+
+        if (orderType === 'Stop Loss UI') {
+          payload.stopLossPoints = parseFloat(stopPrice);
+        }
+
+        if (orderType === 'Bracket UI') {
+          payload.stopLossPoints = parseFloat(stopPrice);
+          payload.takeProfitPoints = parseFloat(takeProfitPrice);
+        }
+
+        if (orderType === 'Trailing Stop Order') {
+          payload.trailDistancePoints = parseFloat(stopPrice);
+        }
+
+        // Add advanced options
+        if (closeExistingOrders) {
+          payload.closeExistingOrders = true;
+        }
+
+        if (enableBreakEvenStop) {
+          payload.enableBreakEvenStop = true;
+        }
+        break;
+    }
 
     setGeneratedPayload(JSON.stringify(payload, null, 2));
   };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    // You could add a toast notification here
+    showToast('Copied to clipboard!', 'success');
   };
 
-  const startTunnel = () => {
-    setTunnelActive(true);
-    setTunnelStatus('active');
-    // In a real implementation, this would start the actual tunnel
+  const showToast = (message, type = 'info') => {
+    // Simple toast implementation
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type} show`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => document.body.removeChild(toast), 300);
+    }, 3000);
   };
 
-  const stopTunnel = () => {
-    setTunnelActive(false);
-    setTunnelStatus('inactive');
-    // In a real implementation, this would stop the tunnel
+  const startTunnel = async () => {
+    try {
+      setIsStartingTunnel(true);
+      showToast('Starting tunnel...', 'info');
+
+      const response = await fetch('/api/start-tunnel', {
+        method: 'POST'
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.url) {
+        setDashboardUrl(data.url);
+        setTunnelActive(true);
+        setTunnelStatus('active');
+        showToast('Tunnel started successfully!', 'success');
+      } else {
+        showToast(data.error || 'Failed to start tunnel', 'error');
+      }
+    } catch (error) {
+      console.error('Error starting tunnel:', error);
+      showToast('Error starting tunnel: ' + error.message, 'error');
+    } finally {
+      setIsStartingTunnel(false);
+    }
+  };
+
+  const stopTunnel = async () => {
+    try {
+      const response = await fetch('/api/stop-tunnel', {
+        method: 'POST'
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setTunnelActive(false);
+        setTunnelStatus('inactive');
+        showToast('Tunnel stopped successfully', 'info');
+      } else {
+        showToast(data.message || 'Failed to stop tunnel', 'error');
+      }
+    } catch (error) {
+      console.error('Error stopping tunnel:', error);
+      showToast('Error stopping tunnel: ' + error.message, 'error');
+    }
+  };
+
+  const killCloudflared = async () => {
+    try {
+      const response = await fetch('/api/kill-cloudflared', {
+        method: 'POST'
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setTunnelActive(false);
+        setTunnelStatus('inactive');
+        setDashboardUrl('');
+        showToast('All cloudflared processes killed', 'success');
+      } else {
+        showToast(data.error || 'Failed to kill cloudflared', 'error');
+      }
+    } catch (error) {
+      console.error('Error killing cloudflared:', error);
+      showToast('Error: ' + error.message, 'error');
+    }
   };
 
   const renderOrderTypeFields = () => {
@@ -256,7 +454,7 @@ const WebhookGenerator = () => {
                     )}
                   </button>
                   
-                  <button className="control-btn danger">
+                  <button className="control-btn danger" onClick={killCloudflared}>
                     <FaStop /> Kill Switch
                   </button>
                 </div>
@@ -325,9 +523,15 @@ const WebhookGenerator = () => {
                     onChange={(e) => setAccountName(e.target.value)}
                     className="form-select"
                   >
-                    <option value="150KTC-V2-111791-89166097 ($155,519.48)">
-                      150KTC-V2-111791-89166097 ($155,519.48)
-                    </option>
+                    {accounts.length === 0 ? (
+                      <option value="">Loading accounts...</option>
+                    ) : (
+                      accounts.map(account => (
+                        <option key={account.id} value={account.name}>
+                          {account.name} (${parseFloat(account.balance).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})})
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
                 <div className="form-field">
