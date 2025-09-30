@@ -1,0 +1,42 @@
+✅ Found existing contracts file with 57 contracts
+🚀 Backend running on http://localhost:8000
+📄 Contracts cached in: /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableContracts.json
+✅ Connected to PostgreSQL database
+📊 Loading saved strategy: 643603bc-64bc-4b90-a666-2873755aa599
+📊 Loading strategy with indicators: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ]
+📊 Loaded saved strategy configuration: {
+  strategyType: 'candlestick',
+  timeframe: '100T',
+  brickSize: '0.25',
+  contractSymbol: 'MNQ',
+  strategyName: '100T Strategy with Indicators',
+  indicators: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ],
+  strategyId: '643603bc-64bc-4b90-a666-2873755aa599',
+  isExistingStrategy: true
+}
+🚀 Launched chart in browser: http://localhost:8000/api/chart
+📊 With configuration: {
+  strategyType: 'candlestick',
+  timeframe: '100T',
+  brickSize: '0.25',
+  contractSymbol: 'MNQ',
+  strategyName: '100T Strategy with Indicators',
+  indicators: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ],
+  strategyId: '643603bc-64bc-4b90-a666-2873755aa599',
+  isExistingStrategy: true
+}
+📊 Found indicators in database: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ]
+📊 Saving chart strategy: {
+  name: 'Test Strategy with Webhook',
+  strategy_type: 'candlestick',
+  contract_symbol: 'ES',
+  timeframe: '100T',
+  webhook_url: 'https://example.com/webhook',
+  chart_config: { indicators: [ [Object], [Object] ] }
+}
+📊 Chart config received: {
+  indicators: [ { type: 'SMA', period: 20 }, { type: 'RSI', period: 14 } ]
+}
+📊 Extracted indicators: [ { type: 'SMA', period: 20 }, { type: 'RSI', period: 14 } ]
+📊 Saving indicators separately: [ { type: 'SMA', period: 20 }, { type: 'RSI', period: 14 } ]
+📊 Found indicators in database: [ { type: 'EMA', period: 55 }, { type: 'SMA', period: 21 } ]

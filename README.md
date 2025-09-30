@@ -160,6 +160,76 @@ The project can be build from its source through the build command.
 npm run build
 ```
 
+## Docker Deployment
+
+The application can be deployed using Docker containers with support for external PostgreSQL databases.
+
+### Prerequisites
+
+- Docker Engine 20.10+
+- Docker Compose 2.0+
+- PostgreSQL database (local or remote)
+
+### Quick Start with Docker
+
+1. **Navigate to the docker directory:**
+```bash
+cd docker
+```
+
+2. **Configure environment variables:**
+```bash
+cp .env.template .env
+# Edit .env with your database credentials
+```
+
+3. **Build and run the container:**
+
+For external/local PostgreSQL database:
+```bash
+./build.sh --external --build --up
+```
+
+Or using docker-compose directly:
+```bash
+docker-compose -f docker-compose.external-db.yml up -d
+```
+
+### Docker Configuration
+
+The Docker setup includes:
+- Multi-stage build for optimized image size (~150MB)
+- Non-root user execution for security
+- Health checks for container monitoring
+- Support for both local and external PostgreSQL databases
+
+### Environment Variables
+
+Key environment variables for database connection:
+- `POSTGRES_HOST`: Database host (use `host.docker.internal` for local DB)
+- `POSTGRES_PORT`: Database port (default: 5432)
+- `POSTGRES_DB`: Database name
+- `POSTGRES_USER`: Database username
+- `POSTGRES_PASSWORD`: Database password
+
+### Managing the Container
+
+```bash
+# View logs
+docker logs supercharts-app
+
+# Stop container
+docker stop supercharts-app
+
+# Restart container
+docker restart supercharts-app
+
+# Remove container
+docker rm supercharts-app
+```
+
+The application will be available at `http://localhost:3000` by default.
+
 ## Usage
 
 Install package.

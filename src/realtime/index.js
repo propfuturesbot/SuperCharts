@@ -1,7 +1,212 @@
-// Authentication and provider configuration will be loaded dynamically
+// Get access token from JSON file via backend API
 let ACCESS_TOKEN = null;
-let CURRENT_PROVIDER = 'topstepx';
+
+// Global variables that need to be available early
+let isRealTimeReady = false; // Flag to indicate when real-time signals can be sent
+
+// Webhook service for signal notifications (browser-compatible)
+const sendPayload = async (action, ticker, strategyId) => {
+  try {
+    // First get strategy details to get webhook URL and payload
+    const strategyResponse = await fetch(`http://localhost:8025/api/strategies`);
+    if (!strategyResponse.ok) {
+      throw new Error('Failed to fetch strategy details');
+    }
+
+    const strategyData = await strategyResponse.json();
+    if (!strategyData.success || !strategyData.data) {
+      throw new Error('Invalid strategy data response');
+    }
+
+    const strategy = strategyData.data.find(s => s.id === strategyId);
+    if (!strategy) {
+      throw new Error(`Strategy not found: ${strategyId}`);
+    }
+
+    // Check if strategy is active
+    if (strategy.status !== 'active') {
+      console.log(`🚫 Strategy ${strategyId} is ${strategy.status}, webhook not sent`);
+      return;
+    }
+
+    const webhookUrl = strategy.webhook_url;
+    if (!webhookUrl) {
+      console.warn(`⚠️ No webhook URL configured for strategy ${strategyId}`);
+      return;
+    }
+
+    // Prepare the payload
+    let finalPayload;
+    if (strategy.webhook_payload) {
+      try {
+        // Parse the stored payload (it's stored as JSON string)
+        const parsedPayload = typeof strategy.webhook_payload === 'string'
+          ? JSON.parse(strategy.webhook_payload)
+          : strategy.webhook_payload;
+
+        // Replace the action in the payload with the actual signal action
+        finalPayload = {
+          ...parsedPayload,
+          action: action, // Replace with actual signal action (buy/sell)
+          symbol: ticker  // Also update symbol with current ticker
+        };
+      } catch (e) {
+        console.error('Error parsing webhook payload, using default:', e);
+        finalPayload = {
+          action: action,
+          symbol: ticker
+        };
+      }
+    } else {
+      // Default payload if none configured
+      finalPayload = {
+        action: action,
+        symbol: ticker
+      };
+    }
+
+    // Log the details BEFORE sending (so we see them even if webhook fails)
+    console.log(`📤 Attempting webhook: ${action} signal for ${ticker}`);
+    console.log(`📡 Webhook URL: ${webhookUrl}`);
+    console.log(`📦 Webhook Payload:`, JSON.stringify(finalPayload, null, 2));
+
+    // Send POST request directly to the webhook URL
+    try {
+      const webhookResponse = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'PropFuturesBot/1.0'
+        },
+        body: JSON.stringify(finalPayload)
+      });
+
+      if (webhookResponse.ok) {
+        console.log(`✅ Webhook sent successfully: ${webhookResponse.status} ${webhookResponse.statusText}`);
+      } else {
+        console.warn(`⚠️ Webhook returned error: ${webhookResponse.status} ${webhookResponse.statusText}`);
+      }
+    } catch (fetchError) {
+      console.warn(`⚠️ Webhook failed to send: ${fetchError.message} (CORS/Network error)`);
+    }
+
+  } catch (error) {
+    console.error('❌ Error sending webhook:', error.message);
+  }
+};
+
+// Get provider configuration from the global ProviderConfig (loaded from providers-browser.js)
+const getProviderConfig = (providerKey) => {
+  // Check if ProviderConfig is available (loaded from providers-browser.js)
+  if (window.ProviderConfig && window.ProviderConfig.getProviderConfig) {
+    return window.ProviderConfig.getProviderConfig(providerKey);
+  }
+
+  // Fallback: define providers inline if ProviderConfig not loaded
+  console.warn('ProviderConfig not loaded. Using fallback provider configuration.');
+
+  const fallbackProviders = {
+    topstepx: {
+      name: 'TopStepX',
+      api_endpoint: 'https://api.topstepx.com',
+      userapi_endpoint: 'https://userapi.topstepx.com',
+      websocket_endpoint: 'wss://api.topstepx.com/signalr',
+      user_hub: 'https://rtc.topstepx.com/hubs/user',
+      market_hub: 'https://rtc.topstepx.com/hubs/market',
+      websocket_chartapi: 'wss://chartapi.topstepx.com/hubs',
+      chartapi_endpoint: 'https://chartapi.topstepx.com'
+    },
+    alphaticks: {
+      name: 'AlphaTicks',
+      api_endpoint: 'https://api.alphaticks.projectx.com',
+      userapi_endpoint: 'https://userapi.alphaticks.projectx.com',
+      websocket_endpoint: 'wss://api.alphaticks.projectx.com/signalr',
+      user_hub: 'https://rtc.alphaticks.projectx.com/hubs/user',
+      market_hub: 'https://rtc.alphaticks.projectx.com/hubs/market',
+      websocket_chartapi: 'wss://chartapi.alphaticks.projectx.com/hubs',
+      chartapi_endpoint: 'https://chartapi.alphaticks.projectx.com'
+    },
+    blueguardian: {
+      name: 'Blue Guardian',
+      api_endpoint: 'https://api.blueguardianfutures.projectx.com',
+      userapi_endpoint: 'https://userapi.blueguardianfutures.projectx.com',
+      websocket_endpoint: 'wss://api.blueguardianfutures.projectx.com/signalr',
+      user_hub: 'https://rtc.blueguardianfutures.projectx.com/hubs/user',
+      market_hub: 'https://rtc.blueguardianfutures.projectx.com/hubs/market',
+      websocket_chartapi: 'wss://chartapi.blueguardianfutures.projectx.com/hubs',
+      chartapi_endpoint: 'https://chartapi.blueguardianfutures.projectx.com'
+    },
+    thefuturesdesk: {
+      name: 'The Futures Desk',
+      api_endpoint: 'https://api.thefuturesdesk.projectx.com',
+      userapi_endpoint: 'https://userapi.thefuturesdesk.projectx.com',
+      websocket_endpoint: 'wss://api.thefuturesdesk.projectx.com/signalr',
+      user_hub: 'https://rtc.thefuturesdesk.projectx.com/hubs/user',
+      market_hub: 'https://rtc.thefuturesdesk.projectx.com/hubs/market',
+      websocket_chartapi: 'wss://chartapi.thefuturesdesk.projectx.com/hubs',
+      chartapi_endpoint: 'https://chartapi.thefuturesdesk.projectx.com'
+    }
+  };
+
+  return fallbackProviders[providerKey] || fallbackProviders.topstepx;
+};
+
+// Store provider information globally
+let CURRENT_PROVIDER = null;
 let PROVIDER_CONFIG = null;
+
+// Function to get access token and provider from backend
+const getAccessToken = async () => {
+  if (!ACCESS_TOKEN) {
+    try {
+      const response = await fetch('http://localhost:8025/api/auth/token');
+      if (response.ok) {
+        const data = await response.json();
+        ACCESS_TOKEN = data.data.token;
+        CURRENT_PROVIDER = data.data.provider || 'topstepx';
+        console.log(`✅ Token loaded from auth-token.json file for provider: ${CURRENT_PROVIDER}`);
+
+        // Load provider configuration using the common getProviderConfig function
+        PROVIDER_CONFIG = getProviderConfig(CURRENT_PROVIDER);
+        console.log(`📊 Using provider config for ${CURRENT_PROVIDER}:`, PROVIDER_CONFIG.chartapi_endpoint);
+      } else {
+        throw new Error(`Failed to load token from backend: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching token:', error);
+      throw new Error('Unable to load authentication token from auth-token.json file. Please login first.');
+    }
+  }
+  return ACCESS_TOKEN;
+};
+
+// Get contract from URL parameters or chart configuration or use default
+const getContractFromURL = () => {
+  // First check if we have a chart configuration from the strategy wizard
+  if (window.CHART_CONFIG && window.CHART_CONFIG.contractSymbol) {
+    const configContract = window.CHART_CONFIG.contractSymbol.replace(/^\//, '');
+    console.log('📊 Using contract from chart config:', configContract);
+    return configContract;
+  }
+
+  // Otherwise check URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const contract = urlParams.get('contract') || urlParams.get('symbol') || 'MNQ';
+  console.log('📊 Using contract from URL/default:', contract);
+  return contract;
+};
+
+// Convert contract symbol to API format (e.g., ES -> F.US.ES, /ES -> F.US.ES)
+const formatContractSymbol = (symbol) => {
+  // Remove leading slash if present
+  const cleanSymbol = symbol.replace(/^\//, '');
+  // Add F.US. prefix for API
+  return `F.US.${cleanSymbol}`;
+};
+
+// Get current contract
+const CURRENT_CONTRACT = getContractFromURL();
+const API_CONTRACT_SYMBOL = formatContractSymbol(CURRENT_CONTRACT);
 
 let chart = null;
 let candleSeries = null;
@@ -31,6 +236,14 @@ let signalMarkers = [];
 let activeSignals = new Map();
 let lastTouchLower = false;
 let lastTouchUpper = false;
+let lastSignalUpdate = 0;
+let signalUpdateDebounceTime = 500; // 500ms debounce
+
+// DonchianMidBandStrategy tracking
+let dmbsLastAboveMiddle = false;
+let dmbsLastBelowMiddle = false;
+let dmbsLastSignalTime = 0;
+let dmbsSignalDebounceTime = 1000; // 1 second debounce for DMBS signals
 
 // Tick chart accumulation variables
 let tickAccumulator = null;
@@ -58,60 +271,57 @@ const getTicksPerBar = (resolution) => {
 
 const resolutionConfig = {
   // Tick-based resolutions
-  '100T': { countback: 50, displayName: '100 Ticks', symbol: 'F.US.MNQ' },
-  '500T': { countback: 50, displayName: '500 Ticks', symbol: 'F.US.MNQ' },
-  '1000T': { countback: 50, displayName: '1000 Ticks', symbol: 'F.US.MNQ' },
-  '5000T': { countback: 50, displayName: '5000 Ticks', symbol: 'F.US.MNQ' },
-  
+  '100T': { countback: 50, displayName: '100 Ticks', symbol: API_CONTRACT_SYMBOL },
+  '500T': { countback: 50, displayName: '500 Ticks', symbol: API_CONTRACT_SYMBOL },
+  '1000T': { countback: 50, displayName: '1000 Ticks', symbol: API_CONTRACT_SYMBOL },
+  '5000T': { countback: 50, displayName: '5000 Ticks', symbol: API_CONTRACT_SYMBOL },
+
   // Second-based resolutions
-  '1S': { countback: 500, displayName: '1 Second', symbol: 'F.US.MNQ' },
-  '5S': { countback: 500, displayName: '5 Seconds', symbol: 'F.US.MNQ' },
-  '10S': { countback: 500, displayName: '10 Seconds', symbol: 'F.US.MNQ' },
-  '15S': { countback: 500, displayName: '15 Seconds', symbol: 'F.US.MNQ' },
-  '20S': { countback: 500, displayName: '20 Seconds', symbol: 'F.US.MNQ' },
-  '30S': { countback: 500, displayName: '30 Seconds', symbol: 'F.US.MNQ' },
-  
+  '1S': { countback: 500, displayName: '1 Second', symbol: API_CONTRACT_SYMBOL },
+  '5S': { countback: 500, displayName: '5 Seconds', symbol: API_CONTRACT_SYMBOL },
+  '10S': { countback: 500, displayName: '10 Seconds', symbol: API_CONTRACT_SYMBOL },
+  '15S': { countback: 500, displayName: '15 Seconds', symbol: API_CONTRACT_SYMBOL },
+  '20S': { countback: 500, displayName: '20 Seconds', symbol: API_CONTRACT_SYMBOL },
+  '30S': { countback: 500, displayName: '30 Seconds', symbol: API_CONTRACT_SYMBOL },
+
   // Minute-based resolutions
-  '1': { countback: 500, displayName: '1 Minute', symbol: 'F.US.MNQ' },
-  '2': { countback: 500, displayName: '2 Minutes', symbol: 'F.US.MNQ' },
-  '3': { countback: 500, displayName: '3 Minutes', symbol: 'F.US.MNQ' },
-  '4': { countback: 500, displayName: '4 Minutes', symbol: 'F.US.MNQ' },
-  '5': { countback: 500, displayName: '5 Minutes', symbol: 'F.US.MNQ' },
-  '10': { countback: 500, displayName: '10 Minutes', symbol: 'F.US.MNQ' },
-  '15': { countback: 500, displayName: '15 Minutes', symbol: 'F.US.MNQ' },
-  '20': { countback: 500, displayName: '20 Minutes', symbol: 'F.US.MNQ' },
-  '30': { countback: 500, displayName: '30 Minutes', symbol: 'F.US.MNQ' },
-  '45': { countback: 500, displayName: '45 Minutes', symbol: 'F.US.MNQ' },
-  '60': { countback: 500, displayName: '1 Hour', symbol: 'F.US.MNQ' },
-  '1D': { countback: 326, displayName: '1 Day', symbol: 'F.US.MNQ' },
-  '1W': { countback: 500, displayName: '1 Week', symbol: 'F.US.MNQ' },
-  '1M': { countback: 500, displayName: '1 Month', symbol: 'F.US.MNQ' }
+  '1': { countback: 500, displayName: '1 Minute', symbol: API_CONTRACT_SYMBOL },
+  '2': { countback: 500, displayName: '2 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '3': { countback: 500, displayName: '3 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '4': { countback: 500, displayName: '4 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '5': { countback: 500, displayName: '5 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '10': { countback: 500, displayName: '10 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '15': { countback: 500, displayName: '15 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '20': { countback: 500, displayName: '20 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '30': { countback: 500, displayName: '30 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '45': { countback: 500, displayName: '45 Minutes', symbol: API_CONTRACT_SYMBOL },
+  '60': { countback: 500, displayName: '1 Hour', symbol: API_CONTRACT_SYMBOL },
+  '1D': { countback: 326, displayName: '1 Day', symbol: API_CONTRACT_SYMBOL },
+  '1W': { countback: 500, displayName: '1 Week', symbol: API_CONTRACT_SYMBOL },
+  '1M': { countback: 500, displayName: '1 Month', symbol: API_CONTRACT_SYMBOL }
 };
 
-const getHistoricalData = async (resolution, countback, symbol = "%2FMNQ") => {
+const getHistoricalData = async (resolution, countback, symbol = null) => {
+  // Use provided symbol or default to current contract
+  if (!symbol) {
+    symbol = `%2F${CURRENT_CONTRACT}`;
+  }
   try {
-    if (!ACCESS_TOKEN) {
-      console.error('No access token available for historical data request');
-      return [];
-    }
-
-    if (!PROVIDER_CONFIG) {
-      console.error('No provider configuration available for historical data request');
-      return [];
-    }
-
     const now = Math.floor(Date.now() / 1000);
     const from = now - (86400 * 7); // 7 days ago
     const to = now;
-    
+
+    // Ensure we have provider configuration
+    if (!PROVIDER_CONFIG) {
+      await getAccessToken(); // This will load provider config
+    }
+
     const url = `${PROVIDER_CONFIG.chartapi_endpoint}/History/v2?Symbol=${symbol}&Resolution=${resolution}&Countback=${countback}&From=${from}&To=${to}&SessionId=extended&Live=false`;
-    
-    console.log('Fetching historical data from:', PROVIDER_CONFIG.name);
-    console.log('URL:', url);
-    
+
+    const token = await getAccessToken();
     const res = await fetch(url, {
       headers: {
-        'Authorization': `Bearer ${ACCESS_TOKEN}`,
+        'Authorization': `Bearer ${token}`,
         'Accept': 'application/json'
       }
     });
@@ -123,8 +333,6 @@ const getHistoricalData = async (resolution, countback, symbol = "%2FMNQ") => {
     }
     
     const text = await res.text();
-    console.log('Raw response (first 500 chars):', text.substring(0, 500));
-    
     let data;
     try {
       data = JSON.parse(text);
@@ -140,8 +348,6 @@ const getHistoricalData = async (resolution, countback, symbol = "%2FMNQ") => {
       console.error('Unexpected data format:', data);
       return [];
     }
-    
-    console.log(`Received ${bars.length} bars for resolution ${resolution}`);
     
     if (bars.length === 0) {
       console.warn(`No data received for resolution ${resolution}`);
@@ -176,7 +382,6 @@ const getHistoricalData = async (resolution, countback, symbol = "%2FMNQ") => {
 
     // Fix duplicate timestamps for tick charts by adding incremental seconds
     if (resolution.endsWith('T') && chartData.length > 0) {
-      console.log('Fixing duplicate timestamps for tick chart...');
       let duplicatesFixed = 0;
       
       for (let i = 1; i < chartData.length; i++) {
@@ -185,17 +390,10 @@ const getHistoricalData = async (resolution, countback, symbol = "%2FMNQ") => {
           duplicatesFixed++;
         }
       }
-      
-      console.log(`Fixed ${duplicatesFixed} duplicate timestamps in tick chart historical data`);
-    }
-    
-    console.log(`Processed ${chartData.length} valid bars`);
-    
+}
     if (chartData.length > 0) {
       lastBarTime = chartData[chartData.length - 1].time;
       currentBar = { ...chartData[chartData.length - 1] };
-      console.log('Last bar time:', new Date(lastBarTime * 1000).toLocaleString());
-      console.log('Last bar:', currentBar);
     }
     
     return chartData;
@@ -262,28 +460,19 @@ const initializeChart = () => {
 
 const setupRealTimeConnection = async () => {
   try {
-    if (!ACCESS_TOKEN) {
-      console.error('No access token available for real-time connection');
-      updateStatus('Authentication Required', false);
-      return;
-    }
-
-    if (!PROVIDER_CONFIG) {
-      console.error('No provider configuration available for real-time connection');
-      updateStatus('Configuration Error', false);
-      return;
-    }
-
     if (connection && connection.state === signalR.HubConnectionState.Connected) {
       await connection.stop();
     }
-    
-    const chartApiUrl = `${PROVIDER_CONFIG.chartapi_endpoint}/hubs/chart`;
-    console.log('Connecting to SignalR hub:', chartApiUrl);
-    console.log('Using provider:', PROVIDER_CONFIG.name);
-    
+
+    const token = await getAccessToken();
+
+    // Ensure we have provider configuration
+    if (!PROVIDER_CONFIG) {
+      await getAccessToken(); // This will load provider config
+    }
+
     connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${chartApiUrl}?access_token=${ACCESS_TOKEN}`, {
+      .withUrl(`${PROVIDER_CONFIG.websocket_chartapi}/chart?access_token=${token}`, {
         skipNegotiation: true,
         transport: signalR.HttpTransportType.WebSockets
       })
@@ -292,13 +481,6 @@ const setupRealTimeConnection = async () => {
       .build();
     
     connection.on("RealTimeBar", (receivedSymbol, receivedResolution, bar) => {
-      console.log('RealTimeBar received:', {
-        symbol: receivedSymbol,
-        resolution: receivedResolution,
-        bar: bar,
-        currentResolution: currentResolution
-      });
-      
       // Check if this update is for our current resolution
       if (receivedResolution === currentResolution) {
         handleRealTimeBar(bar);
@@ -306,27 +488,29 @@ const setupRealTimeConnection = async () => {
     });
     
     connection.onreconnecting(() => {
-      console.log('Reconnecting to SignalR...');
       updateStatus('Reconnecting...', false);
     });
     
     connection.onreconnected(async () => {
-      console.log('Reconnected to SignalR');
       updateStatus('Connected', true);
       await subscribeToResolution(currentResolution);
+      isRealTimeReady = true; // Ready for real-time signals
     });
     
     connection.onclose(() => {
-      console.log('SignalR connection closed');
       updateStatus('Disconnected', false);
     });
     
     await connection.start();
-    console.log('Connected to SignalR hub successfully');
     updateStatus('Connected', true);
-    
+
     // Subscribe to the current resolution
     await subscribeToResolution(currentResolution);
+
+    // Mark system as ready for real-time signals
+    isRealTimeReady = true;
+    console.log('✅ Real-time connection established - webhooks enabled');
+    console.log('🔧 Debug: isRealTimeReady set to true, currentStrategyId:', currentStrategyId);
     
   } catch (error) {
     console.error('Failed to setup real-time connection:', error);
@@ -339,12 +523,10 @@ const handleRealTimeBar = (bar) => {
     console.warn('Invalid bar received:', bar);
     return;
   }
-  
+
   // Store the original bar data
   const originalBar = { ...bar };
-  
-  console.log('Raw bar data:', bar);
-  
+
   let timestamp;
   
   // Try timestampUnix first (if it's valid)
@@ -372,39 +554,24 @@ const handleRealTimeBar = (bar) => {
     console.warn('Invalid timestamp:', timestamp);
     return;
   }
-  
-  // Debug the timestamp conversion
-  console.log('Timestamp conversion debug:', {
-    original: bar.timestamp,
-    timestampUnix: bar.timestampUnix,
-    parsed: timestamp,
-    asDate: new Date(timestamp).toLocaleString()
-  });
-  
   // Fix timestamp format - API might be returning microseconds or nanoseconds
   // Current timestamp should be around 1724000000000 (Aug 2024 in milliseconds)
   // Your timestamp 1755623700000000 is way too large
   
   if (timestamp > 10000000000000000) { // 17+ digits - likely nanoseconds or wrong format
-    console.log('Timestamp too large, trying division by 1000000 (nanoseconds to milliseconds)');
     timestamp = Math.floor(timestamp / 1000000);
   } else if (timestamp > 100000000000000) { // 15+ digits - likely microseconds
-    console.log('Converting from microseconds to milliseconds');
     timestamp = Math.floor(timestamp / 1000);
   } else if (timestamp < 946684800000) { // Less than year 2000 in milliseconds
     if (timestamp > 946684800) { // Greater than year 2000 in seconds
-      console.log('Converting from seconds to milliseconds');
       timestamp = timestamp * 1000;
     }
   }
   
   // Additional check - if still not in reasonable range, try more aggressive conversion
   if (timestamp > 2000000000000) { // If still larger than year 2033
-    console.log('Timestamp still too large, trying additional division by 1000');
     timestamp = Math.floor(timestamp / 1000);
   }
-  
-  console.log('Final timestamp:', timestamp, 'as date:', new Date(timestamp).toLocaleString());
   
   const barTime = Math.floor(timestamp / 1000);
   const update = {
@@ -422,14 +589,6 @@ const handleRealTimeBar = (bar) => {
     console.warn('Invalid bar data, skipping update:', update);
     return;
   }
-  
-  console.log('Processing bar update:', {
-    barTime: new Date(barTime * 1000).toLocaleString(),
-    lastBarTime: lastBarTime ? new Date(lastBarTime * 1000).toLocaleString() : 'none',
-    isClosed: bar.isClosed,
-    update
-  });
-  
   // Validate OHLC relationships
   if (update.high < update.low || 
       update.high < update.open || 
@@ -499,7 +658,7 @@ const handleRealTimeBar = (bar) => {
               }
             });
             
-            console.log(`Added ${newBricks.length} new Renko brick(s)`);
+            //console.log(`Added ${newBricks.length} new Renko brick(s)`);
           }
           
           // Don't update with regular displayUpdate for Renko
@@ -528,30 +687,35 @@ const handleRealTimeBar = (bar) => {
           }
           
           // Update indicators with new data (use original data for indicators)
-          updateIndicators(update);
-          
+          updateIndicators(update, false);
+
           // Check for trading signals (use original data for signals)
           checkRealtimeSignal(update);
         } else if (barTime === lastBarTime) {
           // Update existing bar
           candleSeries.update(displayUpdate);
           currentBar = { ...update };
-          
+
           // Update Heiken Ashi data if using HA
           if (currentChartType === 'heikenashi' && heikenAshiData.length > 0) {
             heikenAshiData[heikenAshiData.length - 1] = displayUpdate;
           }
-          
+
           // Update indicators with updated bar data (use original data)
-          updateIndicators(update);
-          
+          updateIndicators(update, false);
+
           // Check for trading signals (use original data)
           checkRealtimeSignal(update);
         }
-      } else if (currentChartType === 'renko') {
-        // For Renko, always update indicators and signals with original data
-        updateIndicators(update);
-        checkRealtimeSignal(update);
+      } else if (currentChartType === 'renko' && isNewRenkoBrick) {
+        // For Renko, only update indicators when a new brick is created
+        updateIndicators(update, true);
+
+        // For signals, use the latest Renko brick instead of raw market data
+        const latestRenkoBrick = renkoData[renkoData.length - 1];
+        if (latestRenkoBrick) {
+          checkRealtimeSignal(latestRenkoBrick);
+        }
       }
     }
   } catch (chartError) {
@@ -560,7 +724,7 @@ const handleRealTimeBar = (bar) => {
 };
 
 const handleTickChartUpdate = (update, bar) => {
-  console.log('Tick chart: Received tick data - price:', update.close, 'volume:', update.volume);
+  //console.log('Tick chart: Received tick data - price:', update.close, 'volume:', update.volume);
   
   // Extract tick price (use close price as the tick price)
   const tickPrice = update.close;
@@ -573,23 +737,23 @@ const handleTickChartUpdate = (update, bar) => {
   
   if (!tickAccumulator) {
     shouldCreateNewBar = true;
-    console.log(`Tick chart: Starting first ${currentResolution} bar (${currentTicksPerBar} ticks per bar)`);
+    //console.log(`Tick chart: Starting first ${currentResolution} bar (${currentTicksPerBar} ticks per bar)`);
   } else {
     // Check if enough ticks have been accumulated
     if (tickCount >= currentTicksPerBar) {
       shouldCreateNewBar = true;
-      console.log(`Tick chart: ${currentTicksPerBar} ticks reached for ${currentResolution}, creating new bar`);
+      //console.log(`Tick chart: ${currentTicksPerBar} ticks reached for ${currentResolution}, creating new bar`);
     }
     // Also create new bar if significant time has passed (more than 30 seconds for larger tick resolutions)
     else if (lastTickTime && (tickTime - lastTickTime) > 30) {
       shouldCreateNewBar = true;
-      console.log('Tick chart: Time gap detected, creating new bar');
+      //console.log('Tick chart: Time gap detected, creating new bar');
     }
   }
   
   // If we need to create a new bar, finalize the current one first
   if (shouldCreateNewBar && tickAccumulator) {
-    console.log(`Tick chart: Finalizing current ${currentResolution} bar - ticks: ${tickCount}/${currentTicksPerBar}, OHLC: ${tickAccumulator.open}/${tickAccumulator.high}/${tickAccumulator.low}/${tickAccumulator.close}`);
+    //console.log(`Tick chart: Finalizing current ${currentResolution} bar - ticks: ${tickCount}/${currentTicksPerBar}, OHLC: ${tickAccumulator.open}/${tickAccumulator.high}/${tickAccumulator.low}/${tickAccumulator.close}`);
     
     // Finalize current bar
     lastBarTime = tickAccumulator.time;
@@ -609,7 +773,6 @@ const handleTickChartUpdate = (update, bar) => {
       time: barTime
     };
     tickCount = 0;
-    console.log(`Tick chart: Started new ${currentResolution} bar at time ${new Date(barTime * 1000).toLocaleString()}`);
   }
   
   // Update the current accumulator with this tick
@@ -620,7 +783,7 @@ const handleTickChartUpdate = (update, bar) => {
   tickCount++;
   lastTickTime = tickTime;
   
-  console.log(`Tick chart: Updated ${currentResolution} bar ${tickCount}/${currentTicksPerBar} - Price: ${tickPrice}, Bar: O:${tickAccumulator.open} H:${tickAccumulator.high} L:${tickAccumulator.low} C:${tickAccumulator.close}`);
+  //console.log(`Tick chart: Updated ${currentResolution} bar ${tickCount}/${currentTicksPerBar} - Price: ${tickPrice}, Bar: O:${tickAccumulator.open} H:${tickAccumulator.high} L:${tickAccumulator.low} C:${tickAccumulator.close}`);
   
   // Create current bar data for chart update
   let currentBarData = {
@@ -633,15 +796,17 @@ const handleTickChartUpdate = (update, bar) => {
   };
   
   // If using Heiken Ashi, calculate HA values for tick data
-  if (currentChartType === 'heikenashi' && heikenAshiData.length > 0) {
-    const lastHACandle = heikenAshiData[heikenAshiData.length - 1];
-    
+  if (currentChartType === 'heikenashi') {
+    const lastHACandle = heikenAshiData.length > 0 ? heikenAshiData[heikenAshiData.length - 1] : null;
+
     const haClose = (currentBarData.open + currentBarData.high + currentBarData.low + currentBarData.close) / 4;
-    const haOpen = (lastHACandle.open + lastHACandle.close) / 2;
+    const haOpen = lastHACandle ?
+      (lastHACandle.open + lastHACandle.close) / 2 :
+      (currentBarData.open + currentBarData.close) / 2;
     const haHigh = Math.max(currentBarData.high, haOpen, haClose);
     const haLow = Math.min(currentBarData.low, haOpen, haClose);
-    
-    currentBarData = {
+
+    const haBar = {
       time: currentBarData.time,
       open: haOpen,
       high: haHigh,
@@ -649,6 +814,20 @@ const handleTickChartUpdate = (update, bar) => {
       close: haClose,
       volume: currentBarData.volume
     };
+
+    // Update heikenAshiData array
+    if (shouldCreateNewBar && heikenAshiData.length > 0) {
+      // Add new HA bar when tick bar is completed
+      heikenAshiData.push(haBar);
+    } else if (heikenAshiData.length > 0) {
+      // Update current HA bar
+      heikenAshiData[heikenAshiData.length - 1] = haBar;
+    } else {
+      // First HA bar
+      heikenAshiData.push(haBar);
+    }
+
+    currentBarData = haBar;
   } else if (currentChartType === 'renko') {
     // Handle Renko for tick data
     try {
@@ -664,8 +843,16 @@ const handleTickChartUpdate = (update, bar) => {
             console.error('Error updating tick Renko brick:', brickError, brick);
           }
         });
-        
-        console.log(`Tick chart: Added ${newBricks.length} new Renko brick(s)`);
+
+        // Update indicators when new Renko bricks are formed
+        updateIndicators(currentBarData, true);
+
+        // Check for signals when new Renko bricks are created from tick data
+        const latestRenkoBrick = renkoData[renkoData.length - 1];
+        if (latestRenkoBrick) {
+          checkRealtimeSignal(latestRenkoBrick);
+        }
+
         return; // Don't update with regular currentBarData
       }
       
@@ -680,7 +867,35 @@ const handleTickChartUpdate = (update, bar) => {
   try {
     // Update the chart with current bar
     candleSeries.update(currentBarData);
-    
+
+    // Update historical data for indicator calculations
+    if (shouldCreateNewBar && tickAccumulator) {
+      // Add completed bar to historical data
+      const completedBar = { ...currentBar };
+      const existingIndex = historicalData.findIndex(bar => bar.time === completedBar.time);
+      if (existingIndex !== -1) {
+        historicalData[existingIndex] = completedBar;
+      } else {
+        historicalData.push(completedBar);
+      }
+
+      // Update indicators for completed tick bar
+      updateIndicators(completedBar, false);
+
+      // Check for trading signals on completed tick bar
+      console.log('🔥 Tick chart: Checking signals on completed bar:', completedBar.time);
+      checkRealtimeSignal(completedBar);
+    } else {
+      // Update indicators with current accumulating bar
+      updateIndicators(currentBarData, false);
+
+      // Check for trading signals on current accumulating tick bar (less frequent logging)
+      if (tickCount % Math.floor(currentTicksPerBar / 4) === 0) {
+        console.log('🔥 Tick chart: Checking signals on accumulating bar:', currentBarData.time, `(${tickCount}/${currentTicksPerBar} ticks)`);
+      }
+      checkRealtimeSignal(currentBarData);
+    }
+
   } catch (error) {
     console.error('Error updating tick chart:', error);
     console.error('Failed bar data:', currentBarData);
@@ -697,7 +912,6 @@ const subscribeToResolution = async (resolution) => {
       try {
         const prevConfig = resolutionConfig[currentSubscription];
         await connection.invoke("UnsubscribeBars", prevConfig.symbol, currentSubscription);
-        console.log(`Unsubscribed from ${prevConfig.symbol} ${currentSubscription}`);
       } catch (unsubError) {
         console.warn('Error unsubscribing:', unsubError);
       }
@@ -706,7 +920,6 @@ const subscribeToResolution = async (resolution) => {
     // Subscribe to new resolution
     if (connection && connection.state === signalR.HubConnectionState.Connected) {
       await connection.invoke("SubscribeBars", symbol, resolution);
-      console.log(`Subscribed to ${symbol} ${resolution}`);
       currentSubscription = resolution;
     }
     
@@ -728,8 +941,6 @@ const updateStatus = (text, isConnected) => {
 };
 
 const changeResolution = async (resolution) => {
-  console.log(`=== Changing resolution to "${resolution}" ===`);
-  console.log('Resolution config:', resolutionConfig[resolution]);
   currentResolution = resolution;
   lastBarTime = null;
   currentBar = null;
@@ -741,8 +952,6 @@ const changeResolution = async (resolution) => {
   
   // Set the appropriate ticks per bar for this resolution
   currentTicksPerBar = getTicksPerBar(resolution);
-  console.log(`Setting ticks per bar for ${resolution}: ${currentTicksPerBar}`);
-  
   // Clear chart data and indicators
   if (candleSeries) {
     candleSeries.setData([]);
@@ -771,21 +980,12 @@ const changeResolution = async (resolution) => {
   
   // Debug: Check chart container
   const chartElement = document.getElementById('chart');
-  console.log('Chart container dimensions:', {
-    width: chartElement.offsetWidth,
-    height: chartElement.offsetHeight,
-    display: getComputedStyle(chartElement).display,
-    visibility: getComputedStyle(chartElement).visibility
-  });
   
   // Load historical data for new resolution
   const config = resolutionConfig[resolution];
-  console.log(`Loading data for resolution "${resolution}" with config:`, config);
   historicalData = await getHistoricalData(resolution, config.countback);
   
   if (historicalData && historicalData.length > 0) {
-    console.log(`Setting ${historicalData.length} bars on chart`);
-    
     // Ensure we have valid candlestick data
     const validData = historicalData.filter(d => {
       return d && 
@@ -806,9 +1006,6 @@ const changeResolution = async (resolution) => {
              d.low <= d.open &&
              d.low <= d.close;
     });
-    
-    console.log(`Filtered data: ${validData.length} valid bars out of ${historicalData.length}`);
-    
     if (validData.length > 0) {
       try {
         // Sort by time to ensure proper order
@@ -820,10 +1017,8 @@ const changeResolution = async (resolution) => {
         // Calculate Heiken Ashi data if that chart type is selected
         if (currentChartType === 'heikenashi') {
           heikenAshiData = calculateHeikenAshi(validData);
-          console.log('Calculated Heiken Ashi data with', heikenAshiData.length, 'bars');
         } else if (currentChartType === 'renko') {
           renkoData = convertToRenko(validData, currentBrickSize, false);
-          console.log('Calculated Renko data with', renkoData.length, 'bricks');
         }
         
         // Determine which data to display
@@ -833,17 +1028,7 @@ const changeResolution = async (resolution) => {
         } else if (currentChartType === 'renko') {
           dataToDisplay = renkoData;
         }
-        
-        // Debug: Show sample of data being set
-        console.log('Sample data being set on chart:');
-        console.log('First 3 bars:', JSON.stringify(dataToDisplay.slice(0, 3), null, 2));
-        console.log('Last 3 bars:', JSON.stringify(dataToDisplay.slice(-3), null, 2));
-        console.log('Time range:', {
-          first: new Date(dataToDisplay[0].time * 1000).toLocaleString(),
-          last: new Date(dataToDisplay[dataToDisplay.length - 1].time * 1000).toLocaleString(),
-          totalBars: dataToDisplay.length
-        });
-        
+
         candleSeries.setData(dataToDisplay);
         
         // Update chart time scale to fit the data
@@ -853,14 +1038,8 @@ const changeResolution = async (resolution) => {
         if (currentResolution.endsWith('T') && dataToDisplay.length > 10) {
           const lastTime = dataToDisplay[dataToDisplay.length - 1].time;
           const firstTime = dataToDisplay[Math.max(0, dataToDisplay.length - 100)].time;
-          console.log('Setting tick chart visible range:', {
-            from: new Date(firstTime * 1000).toLocaleString(),
-            to: new Date(lastTime * 1000).toLocaleString()
-          });
           chart.timeScale().setVisibleRange({ from: firstTime, to: lastTime });
         }
-        
-        console.log('Chart data set successfully, visible range:', chart.timeScale().getVisibleRange());
       } catch (chartError) {
         console.error('Error setting chart data:', chartError);
       }
@@ -880,84 +1059,34 @@ const changeResolution = async (resolution) => {
   }
 };
 
-// Initialize authentication and provider configuration
-const initializeAuth = async () => {
-  console.log('🔐 Initializing authentication...');
-  
-  try {
-    if (!window.browserAuth) {
-      throw new Error('Browser authentication module not loaded');
-    }
-
-    // Get current provider
-    CURRENT_PROVIDER = window.browserAuth.getCurrentProvider();
-    PROVIDER_CONFIG = window.browserAuth.getProviderConfig(CURRENT_PROVIDER);
-    
-    console.log(`🏢 Provider: ${PROVIDER_CONFIG.name} (${CURRENT_PROVIDER})`);
-
-    // Get authentication token
-    ACCESS_TOKEN = await window.browserAuth.getAuthToken();
-    
-    if (!ACCESS_TOKEN) {
-      throw new Error('Failed to obtain authentication token');
-    }
-
-    console.log('✅ Authentication successful');
-    console.log(`👤 User: ${window.browserAuth.getCurrentUsername() || 'Unknown'}`);
-    
-    return true;
-  } catch (error) {
-    console.error('❌ Authentication failed:', error);
-    updateStatus('Authentication Failed', false);
-    return false;
-  }
-};
-
 const main = async () => {
-  console.log('=== Initializing Trading Chart Application ===');
-  
   // Check if required libraries are loaded
   if (typeof LightweightCharts === 'undefined') {
     console.error('LightweightCharts library not loaded!');
-    updateStatus('Library Error: LightweightCharts', false);
     return;
   }
   
   if (typeof signalR === 'undefined') {
     console.error('SignalR library not loaded!');
-    updateStatus('Library Error: SignalR', false);
     return;
   }
-  
-  console.log('📚 All required libraries loaded successfully');
-
-  // Initialize authentication and provider configuration
-  const authSuccess = await initializeAuth();
-  if (!authSuccess) {
-    console.error('Failed to initialize authentication');
-    return;
-  }
-  
   // Initialize the chart
-  console.log('Initializing chart...');
   initializeChart();
-  
+
   if (!chart) {
     console.error('Failed to initialize chart');
     return;
   }
-  
-  console.log('Chart initialized successfully');
-  
+
+  // Load current strategy
+  await loadCurrentStrategy();
   // Load initial data
   const initialResolution = document.getElementById('resolution').value;
   currentResolution = initialResolution;
   
   // Set initial ticks per bar
   currentTicksPerBar = getTicksPerBar(initialResolution);
-  
-  console.log(`Loading initial data for resolution: "${initialResolution}"`);
-  console.log('Initial resolution config:', resolutionConfig[initialResolution]);
+
   const config = resolutionConfig[initialResolution];
   
   if (!config) {
@@ -968,8 +1097,6 @@ const main = async () => {
   historicalData = await getHistoricalData(initialResolution, config.countback);
   
   if (historicalData && historicalData.length > 0) {
-    console.log(`Setting ${historicalData.length} initial bars on chart`);
-    
     // Ensure we have valid candlestick data
     const validData = historicalData.filter(d => {
       return d && 
@@ -990,9 +1117,6 @@ const main = async () => {
              d.low <= d.open &&
              d.low <= d.close;
     });
-    
-    console.log(`Filtered data: ${validData.length} valid bars out of ${historicalData.length}`);
-    
     if (validData.length > 0) {
       try {
         // Sort by time to ensure proper order
@@ -1029,8 +1153,17 @@ const main = async () => {
   }
   
   // Setup real-time connection
-  console.log('Setting up real-time connection...');
   await setupRealTimeConnection();
+
+  // Fallback: If isRealTimeReady is still false after connection setup, enable it
+  // This handles cases where SignalR might not be available but we still want webhooks
+  setTimeout(() => {
+    if (!isRealTimeReady) {
+      isRealTimeReady = true;
+      console.log('🔧 Fallback: Enabling real-time webhooks (non-SignalR mode)');
+      console.log('🔧 Debug fallback: isRealTimeReady set to true, currentStrategyId:', currentStrategyId);
+    }
+  }, 2000); // Wait 2 seconds after connection attempt
 };
 
 // Indicator calculation functions
@@ -1057,18 +1190,26 @@ const calculateIndicator = (type, data, period = 14) => {
       case 'RSI':
         return window.indicators.rsi(closePrices, { period });
       case 'BollingerBands':
-        const bbResult = window.indicators.bollingerBands(closePrices, { period, multiplier: 2 });
+        const bbResult = window.indicators.bollingerBands(closePrices, { period });
         return {
-          upper: bbResult.upperBand,
-          middle: bbResult.middleBand,
-          lower: bbResult.lowerBand
+          upper: bbResult.upper,
+          middle: bbResult.middle,
+          lower: bbResult.lower
         };
       case 'DonchianChannel':
-        const dcResult = window.indicators.donchianChannel(highPrices, lowPrices, { period });
+        const dcResult = window.indicators.donchianChannel(closePrices, { period });
         return {
-          upper: dcResult.upperChannel,
-          middle: dcResult.middleChannel,
-          lower: dcResult.lowerChannel
+          upper: dcResult.upper,
+          middle: dcResult.middle,
+          lower: dcResult.lower
+        };
+      case 'DonchianMidBandStrategy':
+        // Exact copy of DonchianChannel calculation
+        const dmbsResult = window.indicators.donchianMidBandStrategy(closePrices, { period });
+        return {
+          upper: dmbsResult.upper,
+          middle: dmbsResult.middle,
+          lower: dmbsResult.lower
         };
       default:
         console.warn('Indicator type not implemented yet:', type);
@@ -1081,68 +1222,136 @@ const calculateIndicator = (type, data, period = 14) => {
   }
 };
 
+// Global variable to store the selected indicator type
+let pendingIndicatorType = null;
+
+const showIndicatorModal = (indicatorType) => {
+  pendingIndicatorType = indicatorType;
+  const modal = document.getElementById('indicatorModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const periodInput = document.getElementById('modalPeriodInput');
+
+  // Format the indicator name for display
+  const indicatorNames = {
+    'SMA': 'Simple Moving Average (SMA)',
+    'EMA': 'Exponential Moving Average (EMA)',
+    'RSI': 'Relative Strength Index (RSI)',
+    'BollingerBands': 'Bollinger Bands',
+    'DonchianChannel': 'Donchian Channel',
+    'DonchianMidBandStrategy': 'Donchian MidBand Strategy'
+  };
+
+  // Set default periods - 200 for Bollinger Bands and Donchian indicators, 14 for others
+  const defaultPeriod = (indicatorType === 'BollingerBands' || indicatorType === 'DonchianChannel' || indicatorType === 'DonchianMidBandStrategy') ? '200' : '14';
+
+  modalTitle.textContent = `Configure ${indicatorNames[indicatorType] || indicatorType}`;
+  periodInput.value = defaultPeriod;
+  periodInput.focus();
+
+  modal.classList.add('show');
+
+  // Add enter key support
+  periodInput.onkeydown = (e) => {
+    if (e.key === 'Enter') {
+      applyIndicator();
+    } else if (e.key === 'Escape') {
+      closeIndicatorModal();
+    }
+  };
+};
+
+const closeIndicatorModal = () => {
+  const modal = document.getElementById('indicatorModal');
+  modal.classList.remove('show');
+  document.getElementById('indicators').value = '';
+  pendingIndicatorType = null;
+};
+
+const applyIndicator = () => {
+  if (!pendingIndicatorType) return;
+
+  const periodInput = document.getElementById('modalPeriodInput');
+  const periodNum = parseInt(periodInput.value) || 14;
+
+  if (periodNum < 1 || periodNum > 500) {
+    periodInput.style.borderColor = '#ff4444';
+    setTimeout(() => {
+      periodInput.style.borderColor = '#444';
+    }, 2000);
+    return;
+  }
+
+  try {
+    // Use the appropriate data based on chart type
+    let dataForIndicator = historicalData;
+    if (currentChartType === 'renko' && renkoData && renkoData.length > 0) {
+      dataForIndicator = renkoData;
+    } else if (currentChartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
+      dataForIndicator = heikenAshiData;
+    }
+
+    const indicatorValues = calculateIndicator(pendingIndicatorType, dataForIndicator, periodNum);
+
+    if (!indicatorValues || indicatorValues.length === 0) {
+      alert('Failed to calculate indicator values');
+      closeIndicatorModal();
+      return;
+    }
+
+    displayIndicator(pendingIndicatorType, indicatorValues, periodNum);
+    activeIndicators.set(pendingIndicatorType, { period: periodNum, values: indicatorValues });
+
+    // Update the active indicators display
+    updateActiveIndicatorsDisplay();
+
+    // If signal-based indicators were added, display signals
+    if (pendingIndicatorType === 'DonchianChannel' || pendingIndicatorType === 'DonchianMidBandStrategy') {
+      displaySignalsOnChart();
+    }
+
+    closeIndicatorModal();
+  } catch (error) {
+    console.error('Error adding indicator:', error);
+    alert('Error adding indicator: ' + error.message);
+    closeIndicatorModal();
+  }
+};
+
 const addIndicator = (indicatorType) => {
   if (!indicatorType || activeIndicators.has(indicatorType)) {
     document.getElementById('indicators').value = '';
     return;
   }
-  
-  console.log('Adding indicator:', indicatorType);
-  
   if (!historicalData || historicalData.length === 0) {
     alert('No data available to calculate indicators');
     document.getElementById('indicators').value = '';
     return;
   }
-  
-  const period = prompt(`Enter period for ${indicatorType} (default: 14):`, '14');
-  if (period === null) {
-    document.getElementById('indicators').value = '';
-    return;
-  }
-  
-  const periodNum = parseInt(period) || 14;
-  
-  try {
-    const indicatorValues = calculateIndicator(indicatorType, historicalData, periodNum);
-    
-    if (!indicatorValues || indicatorValues.length === 0) {
-      alert('Failed to calculate indicator values');
-      document.getElementById('indicators').value = '';
-      return;
-    }
-    
-    displayIndicator(indicatorType, indicatorValues, periodNum);
-    activeIndicators.set(indicatorType, { period: periodNum, values: indicatorValues });
-    
-    // Update the active indicators display
-    updateActiveIndicatorsDisplay();
-    
-    // If Donchian Channel was added, display signals
-    if (indicatorType === 'DonchianChannel') {
-      displaySignalsOnChart();
-    }
-    
-    console.log(`${indicatorType} indicator added successfully`);
-  } catch (error) {
-    console.error('Error adding indicator:', error);
-    alert('Error adding indicator: ' + error.message);
-  }
-  
-  document.getElementById('indicators').value = '';
+
+  showIndicatorModal(indicatorType);
 };
 
 const displayIndicator = (type, values, period) => {
-  if (!chart || !historicalData) return;
+  if (!chart) return;
+
+  // Determine which data to use for time alignment
+  let dataForDisplay = historicalData;
+  if (currentChartType === 'renko' && renkoData && renkoData.length > 0) {
+    dataForDisplay = renkoData;
+  } else if (currentChartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
+    dataForDisplay = heikenAshiData;
+  }
+
+  if (!dataForDisplay || dataForDisplay.length === 0) return;
   
   const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF'];
   const colorIndex = indicatorSeries.size % colors.length;
   const color = colors[colorIndex];
   
   try {
-    if ((type === 'BollingerBands' || type === 'DonchianChannel') && values.upper && values.middle && values.lower) {
-      // Handle multi-line indicators (Bollinger Bands, Donchian Channel)
-      const prefix = type === 'BollingerBands' ? 'BB' : 'DC';
+    if ((type === 'BollingerBands' || type === 'DonchianChannel' || type === 'DonchianMidBandStrategy') && values.upper && values.middle && values.lower) {
+      // Handle multi-line indicators (Bollinger Bands, Donchian Channel, DonchianMidBandStrategy)
+      const prefix = type === 'BollingerBands' ? 'BB' : (type === 'DonchianMidBandStrategy' ? 'DMBS' : 'DC');
       
       const upperSeries = chart.addLineSeries({
         color: color,
@@ -1163,17 +1372,17 @@ const displayIndicator = (type, values, period) => {
       });
       
       const upperData = values.upper.map((value, index) => ({
-        time: historicalData[index + (historicalData.length - values.upper.length)]?.time,
+        time: dataForDisplay[index + (dataForDisplay.length - values.upper.length)]?.time,
         value: value
       })).filter(item => item.time && !isNaN(item.value));
-      
+
       const middleData = values.middle.map((value, index) => ({
-        time: historicalData[index + (historicalData.length - values.middle.length)]?.time,
+        time: dataForDisplay[index + (dataForDisplay.length - values.middle.length)]?.time,
         value: value
       })).filter(item => item.time && !isNaN(item.value));
-      
+
       const lowerData = values.lower.map((value, index) => ({
-        time: historicalData[index + (historicalData.length - values.lower.length)]?.time,
+        time: dataForDisplay[index + (dataForDisplay.length - values.lower.length)]?.time,
         value: value
       })).filter(item => item.time && !isNaN(item.value));
       
@@ -1195,25 +1404,22 @@ const displayIndicator = (type, values, period) => {
       
       // Map indicator values to chart data
       const indicatorData = values.map((value, index) => ({
-        time: historicalData[index + (historicalData.length - values.length)]?.time,
+        time: dataForDisplay[index + (dataForDisplay.length - values.length)]?.time,
         value: value
       })).filter(item => item.time && !isNaN(item.value));
       
       lineSeries.setData(indicatorData);
       indicatorSeries.set(type, lineSeries);
     }
-    
-    console.log(`Displayed ${type} indicator with ${Array.isArray(values) ? values.length : 'multiple'} data points`);
-    
   } catch (error) {
     console.error('Error displaying indicator:', error);
   }
 };
 
-const updateIndicators = (newBarData) => {
+const updateIndicators = (newBarData, isNewRenkoBrick = false) => {
   if (activeIndicators.size === 0 || !historicalData) return;
-  
-  // Update historical data with the new bar
+
+  // Update historical data with the new bar for candlestick
   if (newBarData) {
     const existingIndex = historicalData.findIndex(bar => bar.time === newBarData.time);
     if (existingIndex !== -1) {
@@ -1221,37 +1427,79 @@ const updateIndicators = (newBarData) => {
     } else {
       historicalData.push(newBarData);
     }
+
+    // Update Heiken Ashi data if needed
+    if (currentChartType === 'heikenashi') {
+      const haBar = calculateHeikenAshiBar(
+        newBarData,
+        heikenAshiData.length > 0 ? heikenAshiData[heikenAshiData.length - 1] : null
+      );
+
+      if (haBar) {
+        const existingHAIndex = heikenAshiData.findIndex(bar => bar.time === haBar.time);
+        if (existingHAIndex !== -1) {
+          heikenAshiData[existingHAIndex] = haBar;
+        } else {
+          heikenAshiData.push(haBar);
+        }
+      }
+    }
   }
-  
+
+  // Only update indicators if:
+  // 1. For candlestick/heikenashi: always update
+  // 2. For renko: only update when a new brick is formed (not on every tick)
+  if (currentChartType === 'renko' && !isNewRenkoBrick) {
+    return; // Skip indicator update for Renko if no new brick
+  }
+
+  // Use the appropriate data based on chart type
+  let dataForIndicator = historicalData;
+  if (currentChartType === 'renko' && renkoData && renkoData.length > 0) {
+    dataForIndicator = renkoData;
+  } else if (currentChartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
+    dataForIndicator = heikenAshiData;
+  }
+
   // Recalculate and update all active indicators
   activeIndicators.forEach((config, type) => {
     try {
-      const newValues = calculateIndicator(type, historicalData, config.period);
-      if (newValues && newValues.length > 0) {
-        
+      const newValues = calculateIndicator(type, dataForIndicator, config.period);
+      if (newValues && (newValues.length > 0 || (newValues.upper && newValues.upper.length > 0))) {
+
+        // Get the latest time from the appropriate data source
+        const latestTime = dataForIndicator[dataForIndicator.length - 1]?.time;
+
         // Update the series data
-        if ((type === 'BollingerBands' || type === 'DonchianChannel') && newValues.upper) {
+        if ((type === 'BollingerBands' || type === 'DonchianChannel' || type === 'DonchianMidBandStrategy') && newValues.upper) {
           const upperSeries = indicatorSeries.get(`${type}_upper`);
           const middleSeries = indicatorSeries.get(`${type}_middle`);
           const lowerSeries = indicatorSeries.get(`${type}_lower`);
-          
-          if (upperSeries && middleSeries && lowerSeries) {
+
+          if (upperSeries && middleSeries && lowerSeries && latestTime) {
             const latestIndex = newValues.upper.length - 1;
-            const latestTime = historicalData[historicalData.length - 1]?.time;
-            
-            if (latestTime) {
-              upperSeries.update({ time: latestTime, value: newValues.upper[latestIndex] });
-              middleSeries.update({ time: latestTime, value: newValues.middle[latestIndex] });
-              lowerSeries.update({ time: latestTime, value: newValues.lower[latestIndex] });
-            }
+
+            // Update the latest point
+            upperSeries.update({ time: latestTime, value: newValues.upper[latestIndex] });
+            middleSeries.update({ time: latestTime, value: newValues.middle[latestIndex] });
+            lowerSeries.update({ time: latestTime, value: newValues.lower[latestIndex] });
+
+            // Debug logging for DonchianMidBandStrategy (commented out to reduce noise)
+            // if (type === 'DonchianMidBandStrategy') {
+            //   console.log('📊 DMBS Real-time Update:', {
+            //     time: latestTime,
+            //     upper: newValues.upper[latestIndex],
+            //     middle: newValues.middle[latestIndex],
+            //     lower: newValues.lower[latestIndex]
+            //   });
+            // }
           }
         } else if (Array.isArray(newValues)) {
           const series = indicatorSeries.get(type);
-          if (series) {
+          if (series && latestTime) {
             const latestValue = newValues[newValues.length - 1];
-            const latestTime = historicalData[historicalData.length - 1]?.time;
-            
-            if (latestTime && !isNaN(latestValue)) {
+
+            if (!isNaN(latestValue)) {
               series.update({ time: latestTime, value: latestValue });
             }
           }
@@ -1260,8 +1508,8 @@ const updateIndicators = (newBarData) => {
         // Update stored values
         activeIndicators.set(type, { period: config.period, values: newValues });
         
-        // Update signals if Donchian Channel was updated
-        if (type === 'DonchianChannel') {
+        // Update signals if signal-based indicators were updated (only on new bars)
+        if ((type === 'DonchianChannel' || type === 'DonchianMidBandStrategy') && newBarData && isNewRenkoBrick !== false) {
           displaySignalsOnChart();
         }
       }
@@ -1272,13 +1520,11 @@ const updateIndicators = (newBarData) => {
 };
 
 const removeIndicator = (indicatorType) => {
-  console.log('Removing indicator:', indicatorType);
-  
   // Remove from active indicators
   activeIndicators.delete(indicatorType);
   
   // Remove series from chart
-  if (indicatorType === 'BollingerBands' || indicatorType === 'DonchianChannel') {
+  if (indicatorType === 'BollingerBands' || indicatorType === 'DonchianChannel' || indicatorType === 'DonchianMidBandStrategy') {
     // Remove multi-line indicators
     const upperSeries = indicatorSeries.get(`${indicatorType}_upper`);
     const middleSeries = indicatorSeries.get(`${indicatorType}_middle`);
@@ -1308,17 +1554,17 @@ const removeIndicator = (indicatorType) => {
   // Update the active indicators display
   updateActiveIndicatorsDisplay();
   
-  // Clear signals if Donchian Channel is removed
-  if (indicatorType === 'DonchianChannel') {
+  // Clear signals if signal-based indicator is removed
+  if (indicatorType === 'DonchianChannel' || indicatorType === 'DonchianMidBandStrategy') {
     candleSeries.setMarkers([]);
     signalMarkers = [];
     activeSignals.clear();
     lastTouchLower = false;
     lastTouchUpper = false;
-    console.log('Trading signals cleared');
+    dmbsLastAboveMiddle = false;
+    dmbsLastBelowMiddle = false;
+    dmbsLastSignalTime = 0;
   }
-  
-  console.log(`${indicatorType} indicator removed successfully`);
 };
 
 const updateActiveIndicatorsDisplay = () => {
@@ -1402,6 +1648,9 @@ const detectDonchianSignals = (data) => {
         price: currentBar.close,
         reason: 'Donchian Lower Touch + Green Candle'
       });
+
+      // DON'T send webhook for historical signals - only visual markers
+      // Webhooks are only sent in checkRealtimeSignal() for real-time data
     }
     
     // Sell Signal Detection
@@ -1417,121 +1666,353 @@ const detectDonchianSignals = (data) => {
         price: currentBar.close,
         reason: 'Donchian Upper Touch + Red Candle'
       });
+
+      // DON'T send webhook for historical signals - only visual markers
+      // Webhooks are only sent in checkRealtimeSignal() for real-time data
     }
   }
   
   return signals;
 };
 
+// Detect Donchian MidBand Strategy trading signals
+const detectDonchianMidBandSignals = (data) => {
+  if (!data || data.length < 2) return [];
+
+  const dmbsConfig = activeIndicators.get('DonchianMidBandStrategy');
+  if (!dmbsConfig || !dmbsConfig.values) return [];
+
+  const { upper, lower, middle } = dmbsConfig.values;
+  if (!middle || middle.length === 0) return [];
+
+  const signals = [];
+  const startIndex = data.length - middle.length;
+
+  for (let i = 1; i < middle.length; i++) {
+    const dataIndex = startIndex + i;
+    const prevDataIndex = dataIndex - 1;
+
+    if (dataIndex >= data.length || prevDataIndex < 0) continue;
+
+    const currentBar = data[dataIndex];
+    const prevBar = data[prevDataIndex];
+
+    const currentMiddle = middle[i];
+    const prevMiddle = middle[i - 1];
+
+    if (!currentMiddle || !prevMiddle) continue;
+
+    // Buy Signal Detection - Bar crosses above middle band (INCLUSIVE CROSSING)
+    const prevCloseBelow = prevBar.close < prevMiddle;
+    const currentCloseAbove = currentBar.close >= currentMiddle; // Using >= to include exact touches
+
+    if (prevCloseBelow && currentCloseAbove) {
+      signals.push({
+        time: currentBar.time,
+        type: 'buy',
+        price: currentBar.close,
+        reason: 'Donchian MidBand Crossover Up',
+        indicator: 'DMBS'
+      });
+
+      // DON'T send webhook for historical signals - only visual markers
+      // Webhooks are only sent in checkRealtimeSignal() for real-time data
+    }
+
+    // Sell Signal Detection - Bar crosses below middle band (INCLUSIVE CROSSING)
+    const prevCloseAbove = prevBar.close > prevMiddle;
+    const currentCloseBelow = currentBar.close <= currentMiddle; // Using <= to include exact touches
+
+    if (prevCloseAbove && currentCloseBelow) {
+      signals.push({
+        time: currentBar.time,
+        type: 'sell',
+        price: currentBar.close,
+        reason: 'Donchian MidBand Crossover Down',
+        indicator: 'DMBS'
+      });
+
+      // DON'T send webhook for historical signals - only visual markers
+      // Webhooks are only sent in checkRealtimeSignal() for real-time data
+    }
+  }
+
+  return signals;
+};
+
 const displaySignalsOnChart = () => {
-  if (!candleSeries || !historicalData) return;
-  
+  if (!candleSeries) return;
+
+  // Debounce signal updates to prevent excessive recalculation
+  const now = Date.now();
+  if (now - lastSignalUpdate < signalUpdateDebounceTime) {
+    return;
+  }
+  lastSignalUpdate = now;
+
+  // Use the appropriate data source based on chart type
+  let dataForSignals = historicalData;
+  if (currentChartType === 'renko' && renkoData && renkoData.length > 0) {
+    dataForSignals = renkoData;
+  } else if (currentChartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
+    dataForSignals = heikenAshiData;
+  }
+
+  if (!dataForSignals) return;
+
   // Clear existing markers
   candleSeries.setMarkers([]);
-  
-  const signals = detectDonchianSignals(historicalData);
-  if (signals.length === 0) return;
-  
+
+  let allSignals = [];
+
+  // Get Donchian Channel signals
+  if (activeIndicators.has('DonchianChannel')) {
+    const dcSignals = detectDonchianSignals(dataForSignals);
+    allSignals = allSignals.concat(dcSignals);
+  }
+
+  // Get Donchian MidBand Strategy signals
+  if (activeIndicators.has('DonchianMidBandStrategy')) {
+    const dmbsSignals = detectDonchianMidBandSignals(dataForSignals);
+    allSignals = allSignals.concat(dmbsSignals);
+  }
+
+  if (allSignals.length === 0) return;
+
   // Create markers for signals
-  const markers = signals.map(signal => ({
+  const markers = allSignals.map(signal => ({
     time: signal.time,
     position: signal.type === 'buy' ? 'belowBar' : 'aboveBar',
     color: signal.type === 'buy' ? '#26a69a' : '#ef5350',
     shape: signal.type === 'buy' ? 'arrowUp' : 'arrowDown',
-    text: signal.type === 'buy' ? 'BUY' : 'SELL'
+    text: signal.type === 'buy' ? `BUY${signal.indicator ? ' (' + signal.indicator + ')' : ''}` : `SELL${signal.indicator ? ' (' + signal.indicator + ')' : ''}`
   }));
-  
+
   candleSeries.setMarkers(markers);
   signalMarkers = markers;
-  
+
   // Update active signals
   activeSignals.clear();
-  signals.forEach(signal => {
+  allSignals.forEach(signal => {
     activeSignals.set(signal.time, signal);
   });
-  
-  console.log(`Displayed ${signals.length} trading signals on chart`);
-  
-  // Show latest signals in console for debugging
-  const latestSignals = signals.slice(-5);
-  if (latestSignals.length > 0) {
-    console.log('Latest signals:', latestSignals);
-  }
 };
 
 const checkRealtimeSignal = (newBar) => {
-  if (!newBar || !historicalData || historicalData.length < 2) return;
-  
-  const donchianConfig = activeIndicators.get('DonchianChannel');
-  if (!donchianConfig || !donchianConfig.values) return;
-  
-  const { upper, lower } = donchianConfig.values;
-  if (!upper || !lower || upper.length === 0) return;
-  
-  // Get the latest Donchian values
-  const latestUpper = upper[upper.length - 1];
-  const latestLower = lower[lower.length - 1];
-  
-  // Get previous bar
-  const prevBar = historicalData[historicalData.length - 2];
-  if (!prevBar) return;
-  
-  // Check for buy signal
-  const prevTouchedLower = prevBar.low <= latestLower;
-  const currentIsGreen = newBar.close > newBar.open;
-  
-  if (prevTouchedLower && currentIsGreen && !lastTouchLower) {
-    // Generate buy signal
-    console.log('🟢 BUY SIGNAL DETECTED!', {
-      time: new Date(newBar.time * 1000).toLocaleString(),
-      price: newBar.close,
-      reason: 'Price touched Donchian lower + Green candle'
-    });
-    
-    // Add marker to chart
-    const currentMarkers = signalMarkers || [];
-    currentMarkers.push({
-      time: newBar.time,
-      position: 'belowBar',
-      color: '#26a69a',
-      shape: 'arrowUp',
-      text: 'BUY'
-    });
-    candleSeries.setMarkers(currentMarkers);
-    signalMarkers = currentMarkers;
-    
-    lastTouchLower = true;
-  } else if (!prevTouchedLower) {
-    lastTouchLower = false;
+  // Use the appropriate data source based on chart type
+  let dataForSignals = historicalData;
+  if (currentChartType === 'renko' && renkoData && renkoData.length > 0) {
+    dataForSignals = renkoData;
+  } else if (currentChartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
+    dataForSignals = heikenAshiData;
   }
+
+  if (!newBar || !dataForSignals || dataForSignals.length < 2) return;
+
+  // Get previous bar from the appropriate data source
+  const prevBar = dataForSignals[dataForSignals.length - 2];
+  if (!prevBar) return;
+
+  // Check for Donchian Channel signals
+  const donchianConfig = activeIndicators.get('DonchianChannel');
+  if (donchianConfig && donchianConfig.values) {
+    const { upper, lower } = donchianConfig.values;
+    if (upper && lower && upper.length > 0) {
+      // Get the latest Donchian values
+      const latestUpper = upper[upper.length - 1];
+      const latestLower = lower[lower.length - 1];
   
-  // Check for sell signal
-  const prevTouchedUpper = prevBar.high >= latestUpper;
-  const currentIsRed = newBar.close < newBar.open;
-  
-  if (prevTouchedUpper && currentIsRed && !lastTouchUpper) {
-    // Generate sell signal
-    console.log('🔴 SELL SIGNAL DETECTED!', {
-      time: new Date(newBar.time * 1000).toLocaleString(),
-      price: newBar.close,
-      reason: 'Price touched Donchian upper + Red candle'
-    });
-    
-    // Add marker to chart
-    const currentMarkers = signalMarkers || [];
-    currentMarkers.push({
-      time: newBar.time,
-      position: 'aboveBar',
-      color: '#ef5350',
-      shape: 'arrowDown',
-      text: 'SELL'
-    });
-    candleSeries.setMarkers(currentMarkers);
-    signalMarkers = currentMarkers;
-    
-    lastTouchUpper = true;
-  } else if (!prevTouchedUpper) {
-    lastTouchUpper = false;
+      // Check for buy signal
+      const prevTouchedLower = prevBar.low <= latestLower;
+      const currentIsGreen = newBar.close > newBar.open;
+
+      if (prevTouchedLower && currentIsGreen && !lastTouchLower) {
+        // Generate buy signal
+        // Add marker to chart
+        const currentMarkers = signalMarkers || [];
+        currentMarkers.push({
+          time: newBar.time,
+          position: 'belowBar',
+          color: '#26a69a',
+          shape: 'arrowUp',
+          text: 'BUY'
+        });
+        candleSeries.setMarkers(currentMarkers);
+        signalMarkers = currentMarkers;
+
+        // Send webhook only if real-time is ready (not during initial load)
+        console.log('🔍 Buy signal detected - Debug info:', {
+          currentStrategyId,
+          isRealTimeReady,
+          currentTicker,
+          willSendWebhook: !!(currentStrategyId && isRealTimeReady)
+        });
+
+        if (currentStrategyId && isRealTimeReady) {
+          console.log('🚀 Sending BUY webhook...');
+          sendPayload("buy", currentTicker, currentStrategyId);
+        } else {
+          console.log('❌ Webhook NOT sent - missing requirements');
+        }
+
+        lastTouchLower = true;
+      } else if (!prevTouchedLower) {
+        lastTouchLower = false;
+      }
+
+      // Check for sell signal
+      const prevTouchedUpper = prevBar.high >= latestUpper;
+      const currentIsRed = newBar.close < newBar.open;
+
+      if (prevTouchedUpper && currentIsRed && !lastTouchUpper) {
+        // Generate sell signal
+        // Add marker to chart
+        const currentMarkers = signalMarkers || [];
+        currentMarkers.push({
+          time: newBar.time,
+          position: 'aboveBar',
+          color: '#ef5350',
+          shape: 'arrowDown',
+          text: 'SELL'
+        });
+        candleSeries.setMarkers(currentMarkers);
+        signalMarkers = currentMarkers;
+
+        // Send webhook only if real-time is ready (not during initial load)
+        console.log('🔍 Sell signal detected - Debug info:', {
+          currentStrategyId,
+          isRealTimeReady,
+          currentTicker,
+          willSendWebhook: !!(currentStrategyId && isRealTimeReady)
+        });
+
+        if (currentStrategyId && isRealTimeReady) {
+          console.log('🚀 Sending SELL webhook...');
+          sendPayload("sell", currentTicker, currentStrategyId);
+        } else {
+          console.log('❌ Webhook NOT sent - missing requirements');
+        }
+
+        lastTouchUpper = true;
+      } else if (!prevTouchedUpper) {
+        lastTouchUpper = false;
+      }
+    }
+  }
+
+  // Check for DonchianMidBandStrategy signals
+  const dmbsConfig = activeIndicators.get('DonchianMidBandStrategy');
+  if (dmbsConfig && dmbsConfig.values) {
+    const { upper, lower, middle } = dmbsConfig.values;
+    if (middle && middle.length >= 2) {
+      // Get the correct middle band values for proper crossover detection
+      const currentMiddle = middle[middle.length - 1];
+      const prevMiddle = middle[middle.length - 2];
+
+      // Debug log for DMBS real-time signal checking (commented out to reduce noise)
+      // console.log('🎯 DMBS Signal Check:', {
+      //   prevClose: prevBar.close,
+      //   currentClose: newBar.close,
+      //   prevMiddle: prevMiddle,
+      //   currentMiddle: currentMiddle,
+      //   willBuy: (prevBar.close < prevMiddle && newBar.close >= currentMiddle),
+      //   willSell: (prevBar.close > prevMiddle && newBar.close <= currentMiddle),
+      //   dmbsLastAboveMiddle: dmbsLastAboveMiddle,
+      //   dmbsLastBelowMiddle: dmbsLastBelowMiddle
+      // });
+
+      // Buy Signal Detection - Bar crosses above middle band (INCLUSIVE CROSSING)
+      const prevCloseBelow = prevBar.close < prevMiddle;
+      const currentCloseAbove = newBar.close >= currentMiddle; // Using >= to include exact touches
+
+      if (prevCloseBelow && currentCloseAbove && !dmbsLastAboveMiddle) {
+        const currentTime = Date.now();
+        
+        // Generate buy signal
+        const currentMarkers = signalMarkers || [];
+        currentMarkers.push({
+          time: newBar.time,
+          position: 'belowBar',
+          color: '#26a69a',
+          shape: 'arrowUp',
+          text: 'BUY (DMBS)'
+        });
+        candleSeries.setMarkers(currentMarkers);
+        signalMarkers = currentMarkers;
+
+        // Send webhook only if real-time is ready and enough time has passed since last signal
+        const timeSinceLastSignal = currentTime - dmbsLastSignalTime;
+        console.log('🔍 DMBS Buy signal detected - Debug info:', {
+          currentStrategyId,
+          isRealTimeReady,
+          currentTicker,
+          timeSinceLastSignal,
+          debounceTime: dmbsSignalDebounceTime,
+          willSendWebhook: !!(currentStrategyId && isRealTimeReady && timeSinceLastSignal > dmbsSignalDebounceTime)
+        });
+
+        if (currentStrategyId && isRealTimeReady && timeSinceLastSignal > dmbsSignalDebounceTime) {
+          console.log('🚀 Sending DMBS BUY webhook...');
+          sendPayload("buy", currentTicker, currentStrategyId);
+          dmbsLastSignalTime = currentTime;
+        } else {
+          console.log('❌ DMBS Webhook NOT sent - missing requirements or debounce active');
+        }
+
+        dmbsLastAboveMiddle = true;
+      }
+      
+      // Reset flag only when price crosses back below middle band
+      if (newBar.close < currentMiddle) {
+        dmbsLastAboveMiddle = false;
+      }
+
+      // Sell Signal Detection - Bar crosses below middle band (INCLUSIVE CROSSING)
+      const prevCloseAbove = prevBar.close > prevMiddle;
+      const currentCloseBelow = newBar.close <= currentMiddle; // Using <= to include exact touches
+
+      if (prevCloseAbove && currentCloseBelow && !dmbsLastBelowMiddle) {
+        const currentTime = Date.now();
+        
+        // Generate sell signal
+        const currentMarkers = signalMarkers || [];
+        currentMarkers.push({
+          time: newBar.time,
+          position: 'aboveBar',
+          color: '#ef5350',
+          shape: 'arrowDown',
+          text: 'SELL (DMBS)'
+        });
+        candleSeries.setMarkers(currentMarkers);
+        signalMarkers = currentMarkers;
+
+        // Send webhook only if real-time is ready and enough time has passed since last signal
+        const timeSinceLastSignal = currentTime - dmbsLastSignalTime;
+        console.log('🔍 DMBS Sell signal detected - Debug info:', {
+          currentStrategyId,
+          isRealTimeReady,
+          currentTicker,
+          timeSinceLastSignal,
+          debounceTime: dmbsSignalDebounceTime,
+          willSendWebhook: !!(currentStrategyId && isRealTimeReady && timeSinceLastSignal > dmbsSignalDebounceTime)
+        });
+
+        if (currentStrategyId && isRealTimeReady && timeSinceLastSignal > dmbsSignalDebounceTime) {
+          console.log('🚀 Sending DMBS SELL webhook...');
+          sendPayload("sell", currentTicker, currentStrategyId);
+          dmbsLastSignalTime = currentTime;
+        } else {
+          console.log('❌ DMBS Webhook NOT sent - missing requirements or debounce active');
+        }
+
+        dmbsLastBelowMiddle = true;
+      }
+      
+      // Reset flag only when price crosses back above middle band
+      if (newBar.close > currentMiddle) {
+        dmbsLastBelowMiddle = false;
+      }
+    }
   }
 };
 
@@ -1572,7 +2053,6 @@ const convertToRenko = (data, brickSize = null, useATR = true) => {
   if (brickSize === null || useATR) {
     const atrValue = calculateATR(data);
     brickSize = Math.max(1, Math.round(atrValue * 0.5));
-    console.log('Calculated ATR brick size:', brickSize);
   }
   
   // Ensure brick size is valid
@@ -1687,8 +2167,7 @@ const convertToRenko = (data, brickSize = null, useATR = true) => {
     renkoState.direction = lastBrick.direction;
     renkoState.lastTimestamp = lastBrick.time;
   }
-  
-  console.log(`Generated ${validBricks.length} valid Renko bricks with size ${brickSize}`);
+
   return validBricks;
 };
 
@@ -1780,26 +2259,25 @@ const updateRenkoWithNewBar = (newBar, brickSize) => {
            !isNaN(brick.close) &&
            brick.high >= brick.low;
   });
-  
-  console.log(`Real-time: Generated ${validBricks.length} new Renko bricks, last timestamp: ${renkoState.lastTimestamp}`);
+
   return validBricks;
 };
 
 // Heiken Ashi calculation functions
 const calculateHeikenAshi = (data) => {
   if (!data || data.length === 0) return [];
-  
+
   const haData = [];
   let prevHACandle = null;
-  
+
   for (let i = 0; i < data.length; i++) {
     const candle = data[i];
     let haCandle = {};
-    
+
     // Calculate Heiken Ashi values
     // HA-Close = (Open + High + Low + Close) / 4
     haCandle.close = (candle.open + candle.high + candle.low + candle.close) / 4;
-    
+
     // For the first candle
     if (i === 0 || !prevHACandle) {
       // HA-Open = (Open + Close) / 2
@@ -1808,13 +2286,13 @@ const calculateHeikenAshi = (data) => {
       // HA-Open = (Previous HA-Open + Previous HA-Close) / 2
       haCandle.open = (prevHACandle.open + prevHACandle.close) / 2;
     }
-    
+
     // HA-High = Max(High, HA-Open, HA-Close)
     haCandle.high = Math.max(candle.high, haCandle.open, haCandle.close);
-    
+
     // HA-Low = Min(Low, HA-Open, HA-Close)
     haCandle.low = Math.min(candle.low, haCandle.open, haCandle.close);
-    
+
     // Copy time and volume from original candle
     haCandle.time = candle.time;
     haCandle.volume = candle.volume;
@@ -1824,6 +2302,36 @@ const calculateHeikenAshi = (data) => {
   }
   
   return haData;
+};
+
+// Calculate a single Heiken Ashi bar for realtime updates
+const calculateHeikenAshiBar = (candle, prevHACandle) => {
+  if (!candle) return null;
+
+  let haCandle = {};
+
+  // HA-Close = (Open + High + Low + Close) / 4
+  haCandle.close = (candle.open + candle.high + candle.low + candle.close) / 4;
+
+  if (!prevHACandle) {
+    // HA-Open = (Open + Close) / 2
+    haCandle.open = (candle.open + candle.close) / 2;
+  } else {
+    // HA-Open = (Previous HA-Open + Previous HA-Close) / 2
+    haCandle.open = (prevHACandle.open + prevHACandle.close) / 2;
+  }
+
+  // HA-High = Max(High, HA-Open, HA-Close)
+  haCandle.high = Math.max(candle.high, haCandle.open, haCandle.close);
+
+  // HA-Low = Min(Low, HA-Open, HA-Close)
+  haCandle.low = Math.min(candle.low, haCandle.open, haCandle.close);
+
+  // Copy time and volume from original candle
+  haCandle.time = candle.time;
+  haCandle.volume = candle.volume;
+
+  return haCandle;
 };
 
 const updateChartData = () => {
@@ -1839,12 +2347,10 @@ const updateChartData = () => {
       // Calculate Heiken Ashi data
       heikenAshiData = calculateHeikenAshi(historicalData);
       dataToDisplay = heikenAshiData;
-      console.log('Displaying Heiken Ashi data with', dataToDisplay.length, 'bars');
     } else if (currentChartType === 'renko') {
       // Calculate Renko data
       renkoData = convertToRenko(historicalData, currentBrickSize, false);
       dataToDisplay = renkoData;
-      console.log('Displaying Renko data with', dataToDisplay.length, 'bricks');
       
       // Validate Renko data
       if (dataToDisplay.length === 0) {
@@ -1852,8 +2358,6 @@ const updateChartData = () => {
         updateStatus('No Renko bricks generated', false);
         return;
       }
-    } else {
-      console.log('Displaying Candlestick data with', dataToDisplay.length, 'bars');
     }
     
     // Validate data before setting
@@ -1874,9 +2378,6 @@ const updateChartData = () => {
       const firstTime = dataToDisplay[Math.max(0, dataToDisplay.length - 100)].time;
       chart.timeScale().setVisibleRange({ from: firstTime, to: lastTime });
     }
-    
-    console.log('Chart updated successfully with', dataToDisplay.length, 'data points');
-    
   } catch (error) {
     console.error('Error updating chart data:', error);
     updateStatus('Chart update error', false);
@@ -1884,8 +2385,11 @@ const updateChartData = () => {
 };
 
 const changeChartType = (chartType) => {
-  console.log('Changing chart type to:', chartType);
   currentChartType = chartType;
+
+  // Temporarily disable real-time signals during chart type change
+  const wasRealTimeReady = isRealTimeReady;
+  isRealTimeReady = false;
   
   // Show/hide Renko brick size controls
   const renkoBrickSizeDiv = document.getElementById('renkoBrickSize');
@@ -1896,13 +2400,12 @@ const changeChartType = (chartType) => {
     renkoBrickSizeDiv.style.display = 'none';
   }
   
-  // Update the chart title based on type and provider
-  const providerName = PROVIDER_CONFIG ? PROVIDER_CONFIG.name : 'Trading';
-  let title = `/MNQ Real-Time Chart - ${providerName}`;
+  // Update the chart title based on type
+  let title = `/${CURRENT_CONTRACT} Real-Time Chart`;
   if (chartType === 'heikenashi') {
-    title = `/MNQ Heiken Ashi Chart - ${providerName}`;
+    title = `/${CURRENT_CONTRACT} Heiken Ashi Chart`;
   } else if (chartType === 'renko') {
-    title = `/MNQ Renko Chart (${currentBrickSize}) - ${providerName}`;
+    title = `/${CURRENT_CONTRACT} Renko Chart (${currentBrickSize})`;
   }
   document.querySelector('h1').textContent = title;
   
@@ -1914,18 +2417,37 @@ const changeChartType = (chartType) => {
     // Clear and redraw all indicators
     const tempIndicators = new Map(activeIndicators);
     clearAllIndicators();
-    
+
     tempIndicators.forEach((config, type) => {
-      // Always use original data for indicators, not Renko or HA data
-      const dataToUse = historicalData;
+      // Use the appropriate data based on chart type
+      let dataToUse = historicalData;
+      if (chartType === 'renko' && renkoData && renkoData.length > 0) {
+        dataToUse = renkoData;
+      } else if (chartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
+        dataToUse = heikenAshiData;
+      }
+
       const indicatorValues = calculateIndicator(type, dataToUse, config.period);
       if (indicatorValues && indicatorValues.length > 0) {
         displayIndicator(type, indicatorValues, config.period);
         activeIndicators.set(type, { period: config.period, values: indicatorValues });
       }
     });
-    
+
     updateActiveIndicatorsDisplay();
+
+    // Re-display Donchian Channel signals if active
+    if (activeIndicators.has('DonchianChannel')) {
+      displaySignalsOnChart();
+    }
+  }
+
+  // Re-enable real-time signals after chart type change
+  if (wasRealTimeReady) {
+    setTimeout(() => {
+      isRealTimeReady = true;
+      console.log('✅ Real-time ready after chart type change');
+    }, 500); // Wait 500ms to ensure we're past any historical processing
   }
 };
 
@@ -1946,13 +2468,10 @@ const updateRenkoBrickSize = () => {
       brickSizeInput.value = currentBrickSize;
       return;
     }
-    
+
     currentBrickSize = newBrickSize;
-    console.log('Updated brick size to:', currentBrickSize);
-    
     // Update chart title
-    const providerName = PROVIDER_CONFIG ? PROVIDER_CONFIG.name : 'Trading';
-    document.querySelector('h1').textContent = `/MNQ Renko Chart (${currentBrickSize}) - ${providerName}`;
+    document.querySelector('h1').textContent = `/${CURRENT_CONTRACT} Renko Chart (${currentBrickSize})`;
     
     // Reset Renko state when changing brick size
     renkoState = {
@@ -1966,6 +2485,33 @@ const updateRenkoBrickSize = () => {
     if (currentChartType === 'renko') {
       try {
         updateChartData();
+
+        // Recalculate indicators with new Renko data
+        if (activeIndicators.size > 0 && renkoData && renkoData.length > 0) {
+          const tempIndicators = new Map(activeIndicators);
+
+          // Clear existing indicator series
+          indicatorSeries.forEach((series, key) => {
+            if (chart) {
+              chart.removeSeries(series);
+            }
+          });
+          indicatorSeries.clear();
+
+          // Recalculate and redisplay indicators
+          tempIndicators.forEach((config, type) => {
+            const indicatorValues = calculateIndicator(type, renkoData, config.period);
+            if (indicatorValues && indicatorValues.length > 0) {
+              displayIndicator(type, indicatorValues, config.period);
+              activeIndicators.set(type, { period: config.period, values: indicatorValues });
+            }
+          });
+
+          // Re-display Donchian Channel signals if active
+          if (activeIndicators.has('DonchianChannel')) {
+            displaySignalsOnChart();
+          }
+        }
       } catch (error) {
         console.error('Error updating Renko chart:', error);
         alert('Error updating chart. Please try a different brick size.');
@@ -1977,11 +2523,197 @@ const updateRenkoBrickSize = () => {
   }
 };
 
-// Make functions available globally
+// Strategy management variables
+let currentStrategy = null;
+let strategyTimer = null;
+let currentStrategyId = null;
+let currentTicker = CURRENT_CONTRACT; // Use the current contract as ticker
+
+// Load the current strategy from URL parameters or default
+const loadCurrentStrategy = async () => {
+  try {
+    // Try to get strategy ID from URL parameters first
+    const urlParams = new URLSearchParams(window.location.search);
+    const strategyId = urlParams.get('strategyId');
+
+    if (strategyId) {
+      await loadStrategy(strategyId);
+    } else {
+      // If no strategy ID in URL, try to load from launch configuration
+      if (window.CHART_CONFIG && window.CHART_CONFIG.strategyId) {
+        await loadStrategy(window.CHART_CONFIG.strategyId);
+      }
+    }
+  } catch (error) {
+    console.error('Error loading current strategy:', error);
+  }
+};
+
+// Load a specific strategy
+const loadStrategy = async (strategyId) => {
+  if (!strategyId) {
+    currentStrategy = null;
+    currentStrategyId = null;
+    updateStrategyUI();
+    return;
+  }
+
+  try {
+    const response = await fetch(`http://localhost:8025/api/strategies`);
+    const data = await response.json();
+
+    if (data.success && data.data) {
+      const strategy = data.data.find(s => s.id === strategyId);
+      if (strategy) {
+        currentStrategy = strategy;
+        currentStrategyId = strategy.id;
+        updateStrategyUI();
+
+        // Apply strategy configuration to chart if needed
+        if (strategy.strategy_type !== currentChartType) {
+          changeChartType(strategy.strategy_type);
+        }
+
+        // Load indicators from strategy
+        if (strategy.indicators) {
+          loadStrategyIndicators(strategy.indicators);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error loading strategy:', error);
+    console.log('Error loading strategy: ' + error.message);
+  }
+};
+
+// Load indicators from strategy configuration
+const loadStrategyIndicators = (indicators) => {
+  // Clear existing indicators first
+  clearAllIndicators();
+
+  // Add each indicator from the strategy
+  Object.entries(indicators).forEach(([type, config]) => {
+    try {
+      let dataForIndicator = historicalData;
+      if (currentChartType === 'renko' && renkoData && renkoData.length > 0) {
+        dataForIndicator = renkoData;
+      } else if (currentChartType === 'heikenashi' && heikenAshiData && heikenAshiData.length > 0) {
+        dataForIndicator = heikenAshiData;
+      }
+
+      const indicatorValues = calculateIndicator(type, dataForIndicator, config.period || 14);
+      if (indicatorValues && indicatorValues.length > 0) {
+        displayIndicator(type, indicatorValues, config.period || 14);
+        activeIndicators.set(type, { period: config.period || 14, values: indicatorValues });
+      }
+    } catch (error) {
+      console.error(`Error loading indicator ${type}:`, error);
+    }
+  });
+
+  updateActiveIndicatorsDisplay();
+};
+
+// Toggle strategy (start/stop)
+const toggleStrategy = async () => {
+  if (!currentStrategy) {
+    alert('No strategy loaded');
+    return;
+  }
+
+  const isActive = currentStrategy.status === 'active';
+  const newStatus = isActive ? 'inactive' : 'active';
+
+  try {
+    const response = await fetch(`http://localhost:8025/api/strategies/${currentStrategy.id}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: newStatus })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      currentStrategy.status = newStatus;
+      updateStrategyUI();
+
+      if (newStatus === 'active') {
+        // Start monitoring strategy status
+        strategyTimer = setInterval(checkStrategyStatus, 5000);
+        console.log('✅ Strategy started successfully');
+      } else {
+        // Stop monitoring strategy status
+        if (strategyTimer) {
+          clearInterval(strategyTimer);
+          strategyTimer = null;
+        }
+        console.log('⏹️ Strategy stopped successfully');
+      }
+    } else {
+      throw new Error(data.error || `Failed to ${isActive ? 'stop' : 'start'} strategy`);
+    }
+  } catch (error) {
+    console.error(`Error ${isActive ? 'stopping' : 'starting'} strategy:`, error);
+    alert(`Error ${isActive ? 'stopping' : 'starting'} strategy: ` + error.message);
+  }
+};
+
+// Check strategy status periodically
+const checkStrategyStatus = async () => {
+  if (!currentStrategy) return;
+
+  try {
+    const response = await fetch(`http://localhost:8025/api/strategies`);
+    const data = await response.json();
+
+    if (data.success && data.data) {
+      const strategy = data.data.find(s => s.id === currentStrategy.id);
+      if (strategy && strategy.status !== currentStrategy.status) {
+        currentStrategy.status = strategy.status;
+        updateStrategyUI();
+      }
+    }
+  } catch (error) {
+    console.error('Error checking strategy status:', error);
+  }
+};
+
+// Update strategy UI based on current state
+const updateStrategyUI = () => {
+  const toggleBtn = document.getElementById('strategyToggleBtn');
+  const nameSpan = document.getElementById('strategyName');
+
+  if (!currentStrategy) {
+    toggleBtn.disabled = true;
+    toggleBtn.textContent = 'Start Strategy';
+    toggleBtn.className = 'strategy-toggle-btn';
+    nameSpan.textContent = 'No Strategy Loaded';
+    return;
+  }
+
+  const status = currentStrategy.status || 'inactive';
+  const isActive = status === 'active';
+
+  toggleBtn.disabled = false;
+  toggleBtn.textContent = isActive ? 'Stop Strategy' : 'Start Strategy';
+  toggleBtn.className = `strategy-toggle-btn ${isActive ? 'stop' : 'start'}`;
+
+  nameSpan.textContent = currentStrategy.name;
+};
+
+// Make functions and variables available globally
 window.addIndicator = addIndicator;
+window.showIndicatorModal = showIndicatorModal;
+window.closeIndicatorModal = closeIndicatorModal;
+window.applyIndicator = applyIndicator;
+window.toggleStrategy = toggleStrategy;
 window.changeResolution = changeResolution;
 window.changeChartType = changeChartType;
 window.updateRenkoBrickSize = updateRenkoBrickSize;
+window.activeIndicators = activeIndicators;
+window.indicatorSeries = indicatorSeries;
 
 // Start the application when DOM is ready
 if (document.readyState === 'loading') {

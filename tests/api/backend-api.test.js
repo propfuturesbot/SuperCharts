@@ -1,7 +1,7 @@
 const request = require('supertest');
 const axios = require('axios');
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://localhost:8025';
 
 describe('Trading Backend API Tests', () => {
   

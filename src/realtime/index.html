@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Real-Time Trading Charts</title>
+    <title>TopStepX Real-Time Charts</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -102,6 +102,220 @@
         width: 100%;
         height: 100%;
       }
+      /* Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        animation: fadeIn 0.3s ease;
+      }
+
+      .modal.show {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-content {
+        background-color: #2a2a2a;
+        padding: 30px;
+        border-radius: 12px;
+        border: 1px solid #444;
+        width: 400px;
+        max-width: 90%;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        animation: slideUp 0.3s ease;
+      }
+
+      .modal-header {
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #444;
+      }
+
+      .modal-title {
+        font-size: 20px;
+        color: #4CAF50;
+        margin: 0;
+        font-weight: 500;
+      }
+
+      .modal-body {
+        margin-bottom: 25px;
+      }
+
+      .modal-input-group {
+        margin-bottom: 20px;
+      }
+
+      .modal-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #bbb;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .modal-input {
+        width: 100%;
+        padding: 10px 12px;
+        background-color: #1a1a1a;
+        color: #ddd;
+        border: 1px solid #444;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.3s ease, background-color 0.3s ease;
+        box-sizing: border-box;
+      }
+
+      .modal-input:focus {
+        outline: none;
+        border-color: #4CAF50;
+        background-color: #222;
+      }
+
+      .modal-input:hover {
+        border-color: #555;
+      }
+
+      .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      .modal-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+      }
+
+      .modal-btn-primary {
+        background-color: #4CAF50;
+        color: white;
+      }
+
+      .modal-btn-primary:hover {
+        background-color: #45a049;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+      }
+
+      .modal-btn-secondary {
+        background-color: #555;
+        color: #ddd;
+      }
+
+      .modal-btn-secondary:hover {
+        background-color: #666;
+        transform: translateY(-1px);
+      }
+
+      .modal-hint {
+        font-size: 12px;
+        color: #888;
+        margin-top: 5px;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      /* Strategy Controls Styles */
+      .strategy-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-left: 20px;
+      }
+
+      .strategy-name {
+        font-size: 14px;
+        color: #4CAF50;
+        font-weight: 500;
+        padding: 4px 8px;
+        background-color: #2a2a2a;
+        border-radius: 4px;
+        border: 1px solid #444;
+      }
+
+      .strategy-toggle-btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 110px;
+      }
+
+      .strategy-toggle-btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+        background-color: #666;
+        color: #999;
+      }
+
+      .strategy-toggle-btn.start {
+        background-color: #4CAF50;
+        color: white;
+      }
+
+      .strategy-toggle-btn.start:hover:not(:disabled) {
+        background-color: #45a049;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+      }
+
+      .strategy-toggle-btn.stop {
+        background-color: #f44336;
+        color: white;
+        animation: pulse 2s infinite;
+      }
+
+      .strategy-toggle-btn.stop:hover:not(:disabled) {
+        background-color: #da190b;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
     </style>
   </head>
   <body>
@@ -164,26 +378,28 @@
             <optgroup label="Trend Indicators">
               <option value="SMA">Simple Moving Average (SMA)</option>
               <option value="EMA">Exponential Moving Average (EMA)</option>
-              <option value="DEMA">Double Exponential Moving Average (DEMA)</option>
-              <option value="TEMA">Triple Exponential Moving Average (TEMA)</option>
             </optgroup>
             <optgroup label="Momentum Indicators">
               <option value="RSI">Relative Strength Index (RSI)</option>
-              <option value="MACD">MACD</option>
-              <option value="Stochastic">Stochastic Oscillator</option>
-              <option value="Williams">Williams %R</option>
             </optgroup>
             <optgroup label="Volatility Indicators">
               <option value="BollingerBands">Bollinger Bands</option>
               <option value="DonchianChannel">Donchian Channel</option>
-              <option value="ATR">Average True Range (ATR)</option>
+              <option value="DonchianMidBandStrategy">Donchian MidBand Strategy</option>
             </optgroup>
           </select>
         </div>
         
         <div id="status" class="status">Connecting...</div>
+
+        <div class="strategy-controls">
+          <span id="strategyName" class="strategy-name">No Strategy Loaded</span>
+          <button id="strategyToggleBtn" class="strategy-toggle-btn" onclick="toggleStrategy()" disabled>
+            Start Strategy
+          </button>
+        </div>
       </div>
-      
+
       <div class="active-indicators" id="activeIndicators">
         <!-- Active indicators will be displayed here -->
       </div>
@@ -193,9 +409,29 @@
       <div id="chart"></div>
     </div>
 
+    <!-- Indicator Configuration Modal -->
+    <div id="indicatorModal" class="modal" onclick="closeIndicatorModal()">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title" id="modalTitle">Configure Indicator</h2>
+        </div>
+        <div class="modal-body">
+          <div class="modal-input-group">
+            <label class="modal-label" for="modalPeriodInput">Period</label>
+            <input type="number" id="modalPeriodInput" class="modal-input" value="14" min="1" max="500">
+            <div class="modal-hint">Enter the period for the indicator calculation (default: 14 for most indicators, 200 for Bollinger Bands and Donchian Channel)</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn modal-btn-secondary" onclick="closeIndicatorModal()">Cancel</button>
+          <button class="modal-btn modal-btn-primary" onclick="applyIndicator()">Apply</button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@6.0.0/dist/browser/signalr.min.js"></script>
-    <script src="browser-auth.js"></script>
+    <script src="providers-browser.js"></script>
     <script>
       // Simple manual implementation of common indicators
       window.indicators = {
@@ -273,40 +509,68 @@
           }
           
           return {
-            upperBand: upperBand,
-            middleBand: middleBand,
-            lowerBand: lowerBand
+            upper: upperBand,
+            middle: middleBand,
+            lower: lowerBand
           };
         },
         
-        donchianChannel: function(highData, lowData, config) {
-          const period = config.period || 20;
+        donchianChannel: function(data, config) {
+          const period = config.period || 4;
           const upperChannel = [];
           const lowerChannel = [];
           const middleChannel = [];
-          
-          for (let i = period - 1; i < highData.length; i++) {
-            let highest = highData[i];
-            let lowest = lowData[i];
-            
+
+          for (let i = period - 1; i < data.length; i++) {
+            let highest = data[i];
+            let lowest = data[i];
+
             for (let j = 0; j < period; j++) {
-              highest = Math.max(highest, highData[i - j]);
-              lowest = Math.min(lowest, lowData[i - j]);
+              highest = Math.max(highest, data[i - j]);
+              lowest = Math.min(lowest, data[i - j]);
             }
-            
+
             upperChannel.push(highest);
             lowerChannel.push(lowest);
             middleChannel.push((highest + lowest) / 2);
           }
-          
+
           return {
-            upperChannel: upperChannel,
-            middleChannel: middleChannel,
-            lowerChannel: lowerChannel
+            upper: upperChannel,
+            middle: middleChannel,
+            lower: lowerChannel
+          };
+        },
+
+        donchianMidBandStrategy: function(data, config) {
+          // Exact copy of donchianChannel calculation
+          const period = config.period || 4;
+          const upperChannel = [];
+          const lowerChannel = [];
+          const middleChannel = [];
+
+          for (let i = period - 1; i < data.length; i++) {
+            let highest = data[i];
+            let lowest = data[i];
+
+            for (let j = 0; j < period; j++) {
+              highest = Math.max(highest, data[i - j]);
+              lowest = Math.min(lowest, data[i - j]);
+            }
+
+            upperChannel.push(highest);
+            lowerChannel.push(lowest);
+            middleChannel.push((highest + lowest) / 2);
+          }
+
+          return {
+            upper: upperChannel,
+            middle: middleChannel,
+            lower: lowerChannel
           };
         }
       };
     </script>
-    <script src="index_wrapper.js"></script>
+    <script src="index.js"></script>
   </body>
 </html>

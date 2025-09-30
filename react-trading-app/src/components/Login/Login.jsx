@@ -160,16 +160,16 @@ const Login = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            Trading System
+            PROP FUTURES BOT
           </motion.h1>
-          
-          <motion.p 
+
+          <motion.p
             className="login-subtitle"
             initial={{ y: -10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            Access Your Trading Dashboard
+            Intelligent Strategy Management Platform
           </motion.p>
 
           <form className="login-form" onSubmit={handleSubmit}>

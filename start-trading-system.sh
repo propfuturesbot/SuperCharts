@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 REACT_PORT=3000
-BACKEND_PORT=8000
+BACKEND_PORT=8025
 SIGNALR_PORT=5000
 
 # Application identifiers for safe process killing

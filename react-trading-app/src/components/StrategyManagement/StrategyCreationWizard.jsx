@@ -15,7 +15,6 @@ import {
 } from 'react-icons/fa';
 import axios from 'axios';
 import tradovateContracts from '../../data/tradovate_contracts.json';
-import TradingChart from '../TradingChart/TradingChart';
 import './StrategyCreationWizard.css';
 
 const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode = false, strategy = null }) => {
@@ -35,7 +34,6 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showFullPageChart, setShowFullPageChart] = useState(false);
 
   const strategyTypes = [
     {
@@ -172,7 +170,7 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
   // Contract lookup function to get product_id
   const lookupContractProductId = async (contractName) => {
     try {
-      const response = await axios.get(`http://localhost:8000/api/contracts/lookup/${encodeURIComponent(contractName)}`);
+      const response = await axios.get(`http://localhost:8025/api/contracts/lookup/${encodeURIComponent(contractName)}`);
       if (response.data && response.data.success) {
         return response.data.product_id;
       }
@@ -189,7 +187,7 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
       console.log('Fetching contracts from API...');
       
       // Fetch contracts from our backend API
-      const response = await axios.get('http://localhost:8000/api/contracts');
+      const response = await axios.get('http://localhost:8025/api/contracts');
       
       if (response.data && response.data.success && response.data.contracts) {
         console.log(`Loaded ${response.data.contracts.length} contracts from ${response.data.source}`);
@@ -293,7 +291,6 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
       }
       
       // Open full page chart instead of going to step 4
-      setShowFullPageChart(true);
       return;
     }
     setError('');
@@ -332,7 +329,6 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
       // Chart-specific settings
       chart_type: formData.strategyType, // Store the chart type for restoration
       brick_size: formData.strategyType === 'renko' ? parseFloat(formData.brickSize) : null,
-      // Chart configuration from TradingChart component (if available)
       chart_config: chartData ? {
         resolution: chartData.resolution,
         chartType: chartData.chartType,
@@ -350,7 +346,7 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
         // Update existing strategy
         console.log('Updating strategy:', strategy.id);
         try {
-          const response = await axios.put(`http://localhost:8000/api/strategies/${strategy.id}`, strategyData);
+          const response = await axios.put(`http://localhost:8025/api/strategies/${strategy.id}`, strategyData);
           updatedStrategy = {
             ...strategyData,
             id: strategy.id,
@@ -371,7 +367,7 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
         // Create new strategy
         console.log('Creating new strategy');
         try {
-          const response = await axios.post('http://localhost:8000/api/strategies', strategyData);
+          const response = await axios.post('http://localhost:8025/api/strategies', strategyData);
           updatedStrategy = {
             ...strategyData,
             id: response.data.id,
@@ -393,7 +389,6 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
       }
       
       onStrategyCreated(updatedStrategy);
-      setShowFullPageChart(false);
       onClose();
     } catch (error) {
       console.error('Error in strategy save process:', error);
@@ -408,22 +403,52 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
     setFormData(prev => ({ ...prev, timeframe: newResolution }));
   };
 
-  const testWebhook = async () => {
-    if (!validateWebhookUrl(formData.webhookUrl)) {
-      setError('Please enter a valid webhook URL');
-      return;
-    }
-    
+
+  const launchChart = async (strategyId = null) => {
     try {
-      const testPayload = JSON.parse(formData.webhookPayload);
-      await axios.post(formData.webhookUrl, testPayload);
-      alert('Webhook test successful!');
-    } catch (error) {
-      if (error.name === 'SyntaxError') {
-        setError('Invalid JSON in payload. Please check your JSON syntax.');
+      setLoading(true);
+
+      let chartConfig;
+
+      if (strategyId) {
+        // Launching a saved strategy
+        chartConfig = { strategyId };
+        console.log('Launching saved strategy:', strategyId);
       } else {
-        setError('Webhook test failed: ' + error.message);
+        // Launching with current form configuration
+        chartConfig = {
+          strategyType: formData.strategyType,
+          timeframe: formData.timeframe,
+          brickSize: formData.brickSize,
+          contractSymbol: formData.contract?.symbol || 'MNQ',
+          strategyName: formData.strategyName
+        };
+        console.log('Launching chart with config:', chartConfig);
       }
+
+      const response = await axios.post('http://localhost:8025/api/launch-chart', chartConfig);
+      console.log('Chart launched successfully:', response.data);
+
+      // Open the chart URL in a new window
+      if (response.data && response.data.url) {
+        window.open(response.data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error launching chart:', error);
+      setError('Failed to launch chart: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateStrategyClick = async () => {
+    if (editMode && strategy?.id) {
+      // For existing strategies: save first, then launch with the strategy ID
+      await handleSaveStrategy();
+      await launchChart(strategy.id);
+    } else {
+      // For new strategies, just launch the chart without saving
+      await launchChart();
     }
   };
 
@@ -658,11 +683,6 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
                     onChange={(e) => setFormData({ ...formData, webhookUrl: e.target.value })}
                     className="config-input"
                   />
-                  {formData.webhookUrl && (
-                    <button className="test-webhook-btn" onClick={testWebhook}>
-                      Test Webhook
-                    </button>
-                  )}
                 </div>
               </motion.div>
             )}
@@ -680,30 +700,21 @@ const StrategyCreationWizard = ({ isOpen, onClose, onStrategyCreated, editMode =
               Next <FaArrowRight />
             </button>
           ) : (
-            <button className="wizard-btn chart-btn" onClick={handleNext}>
-              <FaChartLine /> {editMode ? 'Edit Chart' : 'View Chart'}
+            <button className="wizard-btn save-btn" onClick={handleUpdateStrategyClick}>
+              {editMode ? (
+                <>
+                  <FaSave /> Update Strategy
+                </>
+              ) : (
+                <>
+                  <FaChartLine /> Configure Chart
+                </>
+              )}
             </button>
           )}
         </div>
       </motion.div>
 
-      {/* Trading Chart Component */}
-      <TradingChart
-        isOpen={showFullPageChart}
-        onClose={() => setShowFullPageChart(false)}
-        onSave={handleSaveStrategy}
-        onResolutionChange={handleResolutionChange}
-        productId={formData.contractProductId}
-        resolution={formData.timeframe}
-        strategyType={formData.strategyType}
-        strategyName={formData.strategyName}
-        contractInfo={formData.contract}
-        fullscreen={true}
-        // Strategy-specific settings
-        strategyBrickSize={formData.brickSize}
-        strategyConfig={editMode && strategy?.chart_config ? strategy.chart_config : null}
-        editMode={editMode}
-      />
     </div>
   );
 };

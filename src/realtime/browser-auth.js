@@ -6,45 +6,21 @@ class BrowserAuthManager {
     this.provider = null;
   }
 
-  // Provider configurations
+  // Provider configurations from global ProviderConfig
   getProviders() {
-    return {
-      topstepx: {
-        name: 'TopStepX',
-        api_endpoint: 'https://api.topstepx.com',
-        userapi_endpoint: 'https://userapi.topstepx.com',
-        websocket_endpoint: 'wss://api.topstepx.com/signalr',
-        user_hub: 'https://rtc.topstepx.com/hubs/user',
-        market_hub: 'https://rtc.topstepx.com/hubs/market',
-        websocket_chartapi: 'wss://chartapi.topstepx.com/hubs',
-        chartapi_endpoint: 'https://chartapi.topstepx.com'
-      },
-      alphaticks: {
-        name: 'AlphaTicks',
-        api_endpoint: 'https://api.alphaticks.projectx.com',
-        userapi_endpoint: 'https://userapi.alphaticks.projectx.com',
-        websocket_endpoint: 'wss://api.alphaticks.projectx.com/signalr',
-        user_hub: 'https://rtc.alphaticks.projectx.com/hubs/user',
-        market_hub: 'https://rtc.alphaticks.projectx.com/hubs/market',
-        websocket_chartapi: 'wss://chartapi.alphaticks.projectx.com/hubs',
-        chartapi_endpoint: 'https://chartapi.alphaticks.projectx.com'
-      },
-      blueguardian: {
-        name: 'Blue Guardian',
-        api_endpoint: 'https://api.blueguardianfutures.projectx.com',
-        userapi_endpoint: 'https://userapi.blueguardianfutures.projectx.com',
-        websocket_endpoint: 'wss://api.blueguardianfutures.projectx.com/signalr',
-        user_hub: 'https://rtc.blueguardianfutures.projectx.com/hubs/user',
-        market_hub: 'https://rtc.blueguardianfutures.projectx.com/hubs/market',
-        websocket_chartapi: 'wss://chartapi.blueguardianfutures.projectx.com/hubs',
-        chartapi_endpoint: 'https://chartapi.blueguardianfutures.projectx.com'
-      }
-    };
+    if (window.ProviderConfig && window.ProviderConfig.getProviders) {
+      return window.ProviderConfig.getProviders();
+    }
+    console.error('ProviderConfig not loaded. Make sure providers-browser.js is included.');
+    return {};
   }
 
   getProviderConfig(providerKey) {
-    const providers = this.getProviders();
-    return providers[providerKey] || providers.topstepx;
+    if (window.ProviderConfig && window.ProviderConfig.getProviderConfig) {
+      return window.ProviderConfig.getProviderConfig(providerKey);
+    }
+    console.error('ProviderConfig not loaded. Make sure providers-browser.js is included.');
+    return null;
   }
 
   // Get current provider from localStorage or URL params
@@ -66,7 +42,6 @@ class BrowserAuthManager {
       // First, try to get token from localStorage (main auth system)
       const storedToken = localStorage.getItem('auth_token');
       if (storedToken) {
-        console.log('✅ Using token from localStorage (main auth system)');
         this.token = storedToken;
         this.username = localStorage.getItem('username');
         this.provider = localStorage.getItem('provider') || 'topstepx';
@@ -77,7 +52,6 @@ class BrowserAuthManager {
       const urlParams = new URLSearchParams(window.location.search);
       const urlToken = urlParams.get('token');
       if (urlToken) {
-        console.log('✅ Using token from URL parameters');
         this.token = urlToken;
         this.provider = urlParams.get('provider') || 'topstepx';
         return urlToken;
@@ -86,10 +60,8 @@ class BrowserAuthManager {
       // Try to get saved credentials and login
       const savedCreds = this.getSavedCredentials();
       if (savedCreds) {
-        console.log('🔄 Found saved credentials, attempting login...');
         const token = await this.loginWithStoredCredentials(savedCreds);
         if (token) {
-          console.log('✅ Successfully authenticated with stored credentials');
           return token;
         }
       }
@@ -162,7 +134,7 @@ class BrowserAuthManager {
           userName: credentials.username,
           password: credentials.password
         });
-        response = await fetch('https://userapi.topstepx.com/Login', requestOptions);
+        response = await fetch(`${config.userapi_endpoint}/Login`, requestOptions);
       } else {
         // Use API key authentication
         requestOptions.headers['accept'] = 'text/plain';
@@ -305,6 +277,17 @@ class BrowserAuthManager {
 
 // Global instance
 window.browserAuth = new BrowserAuthManager();
+
+
+
+
+
+
+
+
+
+
+
 
 
 
