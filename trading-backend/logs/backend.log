@@ -3,25 +3,252 @@
 > node simple-backend.js
 
 ✅ Found existing contracts file with 57 contracts
-(node:13153) Warning: Accessing non-existent property 'lookupContractProductId' of module exports inside circular dependency
+(node:12385) Warning: Accessing non-existent property 'lookupContractProductId' of module exports inside circular dependency
 (Use `node --trace-warnings ...` to show where the warning was created)
 🚀 Backend running on http://localhost:8025
 📄 Contracts cached in: /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableContracts.json
 [AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
 [AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
-[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
-[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
-[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
-[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
-[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
-[VALIDATION] Checking trading time restrictions at 15:45 GMT
-[DEBUG] Current GMT time: 1545
+[TUNNEL] Config says active but no process found, updating...
+[VALIDATION] Checking trading time restrictions at 16:32 GMT
+[DEBUG] Current GMT time: 1632
 [DEBUG] Allowed sessions: []
 [DEBUG] Restricted sessions: []
 [DEBUG] Session-based trading is allowed
 [VALIDATION] Trading is allowed
-[VALIDATION] Checking trading time restrictions at 15:45 GMT
-[DEBUG] Current GMT time: 1545
+[VALIDATION] Checking trading time restrictions at 16:32 GMT
+[DEBUG] Current GMT time: 1632
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
+[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
+[ADD RESTRICTIONS] Enabled 2 events with 30min before, 30min after
+[VALIDATION] Checking trading time restrictions at 16:33 GMT
+[DEBUG] Current GMT time: 1633
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[DEBUG] Checking 245 economic events with buffer: 30min before, 30min after
+[DEBUG] Event: Chinese NBS Manufacturing PMI at 2025-09-30T01:30:00.000Z, time diff: -903.1 minutes
+[DEBUG] Event: Australian Building Approvals at 2025-09-30T01:30:00.000Z, time diff: -903.1 minutes
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:33 GMT
+[DEBUG] Current GMT time: 1633
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[DEBUG] Checking 245 economic events with buffer: 30min before, 30min after
+[DEBUG] Event: Chinese NBS Manufacturing PMI at 2025-09-30T01:30:00.000Z, time diff: -903.1 minutes
+[DEBUG] Event: Australian Building Approvals at 2025-09-30T01:30:00.000Z, time diff: -903.1 minutes
+[VALIDATION] Trading is allowed
+[CLEAR RESTRICTIONS] Disabled 1 events
+[VALIDATION] Checking trading time restrictions at 16:33 GMT
+[DEBUG] Current GMT time: 1633
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[DEBUG] Checking 245 economic events with buffer: 30min before, 30min after
+[DEBUG] Event: Chinese NBS Manufacturing PMI at 2025-09-30T01:30:00.000Z, time diff: -903.3 minutes
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:33 GMT
+[DEBUG] Current GMT time: 1633
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[DEBUG] Checking 245 economic events with buffer: 30min before, 30min after
+[DEBUG] Event: Chinese NBS Manufacturing PMI at 2025-09-30T01:30:00.000Z, time diff: -903.3 minutes
+[VALIDATION] Trading is allowed
+[CLEAR RESTRICTIONS] Disabled 1 events
+[VALIDATION] Checking trading time restrictions at 16:33 GMT
+[DEBUG] Current GMT time: 1633
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:34 GMT
+[DEBUG] Current GMT time: 1634
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:34 GMT
+[DEBUG] Current GMT time: 1634
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:35 GMT
+[DEBUG] Current GMT time: 1635
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:35 GMT
+[DEBUG] Current GMT time: 1635
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:36 GMT
+[DEBUG] Current GMT time: 1636
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:36 GMT
+[DEBUG] Current GMT time: 1636
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:37 GMT
+[DEBUG] Current GMT time: 1637
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:37 GMT
+[DEBUG] Current GMT time: 1637
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:38 GMT
+[DEBUG] Current GMT time: 1638
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:38 GMT
+[DEBUG] Current GMT time: 1638
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:39 GMT
+[DEBUG] Current GMT time: 1639
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:39 GMT
+[DEBUG] Current GMT time: 1639
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:40 GMT
+[DEBUG] Current GMT time: 1640
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:40 GMT
+[DEBUG] Current GMT time: 1640
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:41 GMT
+[DEBUG] Current GMT time: 1641
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:41 GMT
+[DEBUG] Current GMT time: 1641
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:42 GMT
+[DEBUG] Current GMT time: 1642
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:42 GMT
+[DEBUG] Current GMT time: 1642
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:43 GMT
+[DEBUG] Current GMT time: 1643
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:43 GMT
+[DEBUG] Current GMT time: 1643
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:44 GMT
+[DEBUG] Current GMT time: 1644
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:44 GMT
+[DEBUG] Current GMT time: 1644
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:45 GMT
+[DEBUG] Current GMT time: 1645
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:45 GMT
+[DEBUG] Current GMT time: 1645
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:46 GMT
+[DEBUG] Current GMT time: 1646
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:46 GMT
+[DEBUG] Current GMT time: 1646
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:47 GMT
+[DEBUG] Current GMT time: 1647
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:47 GMT
+[DEBUG] Current GMT time: 1647
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:48 GMT
+[DEBUG] Current GMT time: 1648
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:48 GMT
+[DEBUG] Current GMT time: 1648
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 16:49 GMT
+[DEBUG] Current GMT time: 1649
 [DEBUG] Allowed sessions: []
 [DEBUG] Restricted sessions: []
 [DEBUG] Session-based trading is allowed
