@@ -5,17 +5,48 @@ const fs = require('fs');
 const path = require('path');
 const { swaggerUi, specs } = require('./swagger');
 const orderManager = require('./orderManager');
+const { trafficLogger, readLogs } = require('./middleware/trafficLogger');
 
 // Routes removed
 
 const app = express();
 const port = 8025;
 
+// CORS configuration to allow localhost and Cloudflare tunnel
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman, or curl)
+    if (!origin) return callback(null, true);
+
+    // List of allowed origins
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:8025', // Allow backend to call itself
+      /https:\/\/.*\.trycloudflare\.com$/ // Allow any Cloudflare tunnel
+    ];
+
+    // Check if origin matches any allowed pattern
+    const isAllowed = allowedOrigins.some(pattern => {
+      if (pattern instanceof RegExp) {
+        return pattern.test(origin);
+      }
+      return pattern === origin;
+    });
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.log('[CORS] Blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
+
+// Traffic Logger Middleware (must be after express.json())
+app.use(trafficLogger);
 
 // Swagger Documentation
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(specs, {
@@ -1932,19 +1963,27 @@ app.post('/api/stop-tunnel', (req, res) => {
         fs.writeFileSync(WEBHOOK_CONFIG_FILE, JSON.stringify(config, null, 2));
       }
 
-      res.json({
+      return res.json({
         success: true,
         message: 'Tunnel stopped successfully'
       });
-    } else {
-      res.json({
-        success: false,
-        message: 'No active tunnel to stop'
-      });
     }
+
+    // No active process, but update config to be safe
+    if (fs.existsSync(WEBHOOK_CONFIG_FILE)) {
+      const config = JSON.parse(fs.readFileSync(WEBHOOK_CONFIG_FILE, 'utf8'));
+      config.active = false;
+      config.stopped_at = new Date().toISOString();
+      fs.writeFileSync(WEBHOOK_CONFIG_FILE, JSON.stringify(config, null, 2));
+    }
+
+    res.json({
+      success: true,
+      message: 'No active tunnel process found. Config updated.'
+    });
   } catch (error) {
     console.error('[TUNNEL] Error stopping tunnel:', error);
-    res.status(500).json({
+    res.json({
       success: false,
       error: `Error stopping tunnel: ${error.message}`
     });
@@ -1974,38 +2013,39 @@ app.post('/api/kill-cloudflared', async (req, res) => {
       'taskkill /F /IM cloudflared.exe'
     ];
 
+    let killed = false;
     for (const cmd of methods) {
       try {
         await execAsync(cmd);
         console.log(`[TUNNEL] Killed cloudflared processes using: ${cmd}`);
-
-        // Update config
-        if (fs.existsSync(WEBHOOK_CONFIG_FILE)) {
-          const config = JSON.parse(fs.readFileSync(WEBHOOK_CONFIG_FILE, 'utf8'));
-          config.active = false;
-          config.force_killed_at = new Date().toISOString();
-          fs.writeFileSync(WEBHOOK_CONFIG_FILE, JSON.stringify(config, null, 2));
-        }
-
-        tunnelProcess = null;
-
-        return res.json({
-          success: true,
-          message: 'Cloudflared processes killed successfully',
-          method: cmd.split(' ')[0]
-        });
+        killed = true;
+        break;
       } catch (err) {
+        // Command might fail if no process exists, continue to next method
         continue;
       }
     }
 
+    // Update config regardless
+    if (fs.existsSync(WEBHOOK_CONFIG_FILE)) {
+      const config = JSON.parse(fs.readFileSync(WEBHOOK_CONFIG_FILE, 'utf8'));
+      config.active = false;
+      config.force_killed_at = new Date().toISOString();
+      fs.writeFileSync(WEBHOOK_CONFIG_FILE, JSON.stringify(config, null, 2));
+    }
+
+    tunnelProcess = null;
+
     res.json({
-      success: false,
-      error: 'All process kill methods failed. Try stopping cloudflared manually.'
+      success: true,
+      message: killed
+        ? 'Cloudflared processes killed successfully'
+        : 'No cloudflared processes found. Config updated.',
+      processesKilled: killed
     });
   } catch (error) {
     console.error('[TUNNEL] Error killing cloudflared:', error);
-    res.status(500).json({
+    res.json({
       success: false,
       error: `Error killing cloudflared: ${error.message}`
     });
@@ -3263,6 +3303,253 @@ app.post('/api/economic-calendar/clear-restrictions', (req, res) => {
   } catch (error) {
     console.error('[ERROR] Failed to clear restrictions:', error);
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
+// TRAFFIC MONITORING ENDPOINTS
+// ============================================
+
+/**
+ * @swagger
+ * /api/traffic/logs:
+ *   get:
+ *     summary: Get traffic logs with filtering and pagination
+ *     description: Returns filtered and paginated traffic logs
+ *     tags: [Traffic Monitoring]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 25
+ *         description: Items per page
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter from this date
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter to this date
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *           enum: [Frontend API, Backend API, Webhook]
+ *         description: Filter by traffic category
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [Success, Error]
+ *         description: Filter by status
+ *     responses:
+ *       200:
+ *         description: Traffic logs retrieved successfully
+ */
+app.get('/api/traffic/logs', (req, res) => {
+  try {
+    const logs = readLogs();
+    const { page = 1, limit = 25, startDate, endDate, category, status } = req.query;
+
+    // Filter logs
+    let filteredLogs = logs;
+
+    if (startDate) {
+      const start = new Date(startDate);
+      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) >= start);
+    }
+
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) <= end);
+    }
+
+    if (category) {
+      filteredLogs = filteredLogs.filter(log => log.category === category);
+    }
+
+    if (status) {
+      filteredLogs = filteredLogs.filter(log => log.status === status);
+    }
+
+    // Sort by timestamp descending (newest first)
+    filteredLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    // Pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + parseInt(limit);
+    const paginatedLogs = filteredLogs.slice(startIndex, endIndex);
+
+    res.json({
+      success: true,
+      data: paginatedLogs,
+      pagination: {
+        total: filteredLogs.length,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: Math.ceil(filteredLogs.length / limit)
+      }
+    });
+  } catch (error) {
+    console.error('[TRAFFIC] Error fetching logs:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch traffic logs',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/traffic/metrics:
+ *   get:
+ *     summary: Get traffic performance metrics
+ *     description: Returns aggregated performance metrics from traffic logs
+ *     tags: [Traffic Monitoring]
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Calculate metrics from this date
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Calculate metrics to this date
+ *     responses:
+ *       200:
+ *         description: Metrics calculated successfully
+ */
+app.get('/api/traffic/metrics', (req, res) => {
+  try {
+    const logs = readLogs();
+    const { startDate, endDate } = req.query;
+
+    // Filter by date range if provided
+    let filteredLogs = logs;
+    if (startDate) {
+      const start = new Date(startDate);
+      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) >= start);
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) <= end);
+    }
+
+    // Calculate metrics
+    const totalRequests = filteredLogs.length;
+    const successCount = filteredLogs.filter(log => log.status === 'Success').length;
+    const errorCount = filteredLogs.filter(log => log.status === 'Error').length;
+    const successRate = totalRequests > 0 ? ((successCount / totalRequests) * 100).toFixed(1) : 0;
+
+    const latencies = filteredLogs.filter(log => log.latency !== null).map(log => log.latency);
+    const avgTime = latencies.length > 0 ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : 0;
+    const fastest = latencies.length > 0 ? Math.min(...latencies) : 0;
+    const slowest = latencies.length > 0 ? Math.max(...latencies) : 0;
+
+    // Calculate action-specific averages
+    const buyLogs = filteredLogs.filter(log => log.action?.toUpperCase() === 'BUY');
+    const sellLogs = filteredLogs.filter(log => log.action?.toUpperCase() === 'SELL');
+    const closeLogs = filteredLogs.filter(log => log.action?.toUpperCase() === 'CLOSE');
+
+    const buyLatencies = buyLogs.filter(log => log.latency !== null).map(log => log.latency);
+    const sellLatencies = sellLogs.filter(log => log.latency !== null).map(log => log.latency);
+    const closeLatencies = closeLogs.filter(log => log.latency !== null).map(log => log.latency);
+
+    const buyAvg = buyLatencies.length > 0 ? Math.round(buyLatencies.reduce((a, b) => a + b, 0) / buyLatencies.length) : 0;
+    const sellAvg = sellLatencies.length > 0 ? Math.round(sellLatencies.reduce((a, b) => a + b, 0) / sellLatencies.length) : 0;
+    const closeAvg = closeLatencies.length > 0 ? Math.round(closeLatencies.reduce((a, b) => a + b, 0) / closeLatencies.length) : 0;
+
+    // Calculate hourly distribution
+    const hourlyData = {};
+    filteredLogs.forEach(log => {
+      const hour = new Date(log.timestamp).getHours();
+      if (!hourlyData[hour]) {
+        hourlyData[hour] = { count: 0, totalLatency: 0 };
+      }
+      hourlyData[hour].count++;
+      if (log.latency) {
+        hourlyData[hour].totalLatency += log.latency;
+      }
+    });
+
+    const hourlyDistribution = Object.keys(hourlyData).map(hour => ({
+      hour: `${hour.toString().padStart(2, '0')}:00`,
+      avgDuration: hourlyData[hour].count > 0 ? Math.round(hourlyData[hour].totalLatency / hourlyData[hour].count) : 0,
+      count: hourlyData[hour].count
+    }));
+
+    res.json({
+      success: true,
+      metrics: {
+        totalRequests,
+        successCount,
+        errorCount,
+        successRate: parseFloat(successRate),
+        avgTime,
+        fastest,
+        slowest,
+        buyAvg,
+        sellAvg,
+        closeAvg,
+        hourlyDistribution
+      }
+    });
+  } catch (error) {
+    console.error('[TRAFFIC] Error calculating metrics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to calculate metrics',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/traffic/clear:
+ *   delete:
+ *     summary: Clear all traffic logs
+ *     description: Deletes all traffic log entries
+ *     tags: [Traffic Monitoring]
+ *     responses:
+ *       200:
+ *         description: Logs cleared successfully
+ */
+app.delete('/api/traffic/clear', (req, res) => {
+  try {
+    const TRAFFIC_LOG_FILE = path.join(__dirname, 'data', 'traffic_logs.json');
+    fs.writeFileSync(TRAFFIC_LOG_FILE, JSON.stringify([], null, 2));
+
+    res.json({
+      success: true,
+      message: 'All traffic logs cleared successfully'
+    });
+  } catch (error) {
+    console.error('[TRAFFIC] Error clearing logs:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to clear traffic logs',
+      error: error.message
+    });
   }
 });
 

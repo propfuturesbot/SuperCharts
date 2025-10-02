@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2025-09-30T11:54:23.484Z",
+  "lastUpdated": "2025-10-02T14:06:09.121Z",
   "provider": "thefuturesdesk",
   "username": "tejashegde@gmail.com",
   "totalCount": 4,
@@ -8,7 +8,7 @@
       "name": "TFDXAP_508PA89",
       "id": 103075,
       "canTrade": true,
-      "balance": -246.55,
+      "balance": -243.35,
       "isVisible": true
     },
     {
@@ -28,8 +28,8 @@
     {
       "name": "TFDXA_509KHPC",
       "id": 128237,
-      "canTrade": true,
-      "balance": -197,
+      "canTrade": false,
+      "balance": -417.6,
       "isVisible": true
     }
   ]

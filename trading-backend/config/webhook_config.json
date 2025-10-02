@@ -1,8 +1,8 @@
 {
-  "url": "https://emerging-production-assisted-ratios.trycloudflare.com",
-  "timestamp": "2025-09-30T13:13:56.975Z",
+  "url": "https://coupled-lamb-profit-bon.trycloudflare.com",
+  "timestamp": "2025-10-02T16:18:59.229Z",
   "active": false,
   "port": "3000",
   "type": "frontend",
-  "stopped_at": "2025-09-30T16:32:39.838Z"
+  "force_killed_at": "2025-10-02T16:20:04.700Z"
 }

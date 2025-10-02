@@ -9,7 +9,8 @@ import {
   FaChartBar,
   FaCalendarAlt,
   FaCode,
-  FaCogs
+  FaCogs,
+  FaNetworkWired
 } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 import './Layout.css';
@@ -48,6 +49,12 @@ const Layout = ({ children, title = 'Dashboard', subtitle = '' }) => {
       label: 'Trade Options',
       path: '/trade-options',
       active: location.pathname === '/trade-options'
+    },
+    {
+      icon: <FaNetworkWired />,
+      label: 'Traffic',
+      path: '/traffic',
+      active: location.pathname === '/traffic'
     }
   ];
 

@@ -8,6 +8,7 @@ import Dashboard from './components/Dashboard/Dashboard';
 import TradeOptions from './components/TradeOptions/TradeOptions';
 import WebhookGenerator from './components/WebhookGenerator/WebhookGenerator';
 import TradingSchedule from './components/TradingSchedule/TradingSchedule';
+import Traffic from './components/Traffic/Traffic';
 import ThemeCustomizer from './components/ThemeCustomizer/ThemeCustomizer';
 import './App.css';
 
@@ -54,6 +55,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <TradingSchedule />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/traffic"
+                element={
+                  <ProtectedRoute>
+                    <Traffic />
                   </ProtectedRoute>
                 }
               />

@@ -1,20 +1,22 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  FaSignOutAlt, 
-  FaUser, 
-  FaChartLine, 
-  FaCog, 
-  FaBolt, 
-  FaRocket, 
+import {
+  FaSignOutAlt,
+  FaUser,
+  FaChartLine,
+  FaCog,
+  FaBolt,
+  FaRocket,
   FaShieldAlt,
   FaDollarSign,
   FaChartBar,
   FaRobot,
   FaCalendarAlt,
   FaCode,
-  FaCogs
+  FaCogs,
+  FaNetworkWired,
+  FaBook
 } from 'react-icons/fa';
 import { useAuth } from '../../contexts/AuthContext';
 import './Dashboard.css';
@@ -59,6 +61,12 @@ const Dashboard = () => {
       label: 'Trade Options',
       path: '/trade-options',
       active: location.pathname === '/trade-options'
+    },
+    {
+      icon: <FaNetworkWired />,
+      label: 'Traffic',
+      path: '/traffic',
+      active: location.pathname === '/traffic'
     }
   ];
 
@@ -126,20 +134,21 @@ const Dashboard = () => {
               </div>
             </div>
           </motion.div>
-          
-          <motion.button 
-            className="settings-button"
-            onClick={() => navigate('/settings')}
+
+          <motion.button
+            className="docs-button"
+            onClick={() => window.open('http://localhost:8025/api/docs', '_blank')}
             initial={{ x: 20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.15 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            title="API Documentation"
           >
-            <FaCog />
+            <FaBook />
           </motion.button>
 
-          <motion.button 
+          <motion.button
             className="logout-button"
             onClick={handleLogout}
             initial={{ x: 20, opacity: 0 }}
