@@ -142,5 +142,219 @@
     "quantity": 1,
     "orderType": "MARKET",
     "price": null
+  },
+  {
+    "id": "1759423082468-odi5hodem",
+    "timestamp": "2025-10-02T16:38:02.468Z",
+    "category": "Frontend API",
+    "method": "POST",
+    "endpoint": "/frontend/order",
+    "ip": "::1",
+    "userAgent": "curl/8.7.1",
+    "requestPayload": {
+      "orderType": "MARKET",
+      "accountName": "TEST_ACCOUNT",
+      "symbol": "MNQ",
+      "action": "BUY",
+      "quantity": 1
+    },
+    "responseData": {
+      "success": true,
+      "orderId": 123456,
+      "orderData": {
+        "orderId": 123456
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 100,
+    "accountName": "TEST_ACCOUNT",
+    "symbol": "MNQ",
+    "action": "BUY",
+    "quantity": 1,
+    "orderType": "MARKET"
+  },
+  {
+    "id": "1759423149474-d2n60uweh",
+    "timestamp": "2025-10-02T16:39:09.474Z",
+    "category": "Frontend API",
+    "method": "POST",
+    "endpoint": "/frontend/order",
+    "ip": "::ffff:127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+    "requestPayload": {
+      "orderType": "MARKET",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "GC",
+      "action": "BUY",
+      "quantity": 1
+    },
+    "responseData": {
+      "success": true,
+      "orderId": 4757812,
+      "orderData": {
+        "orderId": 4757812
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 75,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "GC",
+    "action": "BUY",
+    "quantity": 1,
+    "orderType": "MARKET",
+    "price": null
+  },
+  {
+    "id": "1759423330977-djhpalot8",
+    "timestamp": "2025-10-02T16:42:10.977Z",
+    "category": "Frontend API",
+    "method": "POST",
+    "endpoint": "/frontend/order",
+    "ip": "::ffff:127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+    "requestPayload": {
+      "orderType": "MARKET",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MES",
+      "action": "BUY",
+      "quantity": 1
+    },
+    "responseData": {
+      "success": true,
+      "orderId": 4757871,
+      "orderData": {
+        "orderId": 4757871
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 90,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MES",
+    "action": "BUY",
+    "quantity": 1,
+    "orderType": "MARKET",
+    "price": null
+  },
+  {
+    "id": "1759423335964-3704qj3ej",
+    "timestamp": "2025-10-02T16:42:15.964Z",
+    "category": "Frontend API",
+    "method": "POST",
+    "endpoint": "/frontend/order",
+    "ip": "::ffff:127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+    "requestPayload": {
+      "orderType": "CLOSE",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MES",
+      "action": "CLOSE",
+      "quantity": 0
+    },
+    "responseData": {
+      "success": true,
+      "orderData": {}
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 129,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MES",
+    "action": "CLOSE",
+    "quantity": 0,
+    "orderType": "CLOSE",
+    "price": null
+  },
+  {
+    "id": "1759423337408-eiq93o8so",
+    "timestamp": "2025-10-02T16:42:17.408Z",
+    "category": "Frontend API",
+    "method": "POST",
+    "endpoint": "/frontend/order",
+    "ip": "::ffff:127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+    "requestPayload": {
+      "orderType": "CLOSE",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MES",
+      "action": "CLOSE",
+      "quantity": 0
+    },
+    "responseData": {
+      "success": true,
+      "orderData": {}
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 55,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MES",
+    "action": "CLOSE",
+    "quantity": 0,
+    "orderType": "CLOSE",
+    "price": null
+  },
+  {
+    "id": "1759423338609-h6288xbob",
+    "timestamp": "2025-10-02T16:42:18.609Z",
+    "category": "Frontend API",
+    "method": "POST",
+    "endpoint": "/frontend/order",
+    "ip": "::ffff:127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+    "requestPayload": {
+      "orderType": "CLOSE",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MES",
+      "action": "CLOSE",
+      "quantity": 0
+    },
+    "responseData": {
+      "success": true,
+      "orderData": {}
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 69,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MES",
+    "action": "CLOSE",
+    "quantity": 0,
+    "orderType": "CLOSE",
+    "price": null
+  },
+  {
+    "id": "1759426590248-q5h7pped7",
+    "timestamp": "2025-10-02T17:36:30.248Z",
+    "category": "Frontend API",
+    "method": "POST",
+    "endpoint": "/frontend/order",
+    "ip": "::ffff:127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+    "requestPayload": {
+      "orderType": "MARKET",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "BUY",
+      "quantity": 1
+    },
+    "responseData": {
+      "success": true,
+      "orderId": 4758996,
+      "orderData": {
+        "orderId": 4758996
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 92,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "BUY",
+    "quantity": 1,
+    "orderType": "MARKET",
+    "price": null
   }
 ]

@@ -20,8 +20,8 @@ const Layout = ({ children, title = 'Dashboard', subtitle = '' }) => {
   const location = useLocation();
   const { user, logout } = useAuth();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 

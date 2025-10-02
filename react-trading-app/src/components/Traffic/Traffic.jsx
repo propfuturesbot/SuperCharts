@@ -129,8 +129,8 @@ const Traffic = () => {
 
   // Prepare chart data
   const pieChartData = metrics ? [
-    { name: 'Success', value: metrics.successCount, color: '#00ff88' },
-    { name: 'Error', value: metrics.errorCount, color: '#ff4444' }
+    { name: 'Success', value: metrics.successCount, color: '#4ade80' },
+    { name: 'Error', value: metrics.errorCount, color: '#f87171' }
   ] : [];
 
   return (
@@ -251,15 +251,15 @@ const Traffic = () => {
                   <div className="chart-container">
                     <h4>Average Request Duration by Hour</h4>
                     <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={metrics.hourlyDistribution || []}>
+                      <BarChart data={metrics.hourlyDistribution || []} barSize={30}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                        <XAxis dataKey="hour" stroke="#00d9ff" />
-                        <YAxis stroke="#00d9ff" />
+                        <XAxis dataKey="hour" stroke="#a78bfa" />
+                        <YAxis stroke="#a78bfa" />
                         <Tooltip
-                          contentStyle={{ background: '#1a1a1a', border: '1px solid #00d9ff' }}
-                          labelStyle={{ color: '#00d9ff' }}
+                          contentStyle={{ background: '#1a1a1a', border: '1px solid #a78bfa' }}
+                          labelStyle={{ color: '#a78bfa' }}
                         />
-                        <Bar dataKey="avgDuration" fill="#00d9ff" name="Avg Duration (ms)" />
+                        <Bar dataKey="avgDuration" fill="#a78bfa" name="Avg Duration (ms)" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>

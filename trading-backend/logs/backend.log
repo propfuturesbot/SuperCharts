@@ -3,47 +3,421 @@
 > node simple-backend.js
 
 ✅ Found existing contracts file with 57 contracts
-(node:28798) Warning: Accessing non-existent property 'lookupContractProductId' of module exports inside circular dependency
+(node:86638) Warning: Accessing non-existent property 'lookupContractProductId' of module exports inside circular dependency
 (Use `node --trace-warnings ...` to show where the warning was created)
 🚀 Backend running on http://localhost:8025
 📄 Contracts cached in: /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableContracts.json
-[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
-[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
-[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
-[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
-[VALIDATION] Checking trading time restrictions at 15:49 GMT
-[DEBUG] Current GMT time: 1549
+[AUTH] Saved authentication for sumoney1@topstepx
+[AUTH] Saved authentication for sumoney1@topstepx
+[AUTH] Saved authentication for sumoney1@topstepx
+[AUTH] Saved authentication for sumoney1@topstepx
+[AUTH] Loaded valid authentication for sumoney1@topstepx
+[AUTH] Loaded valid authentication for sumoney1@topstepx
+[INFO] Fetching trading account info for: TFDXAP_508PA89 (ID: 103075)
+[DEBUG] Getting user ID from URL: https://userapi.topstepx.com/User
+[DEBUG] Getting user ID from URL: https://userapi.topstepx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'sumoney1',
+  email: 'tejasvi.qa@gmail.com',
+  userId: 194699,
+  firstName: 'Sukrutha',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-04-02T19:41:13.305675+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 194699
+[INFO] Fetching positions for account: TFDXAP_508PA89 (ID: 103075)
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'sumoney1',
+  email: 'tejasvi.qa@gmail.com',
+  userId: 194699,
+  firstName: 'Sukrutha',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-04-02T19:41:13.305675+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 194699
+[INFO] Retrieved 0 positions for TFDXAP_508PA89
+[INFO] Retrieved trading account info for TFDXAP_508PA89
+[AUTH] Loaded valid authentication for sumoney1@topstepx
+[AUTH] Loaded valid authentication for sumoney1@topstepx
+[DEBUG] Getting user ID from URL: https://userapi.topstepx.com/User
+[INFO] Fetching trading account info for: TFDXAP_509B9PT (ID: 128062)
+[DEBUG] Getting user ID from URL: https://userapi.topstepx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'sumoney1',
+  email: 'tejasvi.qa@gmail.com',
+  userId: 194699,
+  firstName: 'Sukrutha',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-04-02T19:41:13.305675+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 194699
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'sumoney1',
+  email: 'tejasvi.qa@gmail.com',
+  userId: 194699,
+  firstName: 'Sukrutha',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-04-02T19:41:13.305675+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 194699
+[INFO] Fetching positions for account: TFDXAP_509B9PT (ID: 128062)
+[INFO] Retrieved trading account info for TFDXAP_509B9PT
+[INFO] Retrieved 0 positions for TFDXAP_509B9PT
+[AUTH] Loaded valid authentication for sumoney1@topstepx
+[AUTH] Loaded valid authentication for sumoney1@topstepx
+[DEBUG] Getting user ID from URL: https://userapi.topstepx.com/User
+[INFO] Fetching trading account info for: TFDXAP_508PA89 (ID: 103075)
+[DEBUG] Getting user ID from URL: https://userapi.topstepx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'sumoney1',
+  email: 'tejasvi.qa@gmail.com',
+  userId: 194699,
+  firstName: 'Sukrutha',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-04-02T19:41:13.305675+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 194699
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'sumoney1',
+  email: 'tejasvi.qa@gmail.com',
+  userId: 194699,
+  firstName: 'Sukrutha',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-04-02T19:41:13.305675+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 194699
+[INFO] Fetching positions for account: TFDXAP_508PA89 (ID: 103075)
+[INFO] Retrieved trading account info for TFDXAP_508PA89
+[INFO] Retrieved 0 positions for TFDXAP_508PA89
+✅ Deleted accounts file: /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableAccounts.json
+[AUTH] Saved authentication for sumoney1@topstepx
+✅ Saved accounts data to /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableAccounts.json
+[VALIDATION] Checking trading time restrictions at 18:34 GMT
+[DEBUG] Current GMT time: 1834
 [DEBUG] Allowed sessions: []
 [DEBUG] Restricted sessions: []
 [DEBUG] Session-based trading is allowed
 [VALIDATION] Trading is allowed
-[VALIDATION] Checking trading time restrictions at 15:49 GMT
-[DEBUG] Current GMT time: 1549
+[VALIDATION] Checking trading time restrictions at 18:34 GMT
+[DEBUG] Current GMT time: 1834
 [DEBUG] Allowed sessions: []
 [DEBUG] Restricted sessions: []
 [DEBUG] Session-based trading is allowed
 [VALIDATION] Trading is allowed
-[CORS] Blocked origin: http://localhost:8025
-Error: Not allowed by CORS
-    at origin (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/simple-backend.js:40:16)
-    at /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/cors/lib/index.js:219:13
-    at optionsCallback (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/cors/lib/index.js:199:9)
-    at corsMiddleware (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/cors/lib/index.js:204:7)
-    at Layer.handle [as handle_request] (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/express/lib/router/layer.js:95:5)
-    at trim_prefix (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/express/lib/router/index.js:328:13)
-    at /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/express/lib/router/index.js:286:9
-    at Function.process_params (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/express/lib/router/index.js:346:12)
-    at next (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/express/lib/router/index.js:280:10)
-    at expressInit (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/express/lib/middleware/init.js:40:5)
-[CORS] Blocked origin: http://localhost:8025
-Error: Not allowed by CORS
-    at origin (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/simple-backend.js:40:16)
-    at /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/cors/lib/index.js:219:13
-    at optionsCallback (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/cors/lib/index.js:199:9)
-    at corsMiddleware (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/cors/lib/index.js:204:7)
-    at Layer.handle [as handle_request] (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/express/lib/router/layer.js:95:5)
-    at trim_prefix (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/express/lib/router/index.js:328:13)
-    at /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/express/lib/router/index.js:286:9
-    at Function.process_params (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/express/lib/router/index.js:346:12)
-    at next (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/express/lib/router/index.js:280:10)
-    at expressInit (/Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/node_modules/express/lib/middleware/init.js:40:5)
+[AUTH] Loaded valid authentication for sumoney1@topstepx
+[AUTH] Loaded valid authentication for sumoney1@topstepx
+[DEBUG] Getting user ID from URL: https://userapi.topstepx.com/User
+[INFO] Fetching trading account info for: 100KTC-V2-194699-11330876 (ID: 8806733)
+[DEBUG] Getting user ID from URL: https://userapi.topstepx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'sumoney1',
+  email: 'tejasvi.qa@gmail.com',
+  userId: 194699,
+  firstName: 'Sukrutha',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-04-02T19:41:13.305675+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 194699
+[INFO] Fetching positions for account: 100KTC-V2-194699-11330876 (ID: 8806733)
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'sumoney1',
+  email: 'tejasvi.qa@gmail.com',
+  userId: 194699,
+  firstName: 'Sukrutha',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-04-02T19:41:13.305675+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 194699
+[INFO] Retrieved 0 positions for 100KTC-V2-194699-11330876
+[INFO] Retrieved trading account info for 100KTC-V2-194699-11330876
+[AUTH] Loaded valid authentication for sumoney1@topstepx
+[AUTH] Loaded valid authentication for sumoney1@topstepx
+[DEBUG] Getting user ID from URL: https://userapi.topstepx.com/User
+[INFO] Fetching trading account info for: PRAC-V2-194699-48854729 (ID: 10873390)
+[DEBUG] Getting user ID from URL: https://userapi.topstepx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'sumoney1',
+  email: 'tejasvi.qa@gmail.com',
+  userId: 194699,
+  firstName: 'Sukrutha',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-04-02T19:41:13.305675+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 194699
+[INFO] Fetching positions for account: PRAC-V2-194699-48854729 (ID: 10873390)
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'sumoney1',
+  email: 'tejasvi.qa@gmail.com',
+  userId: 194699,
+  firstName: 'Sukrutha',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-04-02T19:41:13.305675+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 194699
+[INFO] Retrieved trading account info for PRAC-V2-194699-48854729
+[INFO] Retrieved 0 positions for PRAC-V2-194699-48854729
+✅ Deleted accounts file: /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableAccounts.json
+[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
+✅ Saved accounts data to /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableAccounts.json
+[VALIDATION] Checking trading time restrictions at 18:34 GMT
+[DEBUG] Current GMT time: 1834
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 18:34 GMT
+[DEBUG] Current GMT time: 1834
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
+[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[INFO] Fetching trading account info for: TFDXAP_508PA89 (ID: 103075)
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[INFO] Fetching positions for account: TFDXAP_508PA89 (ID: 103075)
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[INFO] Retrieved 1 positions for TFDXAP_508PA89
+[INFO] Retrieved trading account info for TFDXAP_508PA89
+[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
+[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[INFO] Fetching trading account info for: TFDXAP_508PA89 (ID: 103075)
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[INFO] Fetching positions for account: TFDXAP_508PA89 (ID: 103075)
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[INFO] Retrieved 1 positions for TFDXAP_508PA89
+[INFO] Retrieved trading account info for TFDXAP_508PA89
+[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
+[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[INFO] Fetching trading account info for: TFDXAP_509B9PT (ID: 128062)
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[INFO] Fetching positions for account: TFDXAP_509B9PT (ID: 128062)
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[INFO] Retrieved 0 positions for TFDXAP_509B9PT
+[INFO] Retrieved trading account info for TFDXAP_509B9PT
+[VALIDATION] Checking trading time restrictions at 18:35 GMT
+[DEBUG] Current GMT time: 1835
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 18:35 GMT
+[DEBUG] Current GMT time: 1835
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[TUNNEL] Starting cloudflared tunnel for http://localhost:3000 (Frontend Dashboard)
+[TUNNEL] 2025-10-02T18:35:27Z INF Thank you for trying Cloudflare Tunnel. Doing so, without a Cloudflare account, is a quick way to experiment and try it out. However, be aware that these account-less Tunnels have no uptime guarantee, are subject to the Cloudflare Online Services Terms of Use (https://www.cloudflare.com/website-terms/), and Cloudflare reserves the right to investigate your use of Tunnels for violations of such terms. If you intend to use Tunnels in production you should use a pre-created named tunnel by following: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps
+2025-10-02T18:35:27Z INF Requesting new quick Tunnel on trycloudflare.com...
+[TUNNEL] 2025-10-02T18:35:30Z INF +--------------------------------------------------------------------------------------------+
+2025-10-02T18:35:30Z INF |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
+[TUNNEL] 2025-10-02T18:35:30Z INF |  https://yukon-micro-ratio-give.trycloudflare.com                                          |
+2025-10-02T18:35:30Z INF +--------------------------------------------------------------------------------------------+
+2025-10-02T18:35:30Z INF Cannot determine default configuration path. No file [config.yml config.yaml] in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp /etc/cloudflared /usr/local/etc/cloudflared]
+[TUNNEL] Tunnel URL: https://yukon-micro-ratio-give.trycloudflare.com
+[TUNNEL] 2025-10-02T18:35:30Z INF Version 2025.5.0 (Checksum e0b495b62b2bc33544da6e319494494cf4092e489e7e649357f1ce878b92dde2)
+2025-10-02T18:35:30Z INF GOOS: darwin, GOVersion: go1.22.5-devel-cf, GoArch: amd64
+2025-10-02T18:35:30Z INF Settings: map[ha-connections:1 no-autoupdate:true protocol:quic url:http://localhost:3000]
+2025-10-02T18:35:30Z INF cloudflared will not automatically update if installed by a package manager.
+[TUNNEL] 2025-10-02T18:35:30Z INF Generated Connector ID: 84449138-5966-4533-832f-fbcdf415d764
+[TUNNEL] 2025-10-02T18:35:30Z INF Initial protocol quic
+[TUNNEL] 2025-10-02T18:35:30Z INF ICMP proxy will use 192.168.1.15 as source for IPv4
+[TUNNEL] 2025-10-02T18:35:30Z INF ICMP proxy will use fe80::830:c08f:138b:c5c4 in zone en0 as source for IPv6
+[TUNNEL] 2025-10-02T18:35:30Z INF Created ICMP proxy listening on 192.168.1.15:0
+[TUNNEL] 2025-10-02T18:35:30Z INF ICMP proxy will use 192.168.1.15 as source for IPv4
+[TUNNEL] 2025-10-02T18:35:30Z INF ICMP proxy will use fe80::830:c08f:138b:c5c4 in zone en0 as source for IPv6
+[TUNNEL] 2025-10-02T18:35:30Z INF Starting metrics server on 127.0.0.1:20241/metrics
+[TUNNEL] 2025-10-02T18:35:30Z INF Tunnel connection curve preferences: [CurveID(4588) CurveID(25497) CurveP256] connIndex=0 event=0 ip=198.41.192.107
+[TUNNEL] 2025-10-02T18:35:30Z INF Registered tunnel connection connIndex=0 connection=1559516c-094b-4a30-8c01-be1f5a73d8bd event=0 ip=198.41.192.107 location=iad10 protocol=quic
+[TUNNEL] 2025-10-02T18:36:01Z INF Initiating graceful shutdown due to signal terminated ...
+[TUNNEL] Killed cloudflared processes using: pkill cloudflared
+[TUNNEL] 2025-10-02T18:36:01Z ERR Failed to serve tunnel connection error="Application error 0x0 (remote)" connIndex=0 event=0 ip=198.41.192.107
+2025-10-02T18:36:01Z ERR Serve tunnel error error="Application error 0x0 (remote)" connIndex=0 event=0 ip=198.41.192.107
+[TUNNEL] 2025-10-02T18:36:01Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.192.107
+2025-10-02T18:36:01Z ERR no more connections active and exiting
+2025-10-02T18:36:01Z INF Tunnel server stopped
+2025-10-02T18:36:01Z INF Metrics server stopped
+[TUNNEL] Process exited with code 0
+[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
+[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[INFO] Fetching trading account info for: TFDXAP_508PA89 (ID: 103075)
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[INFO] Fetching positions for account: TFDXAP_508PA89 (ID: 103075)
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[INFO] Retrieved 1 positions for TFDXAP_508PA89
+[INFO] Retrieved trading account info for TFDXAP_508PA89
+[VALIDATION] Checking trading time restrictions at 18:37 GMT
+[DEBUG] Current GMT time: 1837
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[VALIDATION] Checking trading time restrictions at 18:37 GMT
+[DEBUG] Current GMT time: 1837
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed

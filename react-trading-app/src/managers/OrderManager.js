@@ -3,6 +3,7 @@ import authService from '../services/auth.service';
 import configService from '../services/config.service';
 import accountService from '../services/account.service';
 import { getProviderUserApiEndpoint } from '../config/providers';
+import { logFrontendTrade } from '../utils/trafficLogger';
 
 // Order types
 const ORDER_TYPE_MARKET = 2;
@@ -431,8 +432,10 @@ class OrderManager {
 
     this.logInfo(`Sending order request to ${url} with payload: ${JSON.stringify(payload)}`);
 
+    const startTime = Date.now();
     try {
       const response = await axios.post(url, payload, { headers });
+      const latency = Date.now() - startTime;
       this.logInfo(`Order API response status: ${response.status}`);
 
       if (response.status === 200) {
@@ -442,20 +445,76 @@ class OrderManager {
         if (data.result === 0) { // Success
           const orderId = data.orderId;
           this.logInfo(`Market order placed successfully: orderId=${orderId}`);
+
+          // Log to traffic monitoring
+          logFrontendTrade({
+            accountName,
+            symbol,
+            action: orderType,
+            quantity: Math.abs(quantity),
+            orderType: 'MARKET',
+            price: null,
+            success: true,
+            latency,
+            orderId
+          });
+
           return orderId;
         } else {
           const errorMsg = `Failed to place order: ${data.errorMessage || 'Unknown error'}`;
           this.logError(errorMsg);
+
+          // Log failed trade
+          logFrontendTrade({
+            accountName,
+            symbol,
+            action: orderType,
+            quantity: Math.abs(quantity),
+            orderType: 'MARKET',
+            price: null,
+            success: false,
+            latency: Date.now() - startTime,
+            errorMessage: data.errorMessage || 'Unknown error'
+          });
+
           throw new Error(errorMsg);
         }
       } else {
         const errorMsg = `Order API returned status ${response.status}: ${response.data}`;
         this.logError(errorMsg);
+
+        // Log failed trade
+        logFrontendTrade({
+          accountName,
+          symbol,
+          action: orderType,
+          quantity: Math.abs(quantity),
+          orderType: 'MARKET',
+          price: null,
+          success: false,
+          latency: Date.now() - startTime,
+          errorMessage: errorMsg
+        });
+
         throw new Error(errorMsg);
       }
     } catch (error) {
       const errorMsg = `Exception while placing market order: ${error.message}`;
       this.logError(errorMsg);
+
+      // Log failed trade
+      logFrontendTrade({
+        accountName,
+        symbol,
+        action: orderType,
+        quantity: Math.abs(quantity),
+        orderType: 'MARKET',
+        price: null,
+        success: false,
+        latency: Date.now() - startTime,
+        errorMessage: error.message
+      });
+
       throw new Error(errorMsg);
     }
   }
@@ -894,23 +953,66 @@ class OrderManager {
 
     this.logInfo(`Sending reverse position request to ${url} with params: ${JSON.stringify(params)}`);
 
+    const startTime = Date.now();
     try {
       const response = await axios.get(url, { headers, params });
+      const latency = Date.now() - startTime;
       this.logInfo(`Reverse position API response status: ${response.status}`);
 
       if (response.status === 200) {
         // The API returns a boolean value directly
         const result = response.data;
         this.logInfo(`Reverse position response: ${result}`);
+
+        // Log to traffic monitoring
+        logFrontendTrade({
+          accountName,
+          symbol,
+          action: 'REVERSE',
+          quantity: 0,
+          orderType: 'REVERSE',
+          price: null,
+          success: true,
+          latency
+        });
+
         return result;
       } else {
         const errorMsg = `Reverse position API returned status ${response.status}: ${response.data}`;
         this.logError(errorMsg);
+
+        // Log failed operation
+        logFrontendTrade({
+          accountName,
+          symbol,
+          action: 'REVERSE',
+          quantity: 0,
+          orderType: 'REVERSE',
+          price: null,
+          success: false,
+          latency: Date.now() - startTime,
+          errorMessage: errorMsg
+        });
+
         throw new Error(errorMsg);
       }
     } catch (error) {
       const errorMsg = `Exception while reversing position: ${error.message}`;
       this.logError(errorMsg);
+
+      // Log failed operation
+      logFrontendTrade({
+        accountName,
+        symbol,
+        action: 'REVERSE',
+        quantity: 0,
+        orderType: 'REVERSE',
+        price: null,
+        success: false,
+        latency: Date.now() - startTime,
+        errorMessage: error.message
+      });
+
       throw new Error(errorMsg);
     }
   }
@@ -948,30 +1050,75 @@ class OrderManager {
 
     this.logInfo(`Sending close positions request to ${url}`);
 
+    const startTime = Date.now();
     try {
       // The API uses DELETE method for closing positions
       const response = await axios.delete(url, { headers });
+      const latency = Date.now() - startTime;
       this.logInfo(`Close positions API response status: ${response.status}`);
 
       if (response.status === 200) {
         // Check if there's any response content
+        let success = false;
         if (response.data) {
           const result = response.data;
           this.logInfo(`Close positions response: ${JSON.stringify(result)}`);
-          return !!result;
+          success = !!result;
         } else {
           // If no content but status 200, consider it successful
           this.logInfo("Close positions successful (no content in response)");
-          return true;
+          success = true;
         }
+
+        // Log to traffic monitoring
+        logFrontendTrade({
+          accountName,
+          symbol,
+          action: 'CLOSE',
+          quantity: 0,
+          orderType: 'CLOSE',
+          price: null,
+          success: true,
+          latency
+        });
+
+        return success;
       } else {
         const errorMsg = `Close positions API returned status ${response.status}: ${response.data}`;
         this.logError(errorMsg);
+
+        // Log failed operation
+        logFrontendTrade({
+          accountName,
+          symbol,
+          action: 'CLOSE',
+          quantity: 0,
+          orderType: 'CLOSE',
+          price: null,
+          success: false,
+          latency: Date.now() - startTime,
+          errorMessage: errorMsg
+        });
+
         throw new Error(errorMsg);
       }
     } catch (error) {
       const errorMsg = `Exception while closing positions: ${error.message}`;
       this.logError(errorMsg);
+
+      // Log failed operation
+      logFrontendTrade({
+        accountName,
+        symbol,
+        action: 'CLOSE',
+        quantity: 0,
+        orderType: 'CLOSE',
+        price: null,
+        success: false,
+        latency: Date.now() - startTime,
+        errorMessage: error.message
+      });
+
       throw new Error(errorMsg);
     }
   }
@@ -1000,9 +1147,11 @@ class OrderManager {
 
     this.logInfo(`Sending flatten all positions request to ${url}`);
 
+    const startTime = Date.now();
     try {
       // The API uses DELETE method for closing positions
       const response = await axios.delete(url, { headers });
+      const latency = Date.now() - startTime;
       this.logInfo(`Flatten all positions API response status: ${response.status}`);
 
       if (response.status === 200) {
@@ -1010,20 +1159,75 @@ class OrderManager {
         if (response.data) {
           const result = response.data;
           this.logInfo(`Flatten all positions response: ${JSON.stringify(result)}`);
+
+          // Log to traffic monitoring
+          logFrontendTrade({
+            accountName,
+            symbol: 'ALL',
+            action: 'FLATTEN',
+            quantity: 0,
+            orderType: 'FLATTEN',
+            price: null,
+            success: true,
+            latency
+          });
+
           return !!result;
         } else {
           // If no content but status 200, consider it successful
           this.logInfo("Flatten all positions successful (no content in response)");
+
+          // Log to traffic monitoring
+          logFrontendTrade({
+            accountName,
+            symbol: 'ALL',
+            action: 'FLATTEN',
+            quantity: 0,
+            orderType: 'FLATTEN',
+            price: null,
+            success: true,
+            latency
+          });
+
           return true;
         }
       } else {
         const errorMsg = `Flatten all positions API returned status ${response.status}: ${response.data}`;
         this.logError(errorMsg);
+
+        // Log failed flatten to traffic monitoring
+        logFrontendTrade({
+          accountName,
+          symbol: 'ALL',
+          action: 'FLATTEN',
+          quantity: 0,
+          orderType: 'FLATTEN',
+          price: null,
+          success: false,
+          latency,
+          errorMessage: errorMsg
+        });
+
         throw new Error(errorMsg);
       }
     } catch (error) {
+      const latency = Date.now() - startTime;
       const errorMsg = `Exception while flattening all positions: ${error.message}`;
       this.logError(errorMsg);
+
+      // Log failed flatten to traffic monitoring
+      logFrontendTrade({
+        accountName,
+        symbol: 'ALL',
+        action: 'FLATTEN',
+        quantity: 0,
+        orderType: 'FLATTEN',
+        price: null,
+        success: false,
+        latency,
+        errorMessage: errorMsg
+      });
+
       throw new Error(errorMsg);
     }
   }

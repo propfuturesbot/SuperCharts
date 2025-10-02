@@ -96,24 +96,33 @@ class AuthService {
     }
   }
 
-  logout(clearSavedCredentials = false) {
+  async logout(clearSavedCredentials = false) {
     this.token = null;
     this.username = null;
     this.provider = null;
-    
+
     // Remove session data
     localStorage.removeItem('auth_token');
     localStorage.removeItem('username');
     localStorage.removeItem('provider');
     localStorage.removeItem('token_expiry');
     localStorage.removeItem('remember_credentials');
-    
+
     // Optionally clear saved credentials (for "Forget Me" functionality)
     if (clearSavedCredentials) {
       this.clearSavedCredentials();
     }
-    
+
     delete axios.defaults.headers.common['Authorization'];
+
+    // Clear cached accounts file from backend
+    try {
+      await axios.delete('http://localhost:8025/api/accounts/file');
+      console.log('[AUTH] Cleared cached accounts file on logout');
+    } catch (error) {
+      console.warn('[AUTH] Failed to clear accounts file:', error.message);
+      // Don't throw error - logout should succeed even if this fails
+    }
   }
 
   isAuthenticated() {

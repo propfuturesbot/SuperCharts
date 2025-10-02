@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { swaggerUi, specs } = require('./swagger');
 const orderManager = require('./orderManager');
-const { trafficLogger, readLogs } = require('./middleware/trafficLogger');
+const { trafficLogger, readLogs, writeLogs } = require('./middleware/trafficLogger');
 
 // Routes removed
 
@@ -815,6 +815,259 @@ app.delete('/api/accounts/file', (req, res) => {
     });
   } catch (error) {
     console.error('❌ Failed to delete accounts file:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Positions Endpoints
+
+/**
+ * @swagger
+ * /api/positions/{accountName}:
+ *   get:
+ *     summary: Get open positions for an account
+ *     description: Retrieve all open positions for a specified account using current authenticated session
+ *     tags: [Positions]
+ *     parameters:
+ *       - in: path
+ *         name: accountName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The account name (e.g., TFDXAP_508PA89)
+ *         example: TFDXAP_508PA89
+ *     responses:
+ *       200:
+ *         description: Positions retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 positions:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       accountId:
+ *                         type: integer
+ *                       contractId:
+ *                         type: string
+ *                       creationTimestamp:
+ *                         type: string
+ *                       type:
+ *                         type: integer
+ *                         description: 1 for Long, -1 for Short
+ *                       size:
+ *                         type: integer
+ *                       averagePrice:
+ *                         type: number
+ *                 total_count:
+ *                   type: integer
+ *       404:
+ *         description: Account not found
+ *       500:
+ *         description: Server error
+ */
+app.get('/api/positions/:accountName', async (req, res) => {
+  try {
+    const { accountName } = req.params;
+
+    // Get current authentication
+    const auth = getCurrentAuth();
+
+    // Get account ID using orderManager
+    const { accountId } = await orderManager.getAccountIDAndUserID(accountName);
+
+    if (!accountId) {
+      return res.status(404).json({
+        success: false,
+        error: `Account ${accountName} not found`
+      });
+    }
+
+    // Get user ID from token (required for positions endpoint)
+    const userId = await orderManager.getUserID(auth.provider, auth.token);
+    if (!userId) {
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve user ID'
+      });
+    }
+
+    // Get provider base URL
+    const baseUrl = orderManager.getBaseUrl(auth.provider);
+
+    console.log(`[INFO] Fetching positions for account: ${accountName} (ID: ${accountId})`);
+
+    // Call provider API to get all positions for user
+    const response = await axios.get(
+      `${baseUrl}/Position/all/user/${userId}`,
+      { headers: { 'Authorization': `Bearer ${auth.token}` } }
+    );
+
+    if (response.status === 200) {
+      const allPositions = response.data || [];
+
+      // Filter positions for the specific account
+      const positions = allPositions.filter(pos => pos.accountId === accountId);
+
+      console.log(`[INFO] Retrieved ${positions.length} positions for ${accountName}`);
+
+      res.json({
+        success: true,
+        positions,
+        total_count: positions.length
+      });
+    } else {
+      throw new Error(`API returned status ${response.status}`);
+    }
+  } catch (error) {
+    console.error(`[ERROR] Failed to get positions: ${error.message}`);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Profit & Loss Endpoints
+
+/**
+ * @swagger
+ * /api/profit-loss/account/{accountName}:
+ *   get:
+ *     summary: Get trading account information and P&L
+ *     description: Retrieve comprehensive trading account statistics including P&L, balance, and performance metrics
+ *     tags: [Profit & Loss]
+ *     parameters:
+ *       - in: path
+ *         name: accountName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The account name (e.g., TFDXAP_508PA89)
+ *         example: TFDXAP_508PA89
+ *     responses:
+ *       200:
+ *         description: Trading account info retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 tradingAccount:
+ *                   type: object
+ *                   properties:
+ *                     realizedDayPnl:
+ *                       type: number
+ *                       description: Realized profit/loss for current day
+ *                     openPnl:
+ *                       type: number
+ *                       description: Open/unrealized profit/loss
+ *                     totalTrades:
+ *                       type: integer
+ *                     winRate:
+ *                       type: number
+ *                       description: Win rate as decimal (0.0 to 1.0)
+ *                     profitAndLoss:
+ *                       type: number
+ *                       description: Total profit/loss
+ *                     balance:
+ *                       type: number
+ *                     startingBalance:
+ *                       type: number
+ *                     totalProfit:
+ *                       type: number
+ *                     totalLoss:
+ *                       type: number
+ *                     accountName:
+ *                       type: string
+ *                     accountId:
+ *                       type: integer
+ *       404:
+ *         description: Account not found
+ *       500:
+ *         description: Server error
+ */
+app.get('/api/profit-loss/account/:accountName', async (req, res) => {
+  try {
+    const { accountName } = req.params;
+
+    // Get current authentication
+    const auth = getCurrentAuth();
+
+    // Get account ID using orderManager
+    const { accountId } = await orderManager.getAccountIDAndUserID(accountName);
+
+    if (!accountId) {
+      return res.status(404).json({
+        success: false,
+        error: `Account ${accountName} not found`
+      });
+    }
+
+    console.log(`[INFO] Fetching trading account info for: ${accountName} (ID: ${accountId})`);
+
+    // Get account balance from cached file
+    const accountsResponse = await axios.get('http://localhost:8025/api/accounts/file');
+    const account = accountsResponse.data.data.accounts.find(acc => acc.id === accountId);
+
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        error: `Account ${accountName} not found in cache`
+      });
+    }
+
+    // Get positions to calculate open P&L
+    const userId = await orderManager.getUserID(auth.provider, auth.token);
+    const baseUrl = orderManager.getBaseUrl(auth.provider);
+
+    const positionsResponse = await axios.get(
+      `${baseUrl}/Position/all/user/${userId}`,
+      { headers: { 'Authorization': `Bearer ${auth.token}` } }
+    );
+
+    const allPositions = positionsResponse.data || [];
+    const accountPositions = allPositions.filter(pos => pos.accountId === accountId);
+
+    // Calculate open P&L from positions
+    const openPnl = accountPositions.reduce((sum, pos) => sum + (pos.profitAndLoss || 0), 0);
+
+    // Build trading account object with available data
+    const tradingAccount = {
+      id: accountId,
+      name: accountName,
+      balance: account.balance,
+      openPnl: openPnl,
+      profitAndLoss: account.balance, // Total P&L reflected in balance
+      realizedDayPnl: 0, // Not available from current APIs
+      winRate: 0, // Not available from current APIs
+      totalTrades: 0, // Not available from current APIs
+      startingBalance: 0, // Not available from current APIs
+      canTrade: account.canTrade
+    };
+
+    console.log(`[INFO] Retrieved trading account info for ${accountName}`);
+
+    res.json({
+      success: true,
+      tradingAccount
+    });
+  } catch (error) {
+    console.error(`[ERROR] Failed to get trading account info: ${error.message}`);
     res.status(500).json({
       success: false,
       error: error.message
@@ -3548,6 +3801,101 @@ app.delete('/api/traffic/clear', (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to clear traffic logs',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/traffic/log-frontend:
+ *   post:
+ *     summary: Log frontend trade
+ *     description: Manually log a frontend trade to traffic logs
+ *     tags: [Traffic]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               accountName:
+ *                 type: string
+ *               symbol:
+ *                 type: string
+ *               action:
+ *                 type: string
+ *               quantity:
+ *                 type: number
+ *               orderType:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               success:
+ *                 type: boolean
+ *               latency:
+ *                 type: number
+ *               orderId:
+ *                 type: number
+ *               errorMessage:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Trade logged successfully
+ */
+app.post('/api/traffic/log-frontend', (req, res) => {
+  try {
+    const { accountName, symbol, action, quantity, orderType, price, success, latency, orderId, errorMessage } = req.body;
+
+    const logEntry = {
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: new Date().toISOString(),
+      category: 'Frontend API',
+      method: 'POST',
+      endpoint: '/frontend/order',
+      ip: req.ip || req.connection.remoteAddress,
+      userAgent: req.get('user-agent'),
+      requestPayload: {
+        orderType,
+        accountName,
+        symbol,
+        action,
+        quantity,
+        ...(price && { price })
+      },
+      responseData: success ? {
+        success: true,
+        orderId,
+        orderData: { orderId }
+      } : {
+        success: false,
+        error: errorMessage
+      },
+      status: success ? 'Success' : 'Error',
+      statusCode: success ? 200 : 400,
+      latency: latency || 0,
+      accountName,
+      symbol,
+      action,
+      quantity,
+      orderType,
+      price
+    };
+
+    const logs = readLogs();
+    logs.push(logEntry);
+    writeLogs(logs);
+
+    res.json({
+      success: true,
+      message: 'Trade logged successfully'
+    });
+  } catch (error) {
+    console.error('[TRAFFIC] Error logging frontend trade:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to log trade',
       error: error.message
     });
   }

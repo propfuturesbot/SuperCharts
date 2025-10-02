@@ -38,7 +38,9 @@
       "Bash(kill:*)",
       "Bash(awk:*)",
       "Bash(cloudflared:*)",
-      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_eG4VK9/**)"
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_eG4VK9/**)",
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_3pRTY4/**)",
+      "Read(//var/folders/yd/7jns1g3n27s9q8gp_7sgl7z00000gn/T/TemporaryItems/NSIRD_screencaptureui_OjuDIu/**)"
     ],
     "deny": [],
     "ask": []
