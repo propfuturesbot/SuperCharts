@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const API_BASE_URL = 'http://localhost:8025';
+const API_BASE_URL = 'http://localhost:8026';
 const FRONTEND_BASE_URL = 'http://localhost:3000';
 
 describe('Strategy CRUD Integration Tests', () => {

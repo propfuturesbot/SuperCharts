@@ -33,7 +33,7 @@ const Dashboard = () => {
 
   const fetchStrategiesCount = async () => {
     try {
-      const response = await axios.get('http://localhost:8025/api/strategies');
+      const response = await axios.get('http://localhost:8026/api/strategies');
       if (response.data.success && response.data.data) {
         // Count strategies with status 'active'
         const activeCount = response.data.data.filter(strategy => strategy.status === 'active').length;

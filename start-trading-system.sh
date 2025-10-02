@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 REACT_PORT=3000
-BACKEND_PORT=8025
+BACKEND_PORT=8026
 SIGNALR_PORT=5000
 
 # Application identifiers for safe process killing
@@ -260,6 +260,23 @@ cd "$REACT_DIR"
 if [ ! -d "node_modules" ] || [ ! -f "package-lock.json" ]; then
     echo -e "${YELLOW}📦 Installing React dependencies...${NC}"
     npm install
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Failed to install React dependencies${NC}"
+        exit 1
+    fi
+else
+    # Verify critical dependencies exist
+    echo -e "${CYAN}🔍 Verifying critical React dependencies...${NC}"
+    if [ ! -d "node_modules/react" ] || [ ! -d "node_modules/react-dom" ] || [ ! -d "node_modules/axios" ]; then
+        echo -e "${YELLOW}⚠️  Missing critical dependencies, reinstalling...${NC}"
+        npm install
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}❌ Failed to install React dependencies${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${GREEN}✅ All critical React dependencies present${NC}"
+    fi
 fi
 cd - >/dev/null
 
@@ -270,6 +287,23 @@ if [ "$BACKEND_AVAILABLE" = true ]; then
     if [ ! -d "node_modules" ] || [ ! -f "package-lock.json" ]; then
         echo -e "${YELLOW}📦 Installing Backend dependencies...${NC}"
         npm install
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}❌ Failed to install Backend dependencies${NC}"
+            exit 1
+        fi
+    else
+        # Verify critical dependencies exist
+        echo -e "${CYAN}🔍 Verifying critical Backend dependencies...${NC}"
+        if [ ! -d "node_modules/pg" ] || [ ! -d "node_modules/express" ] || [ ! -d "node_modules/axios" ]; then
+            echo -e "${YELLOW}⚠️  Missing critical dependencies, reinstalling...${NC}"
+            npm install
+            if [ $? -ne 0 ]; then
+                echo -e "${RED}❌ Failed to install Backend dependencies${NC}"
+                exit 1
+            fi
+        else
+            echo -e "${GREEN}✅ All critical Backend dependencies present${NC}"
+        fi
     fi
     cd - >/dev/null
 fi

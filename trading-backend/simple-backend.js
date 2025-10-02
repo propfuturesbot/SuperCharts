@@ -12,7 +12,7 @@ const { getProviderConfig } = require('../src/realtime/providers');
 const AUTH_TOKEN_FILE = path.join(__dirname, '../auth-token.json');
 
 const app = express();
-const port = 8025;
+const port = 8026;
 
 app.use(cors({
   origin: 'http://localhost:3000',
@@ -2202,7 +2202,7 @@ app.post('/api/launch-chart', async (req, res) => {
     }
 
     // Use the external port for chart URL since it will be accessed from browser
-    const chartUrl = `http://localhost:8025/api/chart`;
+    const chartUrl = `http://localhost:8026/api/chart`;
 
     // In Docker container, we can't open browser windows, so just return the URL
     console.log(`🚀 Chart URL prepared: ${chartUrl}`);

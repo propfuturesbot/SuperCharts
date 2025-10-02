@@ -8,7 +8,7 @@ let isRealTimeReady = false; // Flag to indicate when real-time signals can be s
 const sendPayload = async (action, ticker, strategyId) => {
   try {
     // First get strategy details to get webhook URL and payload
-    const strategyResponse = await fetch(`http://localhost:8025/api/strategies`);
+    const strategyResponse = await fetch(`http://localhost:8026/api/strategies`);
     if (!strategyResponse.ok) {
       throw new Error('Failed to fetch strategy details');
     }
@@ -159,7 +159,7 @@ let PROVIDER_CONFIG = null;
 const getAccessToken = async () => {
   if (!ACCESS_TOKEN) {
     try {
-      const response = await fetch('http://localhost:8025/api/auth/token');
+      const response = await fetch('http://localhost:8026/api/auth/token');
       if (response.ok) {
         const data = await response.json();
         ACCESS_TOKEN = data.data.token;
@@ -2559,7 +2559,7 @@ const loadStrategy = async (strategyId) => {
   }
 
   try {
-    const response = await fetch(`http://localhost:8025/api/strategies`);
+    const response = await fetch(`http://localhost:8026/api/strategies`);
     const data = await response.json();
 
     if (data.success && data.data) {
@@ -2625,7 +2625,7 @@ const toggleStrategy = async () => {
   const newStatus = isActive ? 'inactive' : 'active';
 
   try {
-    const response = await fetch(`http://localhost:8025/api/strategies/${currentStrategy.id}/status`, {
+    const response = await fetch(`http://localhost:8026/api/strategies/${currentStrategy.id}/status`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -2665,7 +2665,7 @@ const checkStrategyStatus = async () => {
   if (!currentStrategy) return;
 
   try {
-    const response = await fetch(`http://localhost:8025/api/strategies`);
+    const response = await fetch(`http://localhost:8026/api/strategies`);
     const data = await response.json();
 
     if (data.success && data.data) {

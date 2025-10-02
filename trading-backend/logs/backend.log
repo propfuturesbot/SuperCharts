@@ -3,10 +3,9 @@
 > node simple-backend.js
 
 ✅ Found existing contracts file with 57 contracts
-🚀 Backend running on http://localhost:8025
+🚀 Backend running on http://localhost:8026
 📄 Contracts cached in: /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableContracts.json
 ✅ Connected to PostgreSQL database
-✅ Auth token saved to /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/auth-token.json for user: tejashegde@gmail.com
 📊 Update strategy request: {
   id: '0725ef75-a0a4-4fa3-b480-931518ddeebc',
   chart_config: null,
@@ -32,7 +31,7 @@
   isExistingStrategy: true
 }
 📊 Brick size type: string Value: 0.25
-🚀 Chart URL prepared: http://localhost:8025/api/chart
+🚀 Chart URL prepared: http://localhost:8026/api/chart
 📊 With configuration: {
   strategyType: 'renko',
   timeframe: '1000T',
@@ -45,78 +44,3 @@
   isExistingStrategy: true
 }
 📊 Found indicators in database: [ { type: 'DonchianMidBandStrategy', period: 200 } ]
-📊 Update strategy request: {
-  id: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
-  chart_config: null,
-  chart_type: 'renko',
-  brick_size: 0.25,
-  hasWebhookPayload: true
-}
-📊 Using minimal webhook payload (no chart configuration)
-📊 UPDATE - Chart config received: null
-📊 UPDATE - Extracted indicators: null
-📊 UPDATE - Preserving existing indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ]
-📊 Loading saved strategy: bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6
-📊 Loading strategy with indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ]
-📊 Loaded saved strategy configuration: {
-  strategyType: 'renko',
-  timeframe: '1000T',
-  brickSize: '0.25',
-  contractSymbol: 'MNQ',
-  strategyName: 'MNQ-TOPSTEPX-PRACTICE',
-  indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ],
-  strategyId: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
-  webhookUrl: 'https://administration-storage-battery-synopsis.trycloudflare.com/orders/place',
-  isExistingStrategy: true
-}
-📊 Brick size type: string Value: 0.25
-🚀 Chart URL prepared: http://localhost:8025/api/chart
-📊 With configuration: {
-  strategyType: 'renko',
-  timeframe: '1000T',
-  brickSize: '0.25',
-  contractSymbol: 'MNQ',
-  strategyName: 'MNQ-TOPSTEPX-PRACTICE',
-  indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ],
-  strategyId: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
-  webhookUrl: 'https://administration-storage-battery-synopsis.trycloudflare.com/orders/place',
-  isExistingStrategy: true
-}
-📊 Found indicators in database: [ { type: 'DonchianMidBandStrategy', period: 200 } ]
-📊 Update strategy request: {
-  id: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
-  chart_config: null,
-  chart_type: 'renko',
-  brick_size: 0.25,
-  hasWebhookPayload: true
-}
-📊 Using minimal webhook payload (no chart configuration)
-📊 UPDATE - Chart config received: null
-📊 UPDATE - Extracted indicators: null
-📊 UPDATE - Preserving existing indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ]
-📊 Loading saved strategy: bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6
-📊 Loading strategy with indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ]
-📊 Loaded saved strategy configuration: {
-  strategyType: 'renko',
-  timeframe: '1000T',
-  brickSize: '0.25',
-  contractSymbol: 'MNQ',
-  strategyName: 'MNQ-TOPSTEPX-PRACTICE',
-  indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ],
-  strategyId: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
-  webhookUrl: 'https://administration-storage-battery-synopsis.trycloudflare.com/orders/place',
-  isExistingStrategy: true
-}
-📊 Brick size type: string Value: 0.25
-🚀 Chart URL prepared: http://localhost:8025/api/chart
-📊 With configuration: {
-  strategyType: 'renko',
-  timeframe: '1000T',
-  brickSize: '0.25',
-  contractSymbol: 'MNQ',
-  strategyName: 'MNQ-TOPSTEPX-PRACTICE',
-  indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ],
-  strategyId: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
-  webhookUrl: 'https://administration-storage-battery-synopsis.trycloudflare.com/orders/place',
-  isExistingStrategy: true
-}

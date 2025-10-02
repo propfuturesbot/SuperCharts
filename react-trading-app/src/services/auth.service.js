@@ -61,7 +61,7 @@ class AuthService {
 
         // Also save to JSON file via backend
         try {
-          await axios.post('http://localhost:8025/api/auth/save-token', {
+          await axios.post('http://localhost:8026/api/auth/save-token', {
             token: this.token,
             username: username,
             provider: provider,
