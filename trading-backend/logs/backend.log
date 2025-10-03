@@ -4,50 +4,13 @@
 
 ✅ Found existing contracts file with 57 contracts
 🚀 Backend running on http://localhost:8026
-📄 Contracts cached in: /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableContracts.json
+📄 Contracts cached in: /Users/tejasvihegde/Documents/PropAutomation/SUPERCHARTS-CHARTING/SuperCharts/trading-backend/tradableContracts.json
 ✅ Connected to PostgreSQL database
-📊 Update strategy request: {
-  id: '0725ef75-a0a4-4fa3-b480-931518ddeebc',
-  chart_config: null,
-  chart_type: 'renko',
-  brick_size: 0.25,
-  hasWebhookPayload: true
-}
-📊 Using minimal webhook payload (no chart configuration)
-📊 UPDATE - Chart config received: null
-📊 UPDATE - Extracted indicators: null
-📊 UPDATE - Preserving existing indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ]
-📊 Loading saved strategy: 0725ef75-a0a4-4fa3-b480-931518ddeebc
-📊 Loading strategy with indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ]
-📊 Loaded saved strategy configuration: {
-  strategyType: 'renko',
-  timeframe: '1000T',
-  brickSize: '0.25',
-  contractSymbol: 'MNQ',
-  strategyName: 'MNQ-TOPSTEPX-COMBINE',
-  indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ],
-  strategyId: '0725ef75-a0a4-4fa3-b480-931518ddeebc',
-  webhookUrl: 'https://administration-storage-battery-synopsis.trycloudflare.com/orders/place',
-  isExistingStrategy: true
-}
-📊 Brick size type: string Value: 0.25
-🚀 Chart URL prepared: http://localhost:8026/api/chart
-📊 With configuration: {
-  strategyType: 'renko',
-  timeframe: '1000T',
-  brickSize: '0.25',
-  contractSymbol: 'MNQ',
-  strategyName: 'MNQ-TOPSTEPX-COMBINE',
-  indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ],
-  strategyId: '0725ef75-a0a4-4fa3-b480-931518ddeebc',
-  webhookUrl: 'https://administration-storage-battery-synopsis.trycloudflare.com/orders/place',
-  isExistingStrategy: true
-}
 📊 Update strategy request: {
   id: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
   chart_config: null,
   chart_type: 'renko',
-  brick_size: 1,
+  brick_size: 0.25,
   hasWebhookPayload: true
 }
 📊 Using minimal webhook payload (no chart configuration)
@@ -59,28 +22,64 @@
 📊 Loaded saved strategy configuration: {
   strategyType: 'renko',
   timeframe: '1000T',
-  brickSize: '1',
+  brickSize: '0.25',
   contractSymbol: 'MNQ',
-  strategyName: 'MNQ-TOPSTEPX-PRACTICE',
+  strategyName: 'MNQ-TFD-PRACTICE',
   indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ],
   strategyId: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
-  webhookUrl: 'http://localhost:8000/orders/place',
+  webhookUrl: 'http://localhost:9025/api/orders/place',
   isExistingStrategy: true
 }
-📊 Brick size type: string Value: 1
+📊 Brick size type: string Value: 0.25
 🚀 Chart URL prepared: http://localhost:8026/api/chart
 📊 With configuration: {
   strategyType: 'renko',
   timeframe: '1000T',
-  brickSize: '1',
+  brickSize: '0.25',
   contractSymbol: 'MNQ',
-  strategyName: 'MNQ-TOPSTEPX-PRACTICE',
+  strategyName: 'MNQ-TFD-PRACTICE',
   indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ],
   strategyId: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
-  webhookUrl: 'http://localhost:8000/orders/place',
+  webhookUrl: 'http://localhost:9025/api/orders/place',
   isExistingStrategy: true
 }
-📊 Found indicators in database: [ { type: 'DonchianMidBandStrategy', period: 200 } ]
+📊 Update strategy request: {
+  id: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
+  chart_config: null,
+  chart_type: 'renko',
+  brick_size: 0.25,
+  hasWebhookPayload: true
+}
+📊 Using minimal webhook payload (no chart configuration)
+📊 UPDATE - Chart config received: null
+📊 UPDATE - Extracted indicators: null
+📊 UPDATE - Preserving existing indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ]
+📊 Loading saved strategy: bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6
+📊 Loading strategy with indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ]
+📊 Loaded saved strategy configuration: {
+  strategyType: 'renko',
+  timeframe: '1000T',
+  brickSize: '0.25',
+  contractSymbol: 'MNQ',
+  strategyName: 'MNQ-TFD-PRACTICE',
+  indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ],
+  strategyId: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
+  webhookUrl: 'http://localhost:9025/api/orders/place',
+  isExistingStrategy: true
+}
+📊 Brick size type: string Value: 0.25
+🚀 Chart URL prepared: http://localhost:8026/api/chart
+📊 With configuration: {
+  strategyType: 'renko',
+  timeframe: '1000T',
+  brickSize: '0.25',
+  contractSymbol: 'MNQ',
+  strategyName: 'MNQ-TFD-PRACTICE',
+  indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ],
+  strategyId: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
+  webhookUrl: 'http://localhost:9025/api/orders/place',
+  isExistingStrategy: true
+}
 📊 Update strategy request: {
   id: 'bc6ad90c-d08b-41a4-ac3e-1cdb3b65a6e6',
   chart_config: {
@@ -88,7 +87,7 @@
     chartType: 'renko',
     brickSize: '0.25',
     indicators: [ [Object] ],
-    timestamp: '2025-10-03T18:02:55.978Z'
+    timestamp: '2025-10-03T20:05:22.039Z'
   },
   chart_type: 'renko',
   brick_size: 0.25,
@@ -99,9 +98,10 @@
   resolution: '1000T',
   chartType: 'renko',
   brickSize: '0.25',
-  indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ],
-  timestamp: '2025-10-03T18:02:55.978Z'
+  indicators: [ { type: 'DonchianChannel', period: 200 } ],
+  timestamp: '2025-10-03T20:05:22.039Z'
 }
-📊 UPDATE - Extracted indicators: [ { type: 'DonchianMidBandStrategy', period: 200 } ]
-📊 UPDATE - Preserving existing webhook_url: http://localhost:8000/orders/place
+📊 UPDATE - Extracted indicators: [ { type: 'DonchianChannel', period: 200 } ]
+📊 UPDATE - Preserving existing webhook_url: http://localhost:9025/api/orders/place
 📊 UPDATE - Preserving existing webhook_payload
+📊 Found indicators in database: [ { type: 'DonchianChannel', period: 200 } ]
