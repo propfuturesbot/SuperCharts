@@ -268,7 +268,7 @@ const TradeOptions = () => {
 
       switch (orderType) {
         case 'Market':
-          orderId = await orderManager.placeMarketOrder(selectedAccount, symbol, action, quantity);
+          orderId = await orderManager.placeMarketOrder(selectedAccount, symbol, action, quantity, closeExistingOrders);
           setOrderSuccess(`Market order placed successfully! Order ID: ${orderId}`);
           break;
 
@@ -281,7 +281,8 @@ const TradeOptions = () => {
             symbol,
             action,
             parseFloat(limitPrice),
-            quantity
+            quantity,
+            closeExistingOrders
           );
           setOrderSuccess(`Limit order placed successfully! Order ID: ${orderId}`);
           break;
@@ -295,7 +296,8 @@ const TradeOptions = () => {
             action,
             symbol,
             quantity,
-            parseFloat(stopPrice)
+            parseFloat(stopPrice),
+            closeExistingOrders
           );
           setOrderSuccess(`Market order with stop loss placed successfully! Market Order ID: ${marketOrderId}, Stop Order ID: ${stopOrderId}`);
           break;
@@ -309,7 +311,8 @@ const TradeOptions = () => {
             action,
             symbol,
             quantity,
-            parseFloat(trailingOffset)
+            parseFloat(trailingOffset),
+            closeExistingOrders
           );
           setOrderSuccess(`Trailing stop order placed successfully! Order ID: ${orderId}`);
           break;
@@ -327,7 +330,8 @@ const TradeOptions = () => {
             action,
             quantity,
             parseFloat(stopPrice),
-            parseFloat(takeProfitPrice)
+            parseFloat(takeProfitPrice),
+            closeExistingOrders
           );
           setOrderSuccess(`Bracket order placed successfully! Order ID: ${bracketOrderId}`);
           break;
@@ -800,12 +804,30 @@ const TradeOptions = () => {
               {/* Close existing orders option */}
               <div className="checkbox-field">
                 <label className="checkbox-label">
+                  <div
+                    className={`custom-checkbox ${closeExistingOrders ? 'checked' : ''}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setCloseExistingOrders(!closeExistingOrders);
+                      console.log('Checkbox clicked, new value:', !closeExistingOrders);
+                    }}
+                  >
+                    {closeExistingOrders && <span className="checkbox-check">✓</span>}
+                  </div>
+                  <span onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setCloseExistingOrders(!closeExistingOrders);
+                  }}>
+                    CLOSE EXISTING ORDERS
+                  </span>
                   <input
                     type="checkbox"
                     checked={closeExistingOrders}
                     onChange={(e) => setCloseExistingOrders(e.target.checked)}
+                    style={{ display: 'none' }}
                   />
-                  CLOSE EXISTING ORDERS
                 </label>
               </div>
             </div>

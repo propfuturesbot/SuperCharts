@@ -300,7 +300,7 @@ const Dashboard = () => {
 
           <motion.button
             className="docs-button"
-            onClick={() => window.open('http://localhost:8025/api/docs', '_blank')}
+            onClick={() => window.open('http://localhost:9025/api/docs', '_blank')}
             initial={{ x: 20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.15 }}

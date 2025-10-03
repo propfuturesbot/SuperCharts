@@ -26,9 +26,9 @@ The system consists of two main components:
    ```
 
 2. **Access the Application**
-   - Frontend Dashboard: http://localhost:3000
-   - Backend API: http://localhost:8025
-   - Health Check: http://localhost:8025/api/health
+   - Frontend Dashboard: http://localhost:4001
+   - Backend API: http://localhost:9025
+   - Health Check: http://localhost:9025/api/health
 
 ## API Endpoints
 
@@ -56,8 +56,8 @@ const PROVIDER_CONFIG = {
 ```
 
 ### Environment
-- Frontend runs on port 3000
-- Backend runs on port 8025
+- Frontend runs on port 4001
+- Backend runs on port 9025
 - No database required - uses file-based contract caching
 
 ## Development

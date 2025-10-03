@@ -354,7 +354,7 @@ class AccountService {
   async loadAccountsFromFile() {
     try {
       console.log('Loading accounts from backend file...');
-      const response = await fetch('http://localhost:8025/api/accounts/file', {
+      const response = await fetch('http://localhost:9025/api/accounts/file', {
         headers: this.getAuthHeaders()
       });
 
@@ -382,7 +382,7 @@ class AccountService {
       console.log('Attempting to save accounts data to backend file...');
       console.log('Data to save:', accountsData);
 
-      const response = await fetch('http://localhost:8025/api/accounts/file', {
+      const response = await fetch('http://localhost:9025/api/accounts/file', {
         method: 'POST',
         headers: this.getAuthHeaders(),
         body: JSON.stringify({ accountsData })
@@ -520,7 +520,7 @@ class AccountService {
   async clearAccountsFile() {
     try {
       // Clear backend file
-      const response = await fetch('http://localhost:8025/api/accounts/file', {
+      const response = await fetch('http://localhost:9025/api/accounts/file', {
         method: 'DELETE',
         headers: this.getAuthHeaders()
       });

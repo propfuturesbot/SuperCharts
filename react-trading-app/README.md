@@ -68,7 +68,7 @@ react-trading-app/
 
 4. **Open your browser**
    ```
-   http://localhost:3000
+   http://localhost:4001
    ```
 
 ## 🔧 Configuration

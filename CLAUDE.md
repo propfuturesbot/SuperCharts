@@ -38,11 +38,11 @@
 
 2. **Update Swagger Schemas**: If creating new data structures, add them to the `swagger.js` file under `components.schemas`.
 
-3. **Test Documentation**: After adding endpoints, verify they appear correctly at `http://localhost:8025/api/docs`.
+3. **Test Documentation**: After adding endpoints, verify they appear correctly at `http://localhost:9025/api/docs`.
 
 #### Current API Documentation
 
-The Swagger documentation is available at: **http://localhost:8025/api/docs**
+The Swagger documentation is available at: **http://localhost:9025/api/docs**
 
 Access via the documentation icon (📖) in the top-right header of the application.
 
@@ -113,13 +113,13 @@ trading-backend/
 Use the Swagger UI for testing, or curl commands:
 ```bash
 # Test health endpoint
-curl http://localhost:8025/api/health
+curl http://localhost:9025/api/health
 
 # Test contract lookup
-curl http://localhost:8025/api/contracts/lookup/MNQ
+curl http://localhost:9025/api/contracts/lookup/MNQ
 
 # View all contracts
-curl http://localhost:8025/api/contracts
+curl http://localhost:9025/api/contracts
 ```
 
 ### Order Manager Integration
@@ -139,7 +139,7 @@ curl http://localhost:8025/api/contracts
 **Example Trading API Usage (Unified Endpoint):**
 ```bash
 # Place a market order (NEW UNIFIED ENDPOINT)
-curl -X POST http://localhost:8025/api/orders/place \
+curl -X POST http://localhost:9025/api/orders/place \
   -H "Content-Type: application/json" \
   -d '{
     "orderType": "MARKET",
@@ -150,7 +150,7 @@ curl -X POST http://localhost:8025/api/orders/place \
   }'
 
 # Place a limit order
-curl -X POST http://localhost:8025/api/orders/place \
+curl -X POST http://localhost:9025/api/orders/place \
   -H "Content-Type: application/json" \
   -d '{
     "orderType": "LIMIT",
@@ -162,7 +162,7 @@ curl -X POST http://localhost:8025/api/orders/place \
   }'
 
 # Place a stop loss order
-curl -X POST http://localhost:8025/api/orders/place \
+curl -X POST http://localhost:9025/api/orders/place \
   -H "Content-Type: application/json" \
   -d '{
     "orderType": "STOP_LOSS",
@@ -174,7 +174,7 @@ curl -X POST http://localhost:8025/api/orders/place \
   }'
 
 # Place a trailing stop order
-curl -X POST http://localhost:8025/api/orders/place \
+curl -X POST http://localhost:9025/api/orders/place \
   -H "Content-Type: application/json" \
   -d '{
     "orderType": "TRAILING_STOP",
@@ -186,7 +186,7 @@ curl -X POST http://localhost:8025/api/orders/place \
   }'
 
 # Place a bracket order
-curl -X POST http://localhost:8025/api/orders/place \
+curl -X POST http://localhost:9025/api/orders/place \
   -H "Content-Type: application/json" \
   -d '{
     "orderType": "BRACKET",
@@ -199,7 +199,7 @@ curl -X POST http://localhost:8025/api/orders/place \
   }'
 
 # Close specific position
-curl -X DELETE http://localhost:8025/api/positions/close \
+curl -X DELETE http://localhost:9025/api/positions/close \
   -H "Content-Type: application/json" \
   -d '{
     "accountName": "TFDXAP_508PA89",
@@ -207,14 +207,14 @@ curl -X DELETE http://localhost:8025/api/positions/close \
   }'
 
 # Flatten all positions
-curl -X DELETE http://localhost:8025/api/positions/flatten \
+curl -X DELETE http://localhost:9025/api/positions/flatten \
   -H "Content-Type: application/json" \
   -d '{
     "accountName": "TFDXAP_508PA89"
   }'
 
 # Reverse position
-curl -X POST http://localhost:8025/api/positions/reverse \
+curl -X POST http://localhost:9025/api/positions/reverse \
   -H "Content-Type: application/json" \
   -d '{
     "accountName": "TFDXAP_508PA89",
@@ -237,7 +237,7 @@ The webhook generator feature allows you to:
 
 ### Access
 
-Navigate to: **http://localhost:3000/webhook-generator**
+Navigate to: **http://localhost:4001/webhook-generator**
 
 ### Prerequisites
 
@@ -267,8 +267,8 @@ npm start
 - Cloudflared must be installed on your system
 - Tunnel URL changes after each restart
 - Tunnel provides secure HTTPS access to your **entire trading dashboard**
-- The tunnel forwards to the React frontend (port 3000)
-- React app proxies API calls to backend (port 8025)
+- The tunnel forwards to the React frontend (port 4001)
+- React app proxies API calls to backend (port 9025)
 - You can access the full application via the tunnel URL
 
 #### Step 2: Configure Trading Parameters
@@ -432,7 +432,7 @@ POST https://your-tunnel.trycloudflare.com/webhook/flatten
   "url": "https://example.trycloudflare.com",
   "timestamp": "2025-09-29T12:00:00.000Z",
   "active": true,
-  "port": "8025"
+  "port": "9025"
 }
 ```
 

@@ -10,7 +10,7 @@ const { trafficLogger, readLogs, writeLogs } = require('./middleware/trafficLogg
 // Routes removed
 
 const app = express();
-const port = 8025;
+const port = 9025;
 
 // CORS configuration to allow localhost and Cloudflare tunnel
 app.use(cors({
@@ -20,9 +20,9 @@ app.use(cors({
 
     // List of allowed origins
     const allowedOrigins = [
-      'http://localhost:3000',
+      'http://localhost:4001',
       'http://localhost:3001',
-      'http://localhost:8025', // Allow backend to call itself
+      'http://localhost:9025', // Allow backend to call itself
       /https:\/\/.*\.trycloudflare\.com$/ // Allow any Cloudflare tunnel
     ];
 
@@ -1021,7 +1021,7 @@ app.get('/api/profit-loss/account/:accountName', async (req, res) => {
     console.log(`[INFO] Fetching trading account info for: ${accountName} (ID: ${accountId})`);
 
     // Get account balance from cached file
-    const accountsResponse = await axios.get('http://localhost:8025/api/accounts/file');
+    const accountsResponse = await axios.get('http://localhost:9025/api/accounts/file');
     const account = accountsResponse.data.data.accounts.find(acc => acc.id === accountId);
 
     if (!account) {
@@ -1907,9 +1907,21 @@ app.post('/api/positions/reverse', async (req, res) => {
  *       500:
  *         description: Order placement failed
  */
+
+// Helper function to parse closeExistingOrders parameter (case-insensitive)
+function parseCloseExistingOrders(value) {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    return ['y', 'yes', 'true', '1'].includes(normalized);
+  }
+  if (typeof value === 'number') return value === 1;
+  return false;
+}
+
 app.post('/api/orders/place', async (req, res) => {
   try {
-    const { orderType, accountName, symbol, action, quantity = 1, limitPrice, stopLossPoints, takeProfitPoints, trailDistancePoints } = req.body;
+    const { orderType, accountName, symbol, action, quantity = 1, limitPrice, stopLossPoints, takeProfitPoints, trailDistancePoints, closeExistingOrders } = req.body;
 
     // Validate required parameters
     if (!orderType || !accountName || !symbol || !action) {
@@ -1917,6 +1929,12 @@ app.post('/api/orders/place', async (req, res) => {
         success: false,
         error: 'Missing required parameters: orderType, accountName, symbol, action'
       });
+    }
+
+    // Parse closeExistingOrders (case-insensitive: Y, True, true, TRUE, yes, 1)
+    const shouldCloseExisting = parseCloseExistingOrders(closeExistingOrders);
+    if (shouldCloseExisting) {
+      console.log(`[INFO] Close existing orders flag is set to true`);
     }
 
     // ===== TRADING HOURS VALIDATION =====
@@ -1940,8 +1958,8 @@ app.post('/api/orders/place', async (req, res) => {
     // Route to appropriate OrderManager method based on orderType
     switch (orderType.toUpperCase()) {
       case 'MARKET':
-        console.log(`[INFO] Placing market order: provider=${provider}, accountName=${accountName}, symbol=${symbol}, action=${action}, quantity=${quantity}`);
-        result = await orderManager.placeMarketOrder(provider, token, accountName, symbol, action, quantity);
+        console.log(`[INFO] Placing market order: provider=${provider}, accountName=${accountName}, symbol=${symbol}, action=${action}, quantity=${quantity}, closeExisting=${shouldCloseExisting}`);
+        result = await orderManager.placeMarketOrder(provider, token, accountName, symbol, action, quantity, shouldCloseExisting);
         break;
 
       case 'LIMIT':
@@ -1951,8 +1969,8 @@ app.post('/api/orders/place', async (req, res) => {
             error: 'limitPrice is required for LIMIT orders'
           });
         }
-        console.log(`[INFO] Placing limit order: provider=${provider}, accountName=${accountName}, symbol=${symbol}, action=${action}, limitPrice=${limitPrice}, quantity=${quantity}`);
-        result = await orderManager.placeLimitOrder(provider, token, accountName, symbol, action, limitPrice, quantity);
+        console.log(`[INFO] Placing limit order: provider=${provider}, accountName=${accountName}, symbol=${symbol}, action=${action}, limitPrice=${limitPrice}, quantity=${quantity}, closeExisting=${shouldCloseExisting}`);
+        result = await orderManager.placeLimitOrder(provider, token, accountName, symbol, action, limitPrice, quantity, shouldCloseExisting);
         break;
 
       case 'STOP_LOSS':
@@ -1962,8 +1980,8 @@ app.post('/api/orders/place', async (req, res) => {
             error: 'stopLossPoints is required for STOP_LOSS orders'
           });
         }
-        console.log(`[INFO] Placing stop loss order: provider=${provider}, accountName=${accountName}, symbol=${symbol}, action=${action}, stopLossPoints=${stopLossPoints}, quantity=${quantity}`);
-        result = await orderManager.placeMarketWithStopLossOrder(provider, token, accountName, action, symbol, quantity, stopLossPoints);
+        console.log(`[INFO] Placing stop loss order: provider=${provider}, accountName=${accountName}, symbol=${symbol}, action=${action}, stopLossPoints=${stopLossPoints}, quantity=${quantity}, closeExisting=${shouldCloseExisting}`);
+        result = await orderManager.placeMarketWithStopLossOrder(provider, token, accountName, action, symbol, quantity, stopLossPoints, shouldCloseExisting);
         break;
 
       case 'TRAILING_STOP':
@@ -1973,8 +1991,8 @@ app.post('/api/orders/place', async (req, res) => {
             error: 'trailDistancePoints is required for TRAILING_STOP orders'
           });
         }
-        console.log(`[INFO] Placing trailing stop order: provider=${provider}, accountName=${accountName}, symbol=${symbol}, action=${action}, trailDistancePoints=${trailDistancePoints}, quantity=${quantity}`);
-        result = await orderManager.placeTrailStopOrder(provider, token, accountName, action, symbol, quantity, trailDistancePoints);
+        console.log(`[INFO] Placing trailing stop order: provider=${provider}, accountName=${accountName}, symbol=${symbol}, action=${action}, trailDistancePoints=${trailDistancePoints}, quantity=${quantity}, closeExisting=${shouldCloseExisting}`);
+        result = await orderManager.placeTrailStopOrder(provider, token, accountName, action, symbol, quantity, trailDistancePoints, shouldCloseExisting);
         break;
 
       case 'BRACKET':
@@ -1984,8 +2002,8 @@ app.post('/api/orders/place', async (req, res) => {
             error: 'stopLossPoints and takeProfitPoints are required for BRACKET orders'
           });
         }
-        console.log(`[INFO] Placing bracket order: provider=${provider}, accountName=${accountName}, symbol=${symbol}, action=${action}, stopLoss=${stopLossPoints}, takeProfit=${takeProfitPoints}, quantity=${quantity}`);
-        result = await orderManager.placeBracketOrderWithTPAndSL(provider, token, accountName, symbol, action, quantity, stopLossPoints, takeProfitPoints);
+        console.log(`[INFO] Placing bracket order: provider=${provider}, accountName=${accountName}, symbol=${symbol}, action=${action}, stopLoss=${stopLossPoints}, takeProfit=${takeProfitPoints}, quantity=${quantity}, closeExisting=${shouldCloseExisting}`);
+        result = await orderManager.placeBracketOrderWithTPAndSL(provider, token, accountName, symbol, action, quantity, stopLossPoints, takeProfitPoints, shouldCloseExisting);
         break;
 
       default:
@@ -2083,7 +2101,7 @@ app.get('/api/check-cloudflared', async (req, res) => {
 app.post('/api/start-tunnel', async (req, res) => {
   try {
     // Check if cloudflared is installed
-    const checkResult = await axios.get('http://localhost:8025/api/check-cloudflared');
+    const checkResult = await axios.get('http://localhost:9025/api/check-cloudflared');
     if (!checkResult.data.installed) {
       return res.status(400).json({
         success: false,
@@ -2092,8 +2110,8 @@ app.post('/api/start-tunnel', async (req, res) => {
     }
 
     const cloudflaredPath = checkResult.data.path || 'cloudflared';
-    // Tunnel to frontend (React app) on port 3000, not backend
-    const frontendPort = process.env.FRONTEND_PORT || '3000';
+    // Tunnel to frontend (React app) on port 4001, not backend
+    const frontendPort = process.env.FRONTEND_PORT || '4001';
     const tunnelUrl = `http://localhost:${frontendPort}`;
 
     console.log(`[TUNNEL] Starting cloudflared tunnel for ${tunnelUrl} (Frontend Dashboard)`);
@@ -2473,7 +2491,7 @@ app.post('/api/save-webhook-url', (req, res) => {
 app.post('/webhook/order', async (req, res) => {
   try {
     // Webhook orders use the unified API internally
-    const { orderType, accountName, symbol, action, quantity = 1, limitPrice, stopLossPoints, takeProfitPoints, trailDistancePoints } = req.body;
+    const { orderType, accountName, symbol, action, quantity = 1, limitPrice, stopLossPoints, takeProfitPoints, trailDistancePoints, closeExistingOrders } = req.body;
 
     // Validate required parameters
     if (!orderType || !accountName || !symbol || !action) {
@@ -2481,6 +2499,12 @@ app.post('/webhook/order', async (req, res) => {
         success: false,
         error: 'Missing required parameters: orderType, accountName, symbol, action'
       });
+    }
+
+    // Parse closeExistingOrders (case-insensitive: Y, True, true, TRUE, yes, 1)
+    const shouldCloseExisting = parseCloseExistingOrders(closeExistingOrders);
+    if (shouldCloseExisting) {
+      console.log(`[WEBHOOK] Close existing orders flag is set to true`);
     }
 
     // ===== TRADING HOURS VALIDATION =====
@@ -2504,35 +2528,35 @@ app.post('/webhook/order', async (req, res) => {
     // Route to appropriate OrderManager method based on orderType
     switch (orderType.toUpperCase()) {
       case 'MARKET':
-        result = await orderManager.placeMarketOrder(provider, token, accountName, symbol, action, quantity);
+        result = await orderManager.placeMarketOrder(provider, token, accountName, symbol, action, quantity, shouldCloseExisting);
         break;
 
       case 'LIMIT':
         if (!limitPrice) {
           return res.status(400).json({ success: false, error: 'limitPrice required for LIMIT orders' });
         }
-        result = await orderManager.placeLimitOrder(provider, token, accountName, symbol, action, limitPrice, quantity);
+        result = await orderManager.placeLimitOrder(provider, token, accountName, symbol, action, limitPrice, quantity, shouldCloseExisting);
         break;
 
       case 'STOP_LOSS':
         if (!stopLossPoints) {
           return res.status(400).json({ success: false, error: 'stopLossPoints required for STOP_LOSS orders' });
         }
-        result = await orderManager.placeMarketWithStopLossOrder(provider, token, accountName, action, symbol, quantity, stopLossPoints);
+        result = await orderManager.placeMarketWithStopLossOrder(provider, token, accountName, action, symbol, quantity, stopLossPoints, shouldCloseExisting);
         break;
 
       case 'TRAILING_STOP':
         if (!trailDistancePoints) {
           return res.status(400).json({ success: false, error: 'trailDistancePoints required for TRAILING_STOP orders' });
         }
-        result = await orderManager.placeTrailStopOrder(provider, token, accountName, action, symbol, quantity, trailDistancePoints);
+        result = await orderManager.placeTrailStopOrder(provider, token, accountName, action, symbol, quantity, trailDistancePoints, shouldCloseExisting);
         break;
 
       case 'BRACKET':
         if (!stopLossPoints || !takeProfitPoints) {
           return res.status(400).json({ success: false, error: 'stopLossPoints and takeProfitPoints required for BRACKET orders' });
         }
-        result = await orderManager.placeBracketOrderWithTPAndSL(provider, token, accountName, symbol, action, quantity, stopLossPoints, takeProfitPoints);
+        result = await orderManager.placeBracketOrderWithTPAndSL(provider, token, accountName, symbol, action, quantity, stopLossPoints, takeProfitPoints, shouldCloseExisting);
         break;
 
       default:
@@ -2693,7 +2717,7 @@ app.get('/', (req, res) => {
       reversePosition: '/webhook/reverse-position',
       flattenAll: '/webhook/flatten-all-positions'
     },
-    instructions: 'Use the webhook generator at http://localhost:3000/webhook-generator to configure TradingView alerts'
+    instructions: 'Use the webhook generator at http://localhost:4001/webhook-generator to configure TradingView alerts'
   });
 });
 

@@ -356,5 +356,678 @@
     "quantity": 1,
     "orderType": "MARKET",
     "price": null
+  },
+  {
+    "id": "1759518834724-eowkwiwif",
+    "timestamp": "2025-10-03T19:13:54.724Z",
+    "category": "Backend API",
+    "method": "POST",
+    "endpoint": "/api/orders/place",
+    "ip": "::1",
+    "userAgent": "PostmanRuntime/7.48.0",
+    "requestPayload": {
+      "orderType": "MARKET",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "BUY",
+      "quantity": 1,
+      "closeExistingOrders": true
+    },
+    "responseData": {
+      "success": true,
+      "orderId": 4798871,
+      "orderData": {
+        "result": 0,
+        "positionDisposition": 0,
+        "orderId": 4798871,
+        "executedPrice": 25009,
+        "errorMessage": null
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 301,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "BUY",
+    "quantity": 1,
+    "orderType": "MARKET",
+    "price": null
+  },
+  {
+    "id": "1759518847502-8qoqasfgs",
+    "timestamp": "2025-10-03T19:14:07.502Z",
+    "category": "Backend API",
+    "method": "POST",
+    "endpoint": "/api/orders/place",
+    "ip": "::1",
+    "userAgent": "PostmanRuntime/7.48.0",
+    "requestPayload": {
+      "orderType": "MARKET",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "BUY",
+      "quantity": 1,
+      "closeExistingOrders": true
+    },
+    "responseData": {
+      "success": true,
+      "orderId": 4798879,
+      "orderData": {
+        "result": 0,
+        "positionDisposition": 0,
+        "orderId": 4798879,
+        "executedPrice": 25012,
+        "errorMessage": null
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 270,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "BUY",
+    "quantity": 1,
+    "orderType": "MARKET",
+    "price": null
+  },
+  {
+    "id": "1759518854154-bsh9y9o7e",
+    "timestamp": "2025-10-03T19:14:14.154Z",
+    "category": "Backend API",
+    "method": "POST",
+    "endpoint": "/api/orders/place",
+    "ip": "::1",
+    "userAgent": "PostmanRuntime/7.48.0",
+    "requestPayload": {
+      "orderType": "MARKET",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "Sell",
+      "quantity": 1,
+      "closeExistingOrders": true
+    },
+    "responseData": {
+      "success": true,
+      "orderId": 4798882,
+      "orderData": {
+        "result": 0,
+        "positionDisposition": 0,
+        "orderId": 4798882,
+        "executedPrice": 25011.5,
+        "errorMessage": null
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 340,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "Sell",
+    "quantity": 1,
+    "orderType": "MARKET",
+    "price": null
+  },
+  {
+    "id": "1759518886322-y0vni6qjq",
+    "timestamp": "2025-10-03T19:14:46.322Z",
+    "category": "Backend API",
+    "method": "POST",
+    "endpoint": "/api/orders/place",
+    "ip": "::1",
+    "userAgent": "PostmanRuntime/7.48.0",
+    "requestPayload": {
+      "orderType": "STOP_LOSS",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "BUY",
+      "quantity": 1,
+      "closeExistingOrders": true
+    },
+    "responseData": {
+      "success": false,
+      "error": "stopLossPoints is required for STOP_LOSS orders"
+    },
+    "status": "Error",
+    "statusCode": 400,
+    "latency": 2,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "BUY",
+    "quantity": 1,
+    "orderType": "STOP_LOSS",
+    "price": null
+  },
+  {
+    "id": "1759518905246-89nzjxlmn",
+    "timestamp": "2025-10-03T19:15:05.246Z",
+    "category": "Backend API",
+    "method": "POST",
+    "endpoint": "/api/orders/place",
+    "ip": "::1",
+    "userAgent": "PostmanRuntime/7.48.0",
+    "requestPayload": {
+      "orderType": "STOP_LOSS",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "BUY",
+      "quantity": 1,
+      "stopLossPoints": 20,
+      "closeExistingOrders": true
+    },
+    "responseData": {
+      "success": true,
+      "marketOrderId": 4798884,
+      "marketOrderData": {
+        "result": 0,
+        "positionDisposition": 0,
+        "orderId": 4798884,
+        "executedPrice": 25010.5,
+        "errorMessage": null
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 773,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "BUY",
+    "quantity": 1,
+    "orderType": "STOP_LOSS",
+    "price": null
+  },
+  {
+    "id": "1759518915295-cbh1qfvjx",
+    "timestamp": "2025-10-03T19:15:15.295Z",
+    "category": "Backend API",
+    "method": "POST",
+    "endpoint": "/api/orders/place",
+    "ip": "::1",
+    "userAgent": "PostmanRuntime/7.48.0",
+    "requestPayload": {
+      "orderType": "STOP_LOSS",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "SELL",
+      "quantity": 1,
+      "stopLossPoints": 20,
+      "closeExistingOrders": true
+    },
+    "responseData": {
+      "success": true,
+      "marketOrderId": 4798898,
+      "marketOrderData": {
+        "result": 0,
+        "positionDisposition": 0,
+        "orderId": 4798898,
+        "executedPrice": 25016,
+        "errorMessage": null
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 665,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "SELL",
+    "quantity": 1,
+    "orderType": "STOP_LOSS",
+    "price": null
+  },
+  {
+    "id": "1759518947588-f133btuku",
+    "timestamp": "2025-10-03T19:15:47.588Z",
+    "category": "Backend API",
+    "method": "POST",
+    "endpoint": "/api/orders/place",
+    "ip": "::1",
+    "userAgent": "PostmanRuntime/7.48.0",
+    "requestPayload": {
+      "orderType": "TRAILING_STOP",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "BUY",
+      "quantity": 1,
+      "stopLossPoints": 20,
+      "trailDistancePoints": 20,
+      "closeExistingOrders": true
+    },
+    "responseData": {
+      "success": true,
+      "marketOrderId": 4798912,
+      "trailStopOrderId": 4798913,
+      "orderData": {
+        "result": 1,
+        "positionDisposition": 0,
+        "orderId": 4798913,
+        "executedPrice": null,
+        "errorMessage": null
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 521,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "BUY",
+    "quantity": 1,
+    "orderType": "TRAILING_STOP",
+    "price": null
+  },
+  {
+    "id": "1759518954535-l6i0cdhve",
+    "timestamp": "2025-10-03T19:15:54.535Z",
+    "category": "Backend API",
+    "method": "POST",
+    "endpoint": "/api/orders/place",
+    "ip": "::1",
+    "userAgent": "PostmanRuntime/7.48.0",
+    "requestPayload": {
+      "orderType": "TRAILING_STOP",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "SELL",
+      "quantity": 1,
+      "stopLossPoints": 20,
+      "trailDistancePoints": 20,
+      "closeExistingOrders": true
+    },
+    "responseData": {
+      "success": true,
+      "marketOrderId": 4798919,
+      "trailStopOrderId": 4798920,
+      "orderData": {
+        "result": 1,
+        "positionDisposition": 0,
+        "orderId": 4798920,
+        "executedPrice": null,
+        "errorMessage": null
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 595,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "SELL",
+    "quantity": 1,
+    "orderType": "TRAILING_STOP",
+    "price": null
+  },
+  {
+    "id": "1759519020986-wnktlna3t",
+    "timestamp": "2025-10-03T19:17:00.986Z",
+    "category": "Backend API",
+    "method": "POST",
+    "endpoint": "/api/orders/place",
+    "ip": "::1",
+    "userAgent": "PostmanRuntime/7.48.0",
+    "requestPayload": {
+      "orderType": "BRACKET",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "SELL",
+      "quantity": 1,
+      "stopLossPoints": 20,
+      "trailDistancePoints": 20,
+      "takeProfitPoints": 20,
+      "closeExistingOrders": true
+    },
+    "responseData": {
+      "success": true,
+      "marketOrderId": 4798966,
+      "marketOrderData": {
+        "result": 0,
+        "positionDisposition": 0,
+        "orderId": 4798966,
+        "executedPrice": 25006.75,
+        "errorMessage": null
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 668,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "SELL",
+    "quantity": 1,
+    "orderType": "BRACKET",
+    "price": null
+  },
+  {
+    "id": "1759519036752-rfc88vfxm",
+    "timestamp": "2025-10-03T19:17:16.752Z",
+    "category": "Backend API",
+    "method": "POST",
+    "endpoint": "/api/orders/place",
+    "ip": "::1",
+    "userAgent": "PostmanRuntime/7.48.0",
+    "requestPayload": {
+      "orderType": "BRACKET",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "BUY",
+      "quantity": 1,
+      "stopLossPoints": 20,
+      "trailDistancePoints": 20,
+      "takeProfitPoints": 20,
+      "closeExistingOrders": true
+    },
+    "responseData": {
+      "success": true,
+      "marketOrderId": 4798976,
+      "marketOrderData": {
+        "result": 0,
+        "positionDisposition": 0,
+        "orderId": 4798976,
+        "executedPrice": 25010,
+        "errorMessage": null
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 667,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "BUY",
+    "quantity": 1,
+    "orderType": "BRACKET",
+    "price": null
+  },
+  {
+    "id": "1759519045620-lk0lft4iz",
+    "timestamp": "2025-10-03T19:17:25.620Z",
+    "category": "Backend API",
+    "method": "POST",
+    "endpoint": "/api/orders/place",
+    "ip": "::1",
+    "userAgent": "PostmanRuntime/7.48.0",
+    "requestPayload": {
+      "orderType": "BRACKET",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "BUY",
+      "quantity": 1,
+      "stopLossPoints": 20,
+      "trailDistancePoints": 20,
+      "takeProfitPoints": 20,
+      "closeExistingOrders": false
+    },
+    "responseData": {
+      "success": false,
+      "error": "Failed to set bracket orders: Invalid stop loss"
+    },
+    "status": "Error",
+    "statusCode": 500,
+    "latency": 603,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "BUY",
+    "quantity": 1,
+    "orderType": "BRACKET",
+    "price": null
+  },
+  {
+    "id": "1759519047366-0juce4ubc",
+    "timestamp": "2025-10-03T19:17:27.366Z",
+    "category": "Backend API",
+    "method": "POST",
+    "endpoint": "/api/orders/place",
+    "ip": "::1",
+    "userAgent": "PostmanRuntime/7.48.0",
+    "requestPayload": {
+      "orderType": "BRACKET",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "BUY",
+      "quantity": 1,
+      "stopLossPoints": 20,
+      "trailDistancePoints": 20,
+      "takeProfitPoints": 20,
+      "closeExistingOrders": false
+    },
+    "responseData": {
+      "success": false,
+      "error": "Failed to set bracket orders: Invalid stop loss"
+    },
+    "status": "Error",
+    "statusCode": 500,
+    "latency": 675,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "BUY",
+    "quantity": 1,
+    "orderType": "BRACKET",
+    "price": null
+  },
+  {
+    "id": "1759519055171-u0heay1jx",
+    "timestamp": "2025-10-03T19:17:35.171Z",
+    "category": "Backend API",
+    "method": "POST",
+    "endpoint": "/api/orders/place",
+    "ip": "::1",
+    "userAgent": "PostmanRuntime/7.48.0",
+    "requestPayload": {
+      "orderType": "BRACKET",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "BUY",
+      "quantity": 1,
+      "stopLossPoints": 20,
+      "trailDistancePoints": 20,
+      "takeProfitPoints": 20,
+      "closeExistingOrders": false
+    },
+    "responseData": {
+      "success": false,
+      "error": "Failed to set bracket orders: Invalid stop loss"
+    },
+    "status": "Error",
+    "statusCode": 500,
+    "latency": 509,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "BUY",
+    "quantity": 1,
+    "orderType": "BRACKET",
+    "price": null
+  },
+  {
+    "id": "1759519072088-yeklxxcav",
+    "timestamp": "2025-10-03T19:17:52.088Z",
+    "category": "Backend API",
+    "method": "POST",
+    "endpoint": "/api/orders/place",
+    "ip": "::1",
+    "userAgent": "PostmanRuntime/7.48.0",
+    "requestPayload": {
+      "orderType": "BRACKET",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "SELL",
+      "quantity": 1,
+      "stopLossPoints": 20,
+      "trailDistancePoints": 20,
+      "takeProfitPoints": 20,
+      "closeExistingOrders": true
+    },
+    "responseData": {
+      "success": true,
+      "marketOrderId": 4798989,
+      "marketOrderData": {
+        "result": 0,
+        "positionDisposition": 0,
+        "orderId": 4798989,
+        "executedPrice": 25007.25,
+        "errorMessage": null
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 819,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "SELL",
+    "quantity": 1,
+    "orderType": "BRACKET",
+    "price": null
+  },
+  {
+    "id": "1759519125383-ek3ei4e06",
+    "timestamp": "2025-10-03T19:18:45.383Z",
+    "category": "Frontend API",
+    "method": "POST",
+    "endpoint": "/frontend/order",
+    "ip": "::ffff:127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+    "requestPayload": {
+      "orderType": "MARKET",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "BUY",
+      "quantity": 1
+    },
+    "responseData": {
+      "success": true,
+      "orderId": 4799002,
+      "orderData": {
+        "orderId": 4799002
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 159,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "BUY",
+    "quantity": 1,
+    "orderType": "MARKET",
+    "price": null
+  },
+  {
+    "id": "1759519137229-enc9bzhao",
+    "timestamp": "2025-10-03T19:18:57.229Z",
+    "category": "Frontend API",
+    "method": "POST",
+    "endpoint": "/frontend/order",
+    "ip": "::ffff:127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+    "requestPayload": {
+      "orderType": "MARKET",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "SELL",
+      "quantity": 1
+    },
+    "responseData": {
+      "success": true,
+      "orderId": 4799003,
+      "orderData": {
+        "orderId": 4799003
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 95,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "SELL",
+    "quantity": 1,
+    "orderType": "MARKET",
+    "price": null
+  },
+  {
+    "id": "1759519336527-yt8novn17",
+    "timestamp": "2025-10-03T19:22:16.527Z",
+    "category": "Frontend API",
+    "method": "POST",
+    "endpoint": "/frontend/order",
+    "ip": "::ffff:127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+    "requestPayload": {
+      "orderType": "MARKET",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "BUY",
+      "quantity": 1
+    },
+    "responseData": {
+      "success": true,
+      "orderId": 4799075,
+      "orderData": {
+        "orderId": 4799075
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 187,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "BUY",
+    "quantity": 1,
+    "orderType": "MARKET",
+    "price": null
+  },
+  {
+    "id": "1759519343656-51y6wp5eo",
+    "timestamp": "2025-10-03T19:22:23.656Z",
+    "category": "Frontend API",
+    "method": "POST",
+    "endpoint": "/frontend/order",
+    "ip": "::ffff:127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+    "requestPayload": {
+      "orderType": "CLOSE",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "CLOSE",
+      "quantity": 0
+    },
+    "responseData": {
+      "success": true,
+      "orderData": {}
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 124,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "CLOSE",
+    "quantity": 0,
+    "orderType": "CLOSE",
+    "price": null
+  },
+  {
+    "id": "1759519343821-z8zhy6mrj",
+    "timestamp": "2025-10-03T19:22:23.821Z",
+    "category": "Frontend API",
+    "method": "POST",
+    "endpoint": "/frontend/order",
+    "ip": "::ffff:127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+    "requestPayload": {
+      "orderType": "MARKET",
+      "accountName": "TFDXAP_508PA89",
+      "symbol": "MNQ",
+      "action": "SELL",
+      "quantity": 1
+    },
+    "responseData": {
+      "success": true,
+      "orderId": 4799081,
+      "orderData": {
+        "orderId": 4799081
+      }
+    },
+    "status": "Success",
+    "statusCode": 200,
+    "latency": 106,
+    "accountName": "TFDXAP_508PA89",
+    "symbol": "MNQ",
+    "action": "SELL",
+    "quantity": 1,
+    "orderType": "MARKET",
+    "price": null
   }
 ]

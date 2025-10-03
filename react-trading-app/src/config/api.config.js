@@ -14,14 +14,14 @@ let API_BASE_URL;
 
 if (isCloudflare) {
   // When accessed through Cloudflare tunnel, use relative URLs
-  // The React dev server proxy will forward /api/* to localhost:8025
+  // The React dev server proxy will forward /api/* to localhost:9025
   API_BASE_URL = '';
 } else if (isLocalhost) {
   // Local development - use relative URLs (proxy handles routing)
   API_BASE_URL = '';
 } else {
-  // Production - assume backend is on same host, port 8025
-  API_BASE_URL = `${window.location.protocol}//${window.location.hostname}:8025`;
+  // Production - assume backend is on same host, port 9025
+  API_BASE_URL = `${window.location.protocol}//${window.location.hostname}:9025`;
 }
 
 export const API_CONFIG = {

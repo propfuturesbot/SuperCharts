@@ -26,8 +26,8 @@
     "dev": "npm start",
     "start:clean": "bash scripts/start-dev.sh",
     "start:clean:windows": "scripts\\start-dev.bat",
-    "clean:ports": "lsof -ti:3000 | xargs kill -9 || true",
-    "clean:ports:windows": "for /f \"tokens=5\" %a in ('netstat -ano | findstr :3000') do taskkill /PID %a /F",
+    "clean:ports": "lsof -ti:4001 | xargs kill -9 || true",
+    "clean:ports:windows": "for /f \"tokens=5\" %a in ('netstat -ano | findstr :4001') do taskkill /PID %a /F",
     "prebuild": "npm run clean:ports",
     "build:analyze": "npm run build && npx serve -s build",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx --fix",
@@ -51,5 +51,5 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:8025"
+  "proxy": "http://localhost:9025"
 }

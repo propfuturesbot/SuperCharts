@@ -331,7 +331,7 @@ class BackendOrderManager {
    */
   async convertPointsToTicks(symbol, points) {
     try {
-      const lookupUrl = `http://localhost:8025/api/contracts/lookup/${encodeURIComponent(symbol)}`;
+      const lookupUrl = `http://localhost:9025/api/contracts/lookup/${encodeURIComponent(symbol)}`;
       const response = await axios.get(lookupUrl);
 
       if (response.status === 200 && response.data.success) {
@@ -392,7 +392,7 @@ class BackendOrderManager {
    */
   async getSymbolForTrade(searchSymbol) {
     try {
-      const lookupUrl = `http://localhost:8025/api/contracts/lookup/${encodeURIComponent(searchSymbol)}`;
+      const lookupUrl = `http://localhost:9025/api/contracts/lookup/${encodeURIComponent(searchSymbol)}`;
       const response = await axios.get(lookupUrl);
 
       if (response.status === 200 && response.data.success) {
@@ -413,7 +413,7 @@ class BackendOrderManager {
    */
   async getAccountIDAndUserID(accountName) {
     try {
-      const accountsUrl = `http://localhost:8025/api/accounts/file`;
+      const accountsUrl = `http://localhost:9025/api/accounts/file`;
       const response = await axios.get(accountsUrl);
 
       if (response.status === 200 && response.data.success) {
@@ -440,7 +440,19 @@ class BackendOrderManager {
   /**
    * Place a market order
    */
-  async placeMarketOrder(provider, token, accountName, symbol, orderType, quantity = 1) {
+  async placeMarketOrder(provider, token, accountName, symbol, orderType, quantity = 1, closeExistingOrders = false) {
+    // Close existing positions if requested
+    if (closeExistingOrders) {
+      console.log(`[INFO] Closing existing positions for ${symbol} before placing market order`);
+      try {
+        await this.closeAllPositionsForASymbol(provider, token, accountName, symbol);
+        console.log(`[INFO] Successfully closed existing positions for ${symbol}`);
+      } catch (error) {
+        console.error(`[ERROR] Failed to close existing positions: ${error.message}`);
+        // Continue with order placement even if close fails
+      }
+    }
+
     orderType = orderType.toUpperCase();
     let positionSize = Math.abs(quantity);
 
@@ -506,7 +518,19 @@ class BackendOrderManager {
   /**
    * Place a limit order
    */
-  async placeLimitOrder(provider, token, accountName, symbol, orderType, limitPrice, qty = 1) {
+  async placeLimitOrder(provider, token, accountName, symbol, orderType, limitPrice, qty = 1, closeExistingOrders = false) {
+    // Close existing positions if requested
+    if (closeExistingOrders) {
+      console.log(`[INFO] Closing existing positions for ${symbol} before placing limit order`);
+      try {
+        await this.closeAllPositionsForASymbol(provider, token, accountName, symbol);
+        console.log(`[INFO] Successfully closed existing positions for ${symbol}`);
+      } catch (error) {
+        console.error(`[ERROR] Failed to close existing positions: ${error.message}`);
+        // Continue with order placement even if close fails
+      }
+    }
+
     orderType = orderType.toUpperCase();
     let positionSize = Math.abs(qty);
 
@@ -570,14 +594,26 @@ class BackendOrderManager {
   /**
    * Place a trailing stop order
    */
-  async placeTrailStopOrder(provider, token, accountName, orderType, symbol, quantity, trailDistancePoints) {
+  async placeTrailStopOrder(provider, token, accountName, orderType, symbol, quantity, trailDistancePoints, closeExistingOrders = false) {
     console.log(`[INFO] Placing trailing stop order: provider=${provider}, accountName=${accountName}, orderType=${orderType}, symbol=${symbol}, quantity=${quantity}, trailDistancePoints=${trailDistancePoints}`);
+
+    // Close existing positions if requested
+    if (closeExistingOrders) {
+      console.log(`[INFO] Closing existing positions for ${symbol} before placing trailing stop order`);
+      try {
+        await this.closeAllPositionsForASymbol(provider, token, accountName, symbol);
+        console.log(`[INFO] Successfully closed existing positions for ${symbol}`);
+      } catch (error) {
+        console.error(`[ERROR] Failed to close existing positions: ${error.message}`);
+        // Continue with order placement even if close fails
+      }
+    }
 
     // Convert trail distance from points to ticks
     const trailDistanceTicks = await this.convertPointsToTicks(symbol, trailDistancePoints);
 
-    // Place the market order first
-    const marketOrderResult = await this.placeMarketOrder(provider, token, accountName, symbol, orderType, quantity);
+    // Place the market order first (don't close again in nested call)
+    const marketOrderResult = await this.placeMarketOrder(provider, token, accountName, symbol, orderType, quantity, false);
 
     // Get account ID and symbol ID
     const { accountId } = await this.getAccountIDAndUserID(accountName);
@@ -771,11 +807,23 @@ class BackendOrderManager {
   /**
    * Place a market order with stop-loss (complete implementation from frontend)
    */
-  async placeMarketWithStopLossOrder(provider, token, accountName, orderType, symbol, quantity, stopLossPoints) {
+  async placeMarketWithStopLossOrder(provider, token, accountName, orderType, symbol, quantity, stopLossPoints, closeExistingOrders = false) {
     console.log(`[INFO] Placing market order with stop loss: accountName=${accountName}, orderType=${orderType}, symbol=${symbol}, quantity=${quantity}, stopLossPoints=${stopLossPoints}`);
 
-    // 1. Place the market order first
-    const marketOrderResult = await this.placeMarketOrder(provider, token, accountName, symbol, orderType, quantity);
+    // Close existing positions if requested
+    if (closeExistingOrders) {
+      console.log(`[INFO] Closing existing positions for ${symbol} before placing stop loss order`);
+      try {
+        await this.closeAllPositionsForASymbol(provider, token, accountName, symbol);
+        console.log(`[INFO] Successfully closed existing positions for ${symbol}`);
+      } catch (error) {
+        console.error(`[ERROR] Failed to close existing positions: ${error.message}`);
+        // Continue with order placement even if close fails
+      }
+    }
+
+    // 1. Place the market order first (don't close again in nested call)
+    const marketOrderResult = await this.placeMarketOrder(provider, token, accountName, symbol, orderType, quantity, false);
     const marketOrderId = marketOrderResult.orderId;
     console.log(`[INFO] Market order placed successfully, order ID: ${marketOrderId}`);
 
@@ -843,11 +891,23 @@ class BackendOrderManager {
   /**
    * Place a bracket order (complete implementation from frontend)
    */
-  async placeBracketOrderWithTPAndSL(provider, token, accountName, symbol, orderType, quantity, stopLossPoints, takeProfitPoints) {
+  async placeBracketOrderWithTPAndSL(provider, token, accountName, symbol, orderType, quantity, stopLossPoints, takeProfitPoints, closeExistingOrders = false) {
     console.log(`[INFO] Placing bracket order: accountName=${accountName}, symbol=${symbol}, orderType=${orderType}, quantity=${quantity}, stopLossPoints=${stopLossPoints}, takeProfitPoints=${takeProfitPoints}`);
 
-    // 1. Place the market order first
-    const marketOrderResult = await this.placeMarketOrder(provider, token, accountName, symbol, orderType, quantity);
+    // Close existing positions if requested
+    if (closeExistingOrders) {
+      console.log(`[INFO] Closing existing positions for ${symbol} before placing bracket order`);
+      try {
+        await this.closeAllPositionsForASymbol(provider, token, accountName, symbol);
+        console.log(`[INFO] Successfully closed existing positions for ${symbol}`);
+      } catch (error) {
+        console.error(`[ERROR] Failed to close existing positions: ${error.message}`);
+        // Continue with order placement even if close fails
+      }
+    }
+
+    // 1. Place the market order first (don't close again in nested call)
+    const marketOrderResult = await this.placeMarketOrder(provider, token, accountName, symbol, orderType, quantity, false);
     const marketOrderId = marketOrderResult.orderId;
     console.log(`[INFO] Market order placed successfully, order ID: ${marketOrderId}`);
 

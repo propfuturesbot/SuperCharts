@@ -13,8 +13,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-REACT_PORT=3000
-BACKEND_PORT=8000
+REACT_PORT=4001
+BACKEND_PORT=9025
 
 echo -e "${BLUE}🚀 Starting React Trading Dashboard...${NC}"
 echo -e "${BLUE}======================================${NC}"

@@ -117,7 +117,7 @@ class AuthService {
 
     // Clear cached accounts file from backend
     try {
-      await axios.delete('http://localhost:8025/api/accounts/file');
+      await axios.delete('http://localhost:9025/api/accounts/file');
       console.log('[AUTH] Cleared cached accounts file on logout');
     } catch (error) {
       console.warn('[AUTH] Failed to clear accounts file:', error.message);
@@ -234,7 +234,7 @@ class AuthService {
 
     try {
       const expiresAt = localStorage.getItem('token_expiry');
-      const response = await axios.post('http://localhost:8025/api/auth/save', {
+      const response = await axios.post('http://localhost:9025/api/auth/save', {
         provider: this.provider,
         token: this.token,
         username: this.username,

@@ -15,8 +15,8 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Configuration
-REACT_PORT=3000
-BACKEND_PORT=8025
+REACT_PORT=4001
+BACKEND_PORT=9025
 
 # Application identifiers for safe process killing
 APP_NAME="webhook-bot"
@@ -309,6 +309,9 @@ fi
 # Start React Frontend
 echo -e "${BLUE}🚀 Starting Frontend...${NC}"
 cd "$REACT_DIR"
+
+# Set port for React dev server
+export PORT=$REACT_PORT
 
 # Start frontend in background
 nohup npm start > logs/frontend.log 2>&1 &

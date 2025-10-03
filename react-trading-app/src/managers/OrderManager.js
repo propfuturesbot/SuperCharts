@@ -204,7 +204,7 @@ class OrderManager {
   async convertPointsToTicks(symbol, points) {
     try {
       // Call backend contract lookup API to get contract details
-      const lookupUrl = `http://localhost:8025/api/contracts/lookup/${encodeURIComponent(symbol)}`;
+      const lookupUrl = `http://localhost:9025/api/contracts/lookup/${encodeURIComponent(symbol)}`;
       console.log(`[DEBUG] Looking up contract for tick conversion: ${lookupUrl}`);
 
       const response = await axios.get(lookupUrl);
@@ -242,7 +242,7 @@ class OrderManager {
 
     try {
       // Call backend contract lookup API
-      const lookupUrl = `http://localhost:8025/api/contracts/lookup/${encodeURIComponent(searchSymbol)}`;
+      const lookupUrl = `http://localhost:9025/api/contracts/lookup/${encodeURIComponent(searchSymbol)}`;
       console.log(`[DEBUG] Calling backend lookup: ${lookupUrl}`);
 
       const response = await axios.get(lookupUrl, {
@@ -378,7 +378,19 @@ class OrderManager {
    * Place a market order
    * Based on placeMarketOrder from order_manager.py
    */
-  async placeMarketOrder(accountName, symbol, orderType, quantity = 1) {
+  async placeMarketOrder(accountName, symbol, orderType, quantity = 1, closeExistingOrders = false) {
+    // Close existing positions if requested
+    if (closeExistingOrders) {
+      this.logInfo(`Closing existing positions for ${symbol} before placing market order`);
+      try {
+        await this.closeAllPositionsForASymbol(accountName, symbol);
+        this.logInfo(`Successfully closed existing positions for ${symbol}`);
+      } catch (error) {
+        this.logError(`Failed to close existing positions: ${error.message}`);
+        // Continue with order placement even if close fails
+      }
+    }
+
     // Determine position size based on order type
     orderType = orderType.toUpperCase();
     let positionSize = Math.abs(quantity);
@@ -523,7 +535,19 @@ class OrderManager {
    * Place a limit order
    * Based on placeLimitOrder from order_manager.py
    */
-  async placeLimitOrder(accountName, symbol, orderType, limitPrice, qty = 1) {
+  async placeLimitOrder(accountName, symbol, orderType, limitPrice, qty = 1, closeExistingOrders = false) {
+    // Close existing positions if requested
+    if (closeExistingOrders) {
+      this.logInfo(`Closing existing positions for ${symbol} before placing limit order`);
+      try {
+        await this.closeAllPositionsForASymbol(accountName, symbol);
+        this.logInfo(`Successfully closed existing positions for ${symbol}`);
+      } catch (error) {
+        this.logError(`Failed to close existing positions: ${error.message}`);
+        // Continue with order placement even if close fails
+      }
+    }
+
     // Determine position size based on order type
     orderType = orderType.toUpperCase();
     let positionSize = Math.abs(qty);
@@ -610,15 +634,27 @@ class OrderManager {
    * Place a trailing stop order
    * Places market order first, then sets trailing stop with proper tick distance
    */
-  async placeTrailStopOrder(accountName, orderType, symbol, quantity, trailDistancePoints) {
+  async placeTrailStopOrder(accountName, orderType, symbol, quantity, trailDistancePoints, closeExistingOrders = false) {
     this.logInfo(`Placing market order with trailing stop: accountName=${accountName}, orderType=${orderType}, symbol=${symbol}, quantity=${quantity}, trailDistancePoints=${trailDistancePoints}`);
+
+    // Close existing positions if requested
+    if (closeExistingOrders) {
+      this.logInfo(`Closing existing positions for ${symbol} before placing trailing stop order`);
+      try {
+        await this.closeAllPositionsForASymbol(accountName, symbol);
+        this.logInfo(`Successfully closed existing positions for ${symbol}`);
+      } catch (error) {
+        this.logError(`Failed to close existing positions: ${error.message}`);
+        // Continue with order placement even if close fails
+      }
+    }
 
     // 1. Convert trail distance from points to ticks
     const trailDistanceTicks = await this.convertPointsToTicks(symbol, trailDistancePoints);
     this.logInfo(`Converted trail distance: ${trailDistancePoints} points = ${trailDistanceTicks} ticks`);
 
     // 2. Place the market order first
-    const marketOrderId = await this.placeMarketOrder(accountName, symbol, orderType, quantity);
+    const marketOrderId = await this.placeMarketOrder(accountName, symbol, orderType, quantity, false); // Don't close again in nested call
     this.logInfo(`Market order placed successfully, order ID: ${marketOrderId}`);
 
     // 3. Get JWT token and necessary IDs
@@ -736,11 +772,23 @@ class OrderManager {
    * Place a market order with stop loss
    * Uses the same logic as placeBracketOrderWithTPAndSL but only with stop loss
    */
-  async placeMarketWithStopLossOrder(accountName, orderType, symbol, quantity, stopLossPoints) {
+  async placeMarketWithStopLossOrder(accountName, orderType, symbol, quantity, stopLossPoints, closeExistingOrders = false) {
     this.logInfo(`Placing market order with stop loss: accountName=${accountName}, orderType=${orderType}, symbol=${symbol}, quantity=${quantity}, stopLossPoints=${stopLossPoints}`);
 
+    // Close existing positions if requested
+    if (closeExistingOrders) {
+      this.logInfo(`Closing existing positions for ${symbol} before placing stop loss order`);
+      try {
+        await this.closeAllPositionsForASymbol(accountName, symbol);
+        this.logInfo(`Successfully closed existing positions for ${symbol}`);
+      } catch (error) {
+        this.logError(`Failed to close existing positions: ${error.message}`);
+        // Continue with order placement even if close fails
+      }
+    }
+
     // 1. Place the market order first
-    const marketOrderId = await this.placeMarketOrder(accountName, symbol, orderType, quantity);
+    const marketOrderId = await this.placeMarketOrder(accountName, symbol, orderType, quantity, false); // Don't close again in nested call
     this.logInfo(`Market order placed successfully, order ID: ${marketOrderId}`);
 
     // 2. Get JWT token and necessary IDs
@@ -826,11 +874,23 @@ class OrderManager {
    * Place a bracket order with take profit and stop loss
    * Based on placeBracketOrderWithTPAndSL from order_manager.py
    */
-  async placeBracketOrderWithTPAndSL(accountName, symbol, orderType, quantity, stopLossPoints, takeProfitPoints) {
+  async placeBracketOrderWithTPAndSL(accountName, symbol, orderType, quantity, stopLossPoints, takeProfitPoints, closeExistingOrders = false) {
     this.logInfo(`Placing bracket order: accountName=${accountName}, symbol=${symbol}, orderType=${orderType}, quantity=${quantity}, stopLossPoints=${stopLossPoints}, takeProfitPoints=${takeProfitPoints}`);
 
+    // Close existing positions if requested
+    if (closeExistingOrders) {
+      this.logInfo(`Closing existing positions for ${symbol} before placing bracket order`);
+      try {
+        await this.closeAllPositionsForASymbol(accountName, symbol);
+        this.logInfo(`Successfully closed existing positions for ${symbol}`);
+      } catch (error) {
+        this.logError(`Failed to close existing positions: ${error.message}`);
+        // Continue with order placement even if close fails
+      }
+    }
+
     // 1. Place the market order first
-    const marketOrderId = await this.placeMarketOrder(accountName, symbol, orderType, quantity);
+    const marketOrderId = await this.placeMarketOrder(accountName, symbol, orderType, quantity, false); // Don't close again in nested call
     this.logInfo(`Market order placed successfully, order ID: ${marketOrderId}`);
 
     // 2. Get JWT token and necessary IDs
