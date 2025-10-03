@@ -361,6 +361,73 @@ class OrderManager {
   }
 
   /**
+   * Get current position direction for a symbol
+   * Returns: { direction: 'LONG' | 'SHORT' | 'FLAT', size: number }
+   */
+  async getCurrentPositionDirection(accountName, symbol) {
+    try {
+      const token = authService.getToken();
+      const { accountId } = await this.getAccountIDAndUserID(accountName, token);
+      const userId = await this.getUserID(token);
+      const symbolId = await this.getSymbolForTrade(symbol, token);
+
+      if (!symbolId) {
+        console.log(`[DEBUG] No symbolId found for ${symbol}, assuming FLAT position`);
+        return { direction: 'FLAT', size: 0 };
+      }
+
+      const url = `${this.getBaseUrl()}/Position/all/user/${userId}`;
+      const headers = { 'Authorization': `Bearer ${token}` };
+
+      const response = await axios.get(url, { headers });
+
+      if (response.status === 200) {
+        const positions = response.data;
+
+        for (const pos of positions) {
+          if (String(pos.accountId) === String(accountId) && pos.symbolId === symbolId) {
+            const positionSize = pos.positionSize || 0;
+
+            if (positionSize === 0) {
+              return { direction: 'FLAT', size: 0 };
+            } else if (positionSize > 0) {
+              return { direction: 'LONG', size: positionSize };
+            } else {
+              return { direction: 'SHORT', size: Math.abs(positionSize) };
+            }
+          }
+        }
+
+        // No position found for this symbol
+        return { direction: 'FLAT', size: 0 };
+      }
+
+      return { direction: 'FLAT', size: 0 };
+    } catch (error) {
+      console.error(`[ERROR] Failed to get position direction: ${error.message}`);
+      // On error, assume FLAT to avoid blocking orders
+      return { direction: 'FLAT', size: 0 };
+    }
+  }
+
+  /**
+   * Check if new order direction is opposite to current position
+   */
+  shouldAutoCloseOpposite(currentDirection, newOrderAction) {
+    const action = newOrderAction.toUpperCase();
+
+    if (currentDirection === 'LONG' && ['SELL', 'SHORT'].includes(action)) {
+      return true;
+    }
+
+    if (currentDirection === 'SHORT' && ['BUY', 'LONG'].includes(action)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * Log info messages
    */
   logInfo(message) {
@@ -379,14 +446,32 @@ class OrderManager {
    * Based on placeMarketOrder from order_manager.py
    */
   async placeMarketOrder(accountName, symbol, orderType, quantity = 1, closeExistingOrders = false) {
-    // Close existing positions if requested
-    if (closeExistingOrders) {
-      this.logInfo(`Closing existing positions for ${symbol} before placing market order`);
+    // Step 1: Get current position direction
+    const currentPosition = await this.getCurrentPositionDirection(accountName, symbol);
+
+    // Step 2: Check if opposite direction (ALWAYS auto-close)
+    const isOpposite = this.shouldAutoCloseOpposite(currentPosition.direction, orderType);
+
+    if (isOpposite) {
+      // OPPOSITE DIRECTION - Always close (mandatory)
+      this.logInfo(`[AUTO-CLOSE] Opposite direction detected: ${currentPosition.direction} → ${orderType.toUpperCase()}`);
+      this.logInfo(`[AUTO-CLOSE] Closing ${currentPosition.size} contracts before reversing position`);
       try {
         await this.closeAllPositionsForASymbol(accountName, symbol);
-        this.logInfo(`Successfully closed existing positions for ${symbol}`);
+        this.logInfo(`[AUTO-CLOSE] Successfully closed ${currentPosition.direction} position`);
       } catch (error) {
-        this.logError(`Failed to close existing positions: ${error.message}`);
+        this.logError(`[AUTO-CLOSE] Failed to close position: ${error.message}`);
+        // Continue with order placement even if close fails
+      }
+    }
+    else if (closeExistingOrders && currentPosition.direction !== 'FLAT') {
+      // SAME DIRECTION but flag is ON - Close and re-enter
+      this.logInfo(`[MANUAL-CLOSE] closeExistingOrders flag set - Closing ${currentPosition.direction} position`);
+      try {
+        await this.closeAllPositionsForASymbol(accountName, symbol);
+        this.logInfo(`[MANUAL-CLOSE] Successfully closed position before re-entry`);
+      } catch (error) {
+        this.logError(`[MANUAL-CLOSE] Failed to close position: ${error.message}`);
         // Continue with order placement even if close fails
       }
     }
@@ -536,14 +621,32 @@ class OrderManager {
    * Based on placeLimitOrder from order_manager.py
    */
   async placeLimitOrder(accountName, symbol, orderType, limitPrice, qty = 1, closeExistingOrders = false) {
-    // Close existing positions if requested
-    if (closeExistingOrders) {
-      this.logInfo(`Closing existing positions for ${symbol} before placing limit order`);
+    // Step 1: Get current position direction
+    const currentPosition = await this.getCurrentPositionDirection(accountName, symbol);
+
+    // Step 2: Check if opposite direction (ALWAYS auto-close)
+    const isOpposite = this.shouldAutoCloseOpposite(currentPosition.direction, orderType);
+
+    if (isOpposite) {
+      // OPPOSITE DIRECTION - Always close (mandatory)
+      this.logInfo(`[AUTO-CLOSE] Opposite direction detected: ${currentPosition.direction} → ${orderType.toUpperCase()}`);
+      this.logInfo(`[AUTO-CLOSE] Closing ${currentPosition.size} contracts before reversing position`);
       try {
         await this.closeAllPositionsForASymbol(accountName, symbol);
-        this.logInfo(`Successfully closed existing positions for ${symbol}`);
+        this.logInfo(`[AUTO-CLOSE] Successfully closed ${currentPosition.direction} position`);
       } catch (error) {
-        this.logError(`Failed to close existing positions: ${error.message}`);
+        this.logError(`[AUTO-CLOSE] Failed to close position: ${error.message}`);
+        // Continue with order placement even if close fails
+      }
+    }
+    else if (closeExistingOrders && currentPosition.direction !== 'FLAT') {
+      // SAME DIRECTION but flag is ON - Close and re-enter
+      this.logInfo(`[MANUAL-CLOSE] closeExistingOrders flag set - Closing ${currentPosition.direction} position`);
+      try {
+        await this.closeAllPositionsForASymbol(accountName, symbol);
+        this.logInfo(`[MANUAL-CLOSE] Successfully closed position before re-entry`);
+      } catch (error) {
+        this.logError(`[MANUAL-CLOSE] Failed to close position: ${error.message}`);
         // Continue with order placement even if close fails
       }
     }
@@ -637,14 +740,32 @@ class OrderManager {
   async placeTrailStopOrder(accountName, orderType, symbol, quantity, trailDistancePoints, closeExistingOrders = false) {
     this.logInfo(`Placing market order with trailing stop: accountName=${accountName}, orderType=${orderType}, symbol=${symbol}, quantity=${quantity}, trailDistancePoints=${trailDistancePoints}`);
 
-    // Close existing positions if requested
-    if (closeExistingOrders) {
-      this.logInfo(`Closing existing positions for ${symbol} before placing trailing stop order`);
+    // Step 1: Get current position direction
+    const currentPosition = await this.getCurrentPositionDirection(accountName, symbol);
+
+    // Step 2: Check if opposite direction (ALWAYS auto-close)
+    const isOpposite = this.shouldAutoCloseOpposite(currentPosition.direction, orderType);
+
+    if (isOpposite) {
+      // OPPOSITE DIRECTION - Always close (mandatory)
+      this.logInfo(`[AUTO-CLOSE] Opposite direction detected: ${currentPosition.direction} → ${orderType.toUpperCase()}`);
+      this.logInfo(`[AUTO-CLOSE] Closing ${currentPosition.size} contracts before reversing position`);
       try {
         await this.closeAllPositionsForASymbol(accountName, symbol);
-        this.logInfo(`Successfully closed existing positions for ${symbol}`);
+        this.logInfo(`[AUTO-CLOSE] Successfully closed ${currentPosition.direction} position`);
       } catch (error) {
-        this.logError(`Failed to close existing positions: ${error.message}`);
+        this.logError(`[AUTO-CLOSE] Failed to close position: ${error.message}`);
+        // Continue with order placement even if close fails
+      }
+    }
+    else if (closeExistingOrders && currentPosition.direction !== 'FLAT') {
+      // SAME DIRECTION but flag is ON - Close and re-enter
+      this.logInfo(`[MANUAL-CLOSE] closeExistingOrders flag set - Closing ${currentPosition.direction} position`);
+      try {
+        await this.closeAllPositionsForASymbol(accountName, symbol);
+        this.logInfo(`[MANUAL-CLOSE] Successfully closed position before re-entry`);
+      } catch (error) {
+        this.logError(`[MANUAL-CLOSE] Failed to close position: ${error.message}`);
         // Continue with order placement even if close fails
       }
     }
@@ -775,14 +896,32 @@ class OrderManager {
   async placeMarketWithStopLossOrder(accountName, orderType, symbol, quantity, stopLossPoints, closeExistingOrders = false) {
     this.logInfo(`Placing market order with stop loss: accountName=${accountName}, orderType=${orderType}, symbol=${symbol}, quantity=${quantity}, stopLossPoints=${stopLossPoints}`);
 
-    // Close existing positions if requested
-    if (closeExistingOrders) {
-      this.logInfo(`Closing existing positions for ${symbol} before placing stop loss order`);
+    // Step 1: Get current position direction
+    const currentPosition = await this.getCurrentPositionDirection(accountName, symbol);
+
+    // Step 2: Check if opposite direction (ALWAYS auto-close)
+    const isOpposite = this.shouldAutoCloseOpposite(currentPosition.direction, orderType);
+
+    if (isOpposite) {
+      // OPPOSITE DIRECTION - Always close (mandatory)
+      this.logInfo(`[AUTO-CLOSE] Opposite direction detected: ${currentPosition.direction} → ${orderType.toUpperCase()}`);
+      this.logInfo(`[AUTO-CLOSE] Closing ${currentPosition.size} contracts before reversing position`);
       try {
         await this.closeAllPositionsForASymbol(accountName, symbol);
-        this.logInfo(`Successfully closed existing positions for ${symbol}`);
+        this.logInfo(`[AUTO-CLOSE] Successfully closed ${currentPosition.direction} position`);
       } catch (error) {
-        this.logError(`Failed to close existing positions: ${error.message}`);
+        this.logError(`[AUTO-CLOSE] Failed to close position: ${error.message}`);
+        // Continue with order placement even if close fails
+      }
+    }
+    else if (closeExistingOrders && currentPosition.direction !== 'FLAT') {
+      // SAME DIRECTION but flag is ON - Close and re-enter
+      this.logInfo(`[MANUAL-CLOSE] closeExistingOrders flag set - Closing ${currentPosition.direction} position`);
+      try {
+        await this.closeAllPositionsForASymbol(accountName, symbol);
+        this.logInfo(`[MANUAL-CLOSE] Successfully closed position before re-entry`);
+      } catch (error) {
+        this.logError(`[MANUAL-CLOSE] Failed to close position: ${error.message}`);
         // Continue with order placement even if close fails
       }
     }
@@ -877,14 +1016,32 @@ class OrderManager {
   async placeBracketOrderWithTPAndSL(accountName, symbol, orderType, quantity, stopLossPoints, takeProfitPoints, closeExistingOrders = false) {
     this.logInfo(`Placing bracket order: accountName=${accountName}, symbol=${symbol}, orderType=${orderType}, quantity=${quantity}, stopLossPoints=${stopLossPoints}, takeProfitPoints=${takeProfitPoints}`);
 
-    // Close existing positions if requested
-    if (closeExistingOrders) {
-      this.logInfo(`Closing existing positions for ${symbol} before placing bracket order`);
+    // Step 1: Get current position direction
+    const currentPosition = await this.getCurrentPositionDirection(accountName, symbol);
+
+    // Step 2: Check if opposite direction (ALWAYS auto-close)
+    const isOpposite = this.shouldAutoCloseOpposite(currentPosition.direction, orderType);
+
+    if (isOpposite) {
+      // OPPOSITE DIRECTION - Always close (mandatory)
+      this.logInfo(`[AUTO-CLOSE] Opposite direction detected: ${currentPosition.direction} → ${orderType.toUpperCase()}`);
+      this.logInfo(`[AUTO-CLOSE] Closing ${currentPosition.size} contracts before reversing position`);
       try {
         await this.closeAllPositionsForASymbol(accountName, symbol);
-        this.logInfo(`Successfully closed existing positions for ${symbol}`);
+        this.logInfo(`[AUTO-CLOSE] Successfully closed ${currentPosition.direction} position`);
       } catch (error) {
-        this.logError(`Failed to close existing positions: ${error.message}`);
+        this.logError(`[AUTO-CLOSE] Failed to close position: ${error.message}`);
+        // Continue with order placement even if close fails
+      }
+    }
+    else if (closeExistingOrders && currentPosition.direction !== 'FLAT') {
+      // SAME DIRECTION but flag is ON - Close and re-enter
+      this.logInfo(`[MANUAL-CLOSE] closeExistingOrders flag set - Closing ${currentPosition.direction} position`);
+      try {
+        await this.closeAllPositionsForASymbol(accountName, symbol);
+        this.logInfo(`[MANUAL-CLOSE] Successfully closed position before re-entry`);
+      } catch (error) {
+        this.logError(`[MANUAL-CLOSE] Failed to close position: ${error.message}`);
         // Continue with order placement even if close fails
       }
     }

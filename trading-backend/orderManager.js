@@ -438,18 +438,81 @@ class BackendOrderManager {
   }
 
   /**
+   * Get current position direction for a symbol
+   * Returns: { direction: 'LONG' | 'SHORT' | 'FLAT', size: number }
+   */
+  async getCurrentPositionDirection(provider, token, accountName, symbol) {
+    try {
+      const { accountId } = await this.getAccountIDAndUserID(accountName);
+      const userId = await this.getUserID(provider, token);
+      const symbolId = await this.getSymbolForTrade(symbol);
+
+      if (!symbolId) {
+        return { direction: 'FLAT', size: 0 };
+      }
+
+      const url = `${this.getBaseUrl(provider)}/Position/all/user/${userId}`;
+      const headers = this.getHeaders(token);
+      const response = await axios.get(url, { headers });
+
+      if (response.status === 200) {
+        const positions = response.data;
+        for (const pos of positions) {
+          if (String(pos.accountId) === String(accountId) && pos.symbolId === symbolId) {
+            const positionSize = pos.positionSize || 0;
+            if (positionSize === 0) return { direction: 'FLAT', size: 0 };
+            else if (positionSize > 0) return { direction: 'LONG', size: positionSize };
+            else return { direction: 'SHORT', size: Math.abs(positionSize) };
+          }
+        }
+        return { direction: 'FLAT', size: 0 };
+      }
+      return { direction: 'FLAT', size: 0 };
+    } catch (error) {
+      console.error(`[ERROR] Failed to get position direction: ${error.message}`);
+      return { direction: 'FLAT', size: 0 };
+    }
+  }
+
+  /**
+   * Check if new order direction is opposite to current position
+   */
+  shouldAutoCloseOpposite(currentDirection, newOrderAction) {
+    const action = newOrderAction.toUpperCase();
+    if (currentDirection === 'LONG' && ['SELL', 'SHORT'].includes(action)) return true;
+    if (currentDirection === 'SHORT' && ['BUY', 'LONG'].includes(action)) return true;
+    return false;
+  }
+
+  /**
    * Place a market order
    */
   async placeMarketOrder(provider, token, accountName, symbol, orderType, quantity = 1, closeExistingOrders = false) {
-    // Close existing positions if requested
-    if (closeExistingOrders) {
-      console.log(`[INFO] Closing existing positions for ${symbol} before placing market order`);
+    // Step 1: Get current position direction
+    const currentPosition = await this.getCurrentPositionDirection(provider, token, accountName, symbol);
+
+    // Step 2: Check if opposite direction (ALWAYS auto-close)
+    const isOpposite = this.shouldAutoCloseOpposite(currentPosition.direction, orderType);
+
+    if (isOpposite) {
+      // OPPOSITE DIRECTION - Always close (mandatory)
+      console.log(`[AUTO-CLOSE] Opposite direction detected: ${currentPosition.direction} → ${orderType.toUpperCase()}`);
+      console.log(`[AUTO-CLOSE] Closing ${currentPosition.size} contracts before reversing position`);
       try {
         await this.closeAllPositionsForASymbol(provider, token, accountName, symbol);
-        console.log(`[INFO] Successfully closed existing positions for ${symbol}`);
+        console.log(`[AUTO-CLOSE] Successfully closed ${currentPosition.direction} position`);
       } catch (error) {
-        console.error(`[ERROR] Failed to close existing positions: ${error.message}`);
-        // Continue with order placement even if close fails
+        console.error(`[AUTO-CLOSE] Failed to close position: ${error.message}`);
+      }
+    }
+    else if (closeExistingOrders && currentPosition.direction !== 'FLAT') {
+      // SAME DIRECTION but flag is ON - Close and re-enter
+      console.log(`[MANUAL-CLOSE] closeExistingOrders flag set - Closing ${currentPosition.direction} position`);
+      try {
+        await this.closeAllPositionsForASymbol(provider, token, accountName, symbol);
+        console.log(`[MANUAL-CLOSE] Successfully closed position before re-entry`);
+      } catch (error) {
+        console.error(`[MANUAL-CLOSE] Failed to close position: ${error.message}`);
       }
     }
 
@@ -519,15 +582,31 @@ class BackendOrderManager {
    * Place a limit order
    */
   async placeLimitOrder(provider, token, accountName, symbol, orderType, limitPrice, qty = 1, closeExistingOrders = false) {
-    // Close existing positions if requested
-    if (closeExistingOrders) {
-      console.log(`[INFO] Closing existing positions for ${symbol} before placing limit order`);
+    // Step 1: Get current position direction
+    const currentPosition = await this.getCurrentPositionDirection(provider, token, accountName, symbol);
+
+    // Step 2: Check if opposite direction (ALWAYS auto-close)
+    const isOpposite = this.shouldAutoCloseOpposite(currentPosition.direction, orderType);
+
+    if (isOpposite) {
+      // OPPOSITE DIRECTION - Always close (mandatory)
+      console.log(`[AUTO-CLOSE] Opposite direction detected: ${currentPosition.direction} → ${orderType.toUpperCase()}`);
+      console.log(`[AUTO-CLOSE] Closing ${currentPosition.size} contracts before reversing position`);
       try {
         await this.closeAllPositionsForASymbol(provider, token, accountName, symbol);
-        console.log(`[INFO] Successfully closed existing positions for ${symbol}`);
+        console.log(`[AUTO-CLOSE] Successfully closed ${currentPosition.direction} position`);
       } catch (error) {
-        console.error(`[ERROR] Failed to close existing positions: ${error.message}`);
-        // Continue with order placement even if close fails
+        console.error(`[AUTO-CLOSE] Failed to close position: ${error.message}`);
+      }
+    }
+    else if (closeExistingOrders && currentPosition.direction !== 'FLAT') {
+      // SAME DIRECTION but flag is ON - Close and re-enter
+      console.log(`[MANUAL-CLOSE] closeExistingOrders flag set - Closing ${currentPosition.direction} position`);
+      try {
+        await this.closeAllPositionsForASymbol(provider, token, accountName, symbol);
+        console.log(`[MANUAL-CLOSE] Successfully closed position before re-entry`);
+      } catch (error) {
+        console.error(`[MANUAL-CLOSE] Failed to close position: ${error.message}`);
       }
     }
 
@@ -597,15 +676,31 @@ class BackendOrderManager {
   async placeTrailStopOrder(provider, token, accountName, orderType, symbol, quantity, trailDistancePoints, closeExistingOrders = false) {
     console.log(`[INFO] Placing trailing stop order: provider=${provider}, accountName=${accountName}, orderType=${orderType}, symbol=${symbol}, quantity=${quantity}, trailDistancePoints=${trailDistancePoints}`);
 
-    // Close existing positions if requested
-    if (closeExistingOrders) {
-      console.log(`[INFO] Closing existing positions for ${symbol} before placing trailing stop order`);
+    // Step 1: Get current position direction
+    const currentPosition = await this.getCurrentPositionDirection(provider, token, accountName, symbol);
+
+    // Step 2: Check if opposite direction (ALWAYS auto-close)
+    const isOpposite = this.shouldAutoCloseOpposite(currentPosition.direction, orderType);
+
+    if (isOpposite) {
+      // OPPOSITE DIRECTION - Always close (mandatory)
+      console.log(`[AUTO-CLOSE] Opposite direction detected: ${currentPosition.direction} → ${orderType.toUpperCase()}`);
+      console.log(`[AUTO-CLOSE] Closing ${currentPosition.size} contracts before reversing position`);
       try {
         await this.closeAllPositionsForASymbol(provider, token, accountName, symbol);
-        console.log(`[INFO] Successfully closed existing positions for ${symbol}`);
+        console.log(`[AUTO-CLOSE] Successfully closed ${currentPosition.direction} position`);
       } catch (error) {
-        console.error(`[ERROR] Failed to close existing positions: ${error.message}`);
-        // Continue with order placement even if close fails
+        console.error(`[AUTO-CLOSE] Failed to close position: ${error.message}`);
+      }
+    }
+    else if (closeExistingOrders && currentPosition.direction !== 'FLAT') {
+      // SAME DIRECTION but flag is ON - Close and re-enter
+      console.log(`[MANUAL-CLOSE] closeExistingOrders flag set - Closing ${currentPosition.direction} position`);
+      try {
+        await this.closeAllPositionsForASymbol(provider, token, accountName, symbol);
+        console.log(`[MANUAL-CLOSE] Successfully closed position before re-entry`);
+      } catch (error) {
+        console.error(`[MANUAL-CLOSE] Failed to close position: ${error.message}`);
       }
     }
 
@@ -810,15 +905,31 @@ class BackendOrderManager {
   async placeMarketWithStopLossOrder(provider, token, accountName, orderType, symbol, quantity, stopLossPoints, closeExistingOrders = false) {
     console.log(`[INFO] Placing market order with stop loss: accountName=${accountName}, orderType=${orderType}, symbol=${symbol}, quantity=${quantity}, stopLossPoints=${stopLossPoints}`);
 
-    // Close existing positions if requested
-    if (closeExistingOrders) {
-      console.log(`[INFO] Closing existing positions for ${symbol} before placing stop loss order`);
+    // Step 1: Get current position direction
+    const currentPosition = await this.getCurrentPositionDirection(provider, token, accountName, symbol);
+
+    // Step 2: Check if opposite direction (ALWAYS auto-close)
+    const isOpposite = this.shouldAutoCloseOpposite(currentPosition.direction, orderType);
+
+    if (isOpposite) {
+      // OPPOSITE DIRECTION - Always close (mandatory)
+      console.log(`[AUTO-CLOSE] Opposite direction detected: ${currentPosition.direction} → ${orderType.toUpperCase()}`);
+      console.log(`[AUTO-CLOSE] Closing ${currentPosition.size} contracts before reversing position`);
       try {
         await this.closeAllPositionsForASymbol(provider, token, accountName, symbol);
-        console.log(`[INFO] Successfully closed existing positions for ${symbol}`);
+        console.log(`[AUTO-CLOSE] Successfully closed ${currentPosition.direction} position`);
       } catch (error) {
-        console.error(`[ERROR] Failed to close existing positions: ${error.message}`);
-        // Continue with order placement even if close fails
+        console.error(`[AUTO-CLOSE] Failed to close position: ${error.message}`);
+      }
+    }
+    else if (closeExistingOrders && currentPosition.direction !== 'FLAT') {
+      // SAME DIRECTION but flag is ON - Close and re-enter
+      console.log(`[MANUAL-CLOSE] closeExistingOrders flag set - Closing ${currentPosition.direction} position`);
+      try {
+        await this.closeAllPositionsForASymbol(provider, token, accountName, symbol);
+        console.log(`[MANUAL-CLOSE] Successfully closed position before re-entry`);
+      } catch (error) {
+        console.error(`[MANUAL-CLOSE] Failed to close position: ${error.message}`);
       }
     }
 
@@ -894,15 +1005,31 @@ class BackendOrderManager {
   async placeBracketOrderWithTPAndSL(provider, token, accountName, symbol, orderType, quantity, stopLossPoints, takeProfitPoints, closeExistingOrders = false) {
     console.log(`[INFO] Placing bracket order: accountName=${accountName}, symbol=${symbol}, orderType=${orderType}, quantity=${quantity}, stopLossPoints=${stopLossPoints}, takeProfitPoints=${takeProfitPoints}`);
 
-    // Close existing positions if requested
-    if (closeExistingOrders) {
-      console.log(`[INFO] Closing existing positions for ${symbol} before placing bracket order`);
+    // Step 1: Get current position direction
+    const currentPosition = await this.getCurrentPositionDirection(provider, token, accountName, symbol);
+
+    // Step 2: Check if opposite direction (ALWAYS auto-close)
+    const isOpposite = this.shouldAutoCloseOpposite(currentPosition.direction, orderType);
+
+    if (isOpposite) {
+      // OPPOSITE DIRECTION - Always close (mandatory)
+      console.log(`[AUTO-CLOSE] Opposite direction detected: ${currentPosition.direction} → ${orderType.toUpperCase()}`);
+      console.log(`[AUTO-CLOSE] Closing ${currentPosition.size} contracts before reversing position`);
       try {
         await this.closeAllPositionsForASymbol(provider, token, accountName, symbol);
-        console.log(`[INFO] Successfully closed existing positions for ${symbol}`);
+        console.log(`[AUTO-CLOSE] Successfully closed ${currentPosition.direction} position`);
       } catch (error) {
-        console.error(`[ERROR] Failed to close existing positions: ${error.message}`);
-        // Continue with order placement even if close fails
+        console.error(`[AUTO-CLOSE] Failed to close position: ${error.message}`);
+      }
+    }
+    else if (closeExistingOrders && currentPosition.direction !== 'FLAT') {
+      // SAME DIRECTION but flag is ON - Close and re-enter
+      console.log(`[MANUAL-CLOSE] closeExistingOrders flag set - Closing ${currentPosition.direction} position`);
+      try {
+        await this.closeAllPositionsForASymbol(provider, token, accountName, symbol);
+        console.log(`[MANUAL-CLOSE] Successfully closed position before re-entry`);
+      } catch (error) {
+        console.error(`[MANUAL-CLOSE] Failed to close position: ${error.message}`);
       }
     }
 

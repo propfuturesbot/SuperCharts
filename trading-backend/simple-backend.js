@@ -12,18 +12,25 @@ const { trafficLogger, readLogs, writeLogs } = require('./middleware/trafficLogg
 const app = express();
 const port = 9025;
 
-// CORS configuration to allow localhost and Cloudflare tunnel
+// CORS configuration to allow localhost, Cloudflare tunnel, and external bots
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps, Postman, or curl)
-    if (!origin) return callback(null, true);
+    // Allow requests with no origin (like mobile apps, Postman, curl, or file://)
+    if (!origin || origin === 'null') {
+      console.log('[CORS] Allowing request with no/null origin');
+      return callback(null, true);
+    }
 
     // List of allowed origins
     const allowedOrigins = [
       'http://localhost:4001',
       'http://localhost:3001',
       'http://localhost:9025', // Allow backend to call itself
-      /https:\/\/.*\.trycloudflare\.com$/ // Allow any Cloudflare tunnel
+      /^http:\/\/localhost:\d+$/, // Allow any localhost port
+      /^https:\/\/localhost:\d+$/, // Allow any localhost HTTPS port
+      /https:\/\/.*\.trycloudflare\.com$/, // Allow any Cloudflare tunnel
+      'https://www.tradingview.com', // Allow TradingView
+      'https://tradingview.com' // Allow TradingView (without www)
     ];
 
     // Check if origin matches any allowed pattern
@@ -35,6 +42,7 @@ app.use(cors({
     });
 
     if (isAllowed) {
+      console.log('[CORS] Allowing origin:', origin);
       callback(null, true);
     } else {
       console.log('[CORS] Blocked origin:', origin);

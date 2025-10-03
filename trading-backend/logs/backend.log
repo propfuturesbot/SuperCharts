@@ -3,18 +3,96 @@
 > node simple-backend.js
 
 ✅ Found existing contracts file with 57 contracts
-(node:49835) Warning: Accessing non-existent property 'lookupContractProductId' of module exports inside circular dependency
+(node:85667) Warning: Accessing non-existent property 'lookupContractProductId' of module exports inside circular dependency
 (Use `node --trace-warnings ...` to show where the warning was created)
 🚀 Backend running on http://localhost:9025
 📄 Contracts cached in: /Users/tejasvihegde/Documents/PropAutomation/SuperCharts/SuperCharts/trading-backend/tradableContracts.json
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing request with no/null origin
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:4001
 [AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
+[CORS] Allowing origin: http://localhost:4001
 [AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
-[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
-[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
+[CORS] Allowing request with no/null origin
+[CORS] Allowing request with no/null origin
+[CORS] Allowing request with no/null origin
 [AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
+[CORS] Allowing request with no/null origin
 [AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
+[CORS] Allowing request with no/null origin
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[CORS] Allowing request with no/null origin
+[INFO] Fetching trading account info for: TFDXAP_508PA89 (ID: 103075)
+[CORS] Allowing request with no/null origin
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[INFO] Fetching positions for account: TFDXAP_508PA89 (ID: 103075)
+[INFO] Retrieved trading account info for TFDXAP_508PA89
+[INFO] Retrieved 1 positions for TFDXAP_508PA89
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing request with no/null origin
+[CORS] Allowing request with no/null origin
+[CORS] Allowing request with no/null origin
+[VALIDATION] Checking trading time restrictions at 20:26 GMT
+[DEBUG] Current GMT time: 2026
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:9025
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:4001
+[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
+[CORS] Allowing origin: http://localhost:4001
+[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
+[CORS] Allowing request with no/null origin
+[CORS] Allowing request with no/null origin
+[CORS] Allowing request with no/null origin
+[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
+[CORS] Allowing request with no/null origin
+[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
+[CORS] Allowing request with no/null origin
+[CORS] Allowing request with no/null origin
 [DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
 [INFO] Fetching trading account info for: TFDXAP_508PA89 (ID: 103075)
+[CORS] Allowing request with no/null origin
 [DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
 [DEBUG] Response status code: 200
 [DEBUG] User data received: {
@@ -45,330 +123,36 @@
   roles: []
 }
 [DEBUG] Extracted user ID: 20296
+[INFO] Retrieved 1 positions for TFDXAP_508PA89
 [INFO] Retrieved trading account info for TFDXAP_508PA89
-[INFO] Retrieved 0 positions for TFDXAP_508PA89
-[INFO] Close existing orders flag is set to true
-[VALIDATION] Checking trading time restrictions at 19:13 GMT
-[DEBUG] Current GMT time: 1913
+[CORS] Allowing request with no/null origin
+[VALIDATION] Checking trading time restrictions at 20:26 GMT
+[DEBUG] Current GMT time: 2026
 [DEBUG] Allowed sessions: []
 [DEBUG] Restricted sessions: []
 [DEBUG] Session-based trading is allowed
 [VALIDATION] Trading is allowed
-[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
-[INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, action=BUY, quantity=1, closeExisting=true
-[INFO] Closing existing positions for MNQ before placing market order
-[INFO] Closing all positions: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Close positions successful
-[INFO] Successfully closed existing positions for MNQ
-[INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, orderType=BUY, quantity=1
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Sending order request to https://userapi.thefuturesdesk.projectx.com/Order with payload: {
-  accountId: 103075,
-  symbolId: 'F.US.MNQ',
-  type: 2,
-  limitPrice: null,
-  stopPrice: null,
-  trailDistance: null,
-  positionSize: 1,
-  customTag: 'rv1ynm7ykmgb831y7'
-}
-[INFO] Market order placed successfully: orderId=4798871
-[INFO] Close existing orders flag is set to true
-[VALIDATION] Checking trading time restrictions at 19:14 GMT
-[DEBUG] Current GMT time: 1914
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:9025
+[CORS] Allowing request with no/null origin
+[VALIDATION] Checking trading time restrictions at 20:27 GMT
+[DEBUG] Current GMT time: 2027
 [DEBUG] Allowed sessions: []
 [DEBUG] Restricted sessions: []
 [DEBUG] Session-based trading is allowed
 [VALIDATION] Trading is allowed
-[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
-[INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, action=BUY, quantity=1, closeExisting=true
-[INFO] Closing existing positions for MNQ before placing market order
-[INFO] Closing all positions: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Close positions successful
-[INFO] Successfully closed existing positions for MNQ
-[INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, orderType=BUY, quantity=1
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Sending order request to https://userapi.thefuturesdesk.projectx.com/Order with payload: {
-  accountId: 103075,
-  symbolId: 'F.US.MNQ',
-  type: 2,
-  limitPrice: null,
-  stopPrice: null,
-  trailDistance: null,
-  positionSize: 1,
-  customTag: '22n2wbjeumgb83bto'
-}
-[INFO] Market order placed successfully: orderId=4798879
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:9025
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:9025
+[CORS] Allowing request with no/null origin
 [INFO] Close existing orders flag is set to true
-[VALIDATION] Checking trading time restrictions at 19:14 GMT
-[DEBUG] Current GMT time: 1914
-[DEBUG] Allowed sessions: []
-[DEBUG] Restricted sessions: []
-[DEBUG] Session-based trading is allowed
-[VALIDATION] Trading is allowed
-[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
-[INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, action=Sell, quantity=1, closeExisting=true
-[INFO] Closing existing positions for MNQ before placing market order
-[INFO] Closing all positions: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Close positions successful
-[INFO] Successfully closed existing positions for MNQ
-[INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, orderType=SELL, quantity=1
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Sending order request to https://userapi.thefuturesdesk.projectx.com/Order with payload: {
-  accountId: 103075,
-  symbolId: 'F.US.MNQ',
-  type: 2,
-  limitPrice: null,
-  stopPrice: null,
-  trailDistance: null,
-  positionSize: -1,
-  customTag: 'xsvww55jqmgb83gzk'
-}
-[INFO] Market order placed successfully: orderId=4798882
-[INFO] Close existing orders flag is set to true
-[VALIDATION] Checking trading time restrictions at 19:14 GMT
-[DEBUG] Current GMT time: 1914
-[DEBUG] Allowed sessions: []
-[DEBUG] Restricted sessions: []
-[DEBUG] Session-based trading is allowed
-[VALIDATION] Trading is allowed
-[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
-[INFO] Close existing orders flag is set to true
-[VALIDATION] Checking trading time restrictions at 19:15 GMT
-[DEBUG] Current GMT time: 1915
-[DEBUG] Allowed sessions: []
-[DEBUG] Restricted sessions: []
-[DEBUG] Session-based trading is allowed
-[VALIDATION] Trading is allowed
-[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
-[INFO] Placing stop loss order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, action=BUY, stopLossPoints=20, quantity=1, closeExisting=true
-[INFO] Placing market order with stop loss: accountName=TFDXAP_508PA89, orderType=BUY, symbol=MNQ, quantity=1, stopLossPoints=20
-[INFO] Closing existing positions for MNQ before placing stop loss order
-[INFO] Closing all positions: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Close positions successful
-[INFO] Successfully closed existing positions for MNQ
-[INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, orderType=BUY, quantity=1
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Sending order request to https://userapi.thefuturesdesk.projectx.com/Order with payload: {
-  accountId: 103075,
-  symbolId: 'F.US.MNQ',
-  type: 2,
-  limitPrice: null,
-  stopPrice: null,
-  trailDistance: null,
-  positionSize: 1,
-  customTag: '37ep2ha7zmgb84kfc'
-}
-[INFO] Market order placed successfully: orderId=4798884
-[INFO] Market order placed successfully, order ID: 4798884
-[INFO] Retrieved accountId=103075
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Polling for position fill...
-[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
-[DEBUG] Response status code: 200
-[DEBUG] User data received: {
-  userName: 'tejashegde@gmail.com',
-  email: 'tejashegde@gmail.com',
-  userId: 20296,
-  firstName: 'Tejasvi',
-  lastName: 'Hegde',
-  hasSignedAgreements: false,
-  onboardingRequired: false,
-  onboardingState: 5,
-  createdAt: '2025-06-20T19:50:28.412446+00:00',
-  roles: []
-}
-[DEBUG] Extracted user ID: 20296
-[DEBUG] Requesting positions from URL: https://userapi.thefuturesdesk.projectx.com/Position/all/user/20296
-[DEBUG] Response status code for positions: 200
-[DEBUG] Received 1 positions
-[DEBUG] Found position: accountId=103075, symbolId=F.US.MNQ, averagePrice=25010.5, positionId=978470
-[INFO] Position filled at price: 25010.5, position ID: 978470
-[INFO] Order filled at price 25010.5, positionId=978470
-[INFO] Calculated stop loss price: 24990.5
-[INFO] Sending editStopLoss request to https://userapi.thefuturesdesk.projectx.com/Order/editStopLossAccount
-[INFO] Stop loss set successfully for position ID: 978470
-[INFO] Close existing orders flag is set to true
-[VALIDATION] Checking trading time restrictions at 19:15 GMT
-[DEBUG] Current GMT time: 1915
-[DEBUG] Allowed sessions: []
-[DEBUG] Restricted sessions: []
-[DEBUG] Session-based trading is allowed
-[VALIDATION] Trading is allowed
-[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
-[INFO] Placing stop loss order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, action=SELL, stopLossPoints=20, quantity=1, closeExisting=true
-[INFO] Placing market order with stop loss: accountName=TFDXAP_508PA89, orderType=SELL, symbol=MNQ, quantity=1, stopLossPoints=20
-[INFO] Closing existing positions for MNQ before placing stop loss order
-[INFO] Closing all positions: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Close positions successful
-[INFO] Successfully closed existing positions for MNQ
-[INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, orderType=SELL, quantity=1
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Sending order request to https://userapi.thefuturesdesk.projectx.com/Order with payload: {
-  accountId: 103075,
-  symbolId: 'F.US.MNQ',
-  type: 2,
-  limitPrice: null,
-  stopPrice: null,
-  trailDistance: null,
-  positionSize: -1,
-  customTag: '7rvje80qtmgb84s6u'
-}
-[INFO] Market order placed successfully: orderId=4798898
-[INFO] Market order placed successfully, order ID: 4798898
-[INFO] Retrieved accountId=103075
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Polling for position fill...
-[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
-[DEBUG] Response status code: 200
-[DEBUG] User data received: {
-  userName: 'tejashegde@gmail.com',
-  email: 'tejashegde@gmail.com',
-  userId: 20296,
-  firstName: 'Tejasvi',
-  lastName: 'Hegde',
-  hasSignedAgreements: false,
-  onboardingRequired: false,
-  onboardingState: 5,
-  createdAt: '2025-06-20T19:50:28.412446+00:00',
-  roles: []
-}
-[DEBUG] Extracted user ID: 20296
-[DEBUG] Requesting positions from URL: https://userapi.thefuturesdesk.projectx.com/Position/all/user/20296
-[DEBUG] Response status code for positions: 200
-[DEBUG] Received 1 positions
-[DEBUG] Found position: accountId=103075, symbolId=F.US.MNQ, averagePrice=25016, positionId=978475
-[INFO] Position filled at price: 25016, position ID: 978475
-[INFO] Order filled at price 25016, positionId=978475
-[INFO] Calculated stop loss price: 25036
-[INFO] Sending editStopLoss request to https://userapi.thefuturesdesk.projectx.com/Order/editStopLossAccount
-[INFO] Stop loss set successfully for position ID: 978475
-[INFO] Close existing orders flag is set to true
-[VALIDATION] Checking trading time restrictions at 19:15 GMT
-[DEBUG] Current GMT time: 1915
-[DEBUG] Allowed sessions: []
-[DEBUG] Restricted sessions: []
-[DEBUG] Session-based trading is allowed
-[VALIDATION] Trading is allowed
-[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
-[INFO] Placing trailing stop order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, action=BUY, trailDistancePoints=20, quantity=1, closeExisting=true
-[INFO] Placing trailing stop order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, orderType=BUY, symbol=MNQ, quantity=1, trailDistancePoints=20
-[INFO] Closing existing positions for MNQ before placing trailing stop order
-[INFO] Closing all positions: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Close positions successful
-[INFO] Successfully closed existing positions for MNQ
-[DEBUG] Converted 20 points to 80 ticks for MNQ (tick_size: 0.25)
-[INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, orderType=BUY, quantity=1
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Sending order request to https://userapi.thefuturesdesk.projectx.com/Order with payload: {
-  accountId: 103075,
-  symbolId: 'F.US.MNQ',
-  type: 2,
-  limitPrice: null,
-  stopPrice: null,
-  trailDistance: null,
-  positionSize: 1,
-  customTag: 'fw4ycept6mgb85h3f'
-}
-[INFO] Market order placed successfully: orderId=4798912
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Trailing stop order placed successfully: orderId=4798913
-[INFO] Close existing orders flag is set to true
-[VALIDATION] Checking trading time restrictions at 19:15 GMT
-[DEBUG] Current GMT time: 1915
-[DEBUG] Allowed sessions: []
-[DEBUG] Restricted sessions: []
-[DEBUG] Session-based trading is allowed
-[VALIDATION] Trading is allowed
-[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
-[INFO] Placing trailing stop order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, action=SELL, trailDistancePoints=20, quantity=1, closeExisting=true
-[INFO] Placing trailing stop order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, orderType=SELL, symbol=MNQ, quantity=1, trailDistancePoints=20
-[INFO] Closing existing positions for MNQ before placing trailing stop order
-[INFO] Closing all positions: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Close positions successful
-[INFO] Successfully closed existing positions for MNQ
-[DEBUG] Converted 20 points to 80 ticks for MNQ (tick_size: 0.25)
-[INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, orderType=SELL, quantity=1
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Sending order request to https://userapi.thefuturesdesk.projectx.com/Order with payload: {
-  accountId: 103075,
-  symbolId: 'F.US.MNQ',
-  type: 2,
-  limitPrice: null,
-  stopPrice: null,
-  trailDistance: null,
-  positionSize: -1,
-  customTag: 'x0f08ll4kmgb85mfl'
-}
-[INFO] Market order placed successfully: orderId=4798919
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Trailing stop order placed successfully: orderId=4798920
-[INFO] Close existing orders flag is set to true
-[VALIDATION] Checking trading time restrictions at 19:17 GMT
-[DEBUG] Current GMT time: 1917
-[DEBUG] Allowed sessions: []
-[DEBUG] Restricted sessions: []
-[DEBUG] Session-based trading is allowed
-[VALIDATION] Trading is allowed
-[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
-[INFO] Placing bracket order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, action=SELL, stopLoss=20, takeProfit=20, quantity=1, closeExisting=true
-[INFO] Placing bracket order: accountName=TFDXAP_508PA89, symbol=MNQ, orderType=SELL, quantity=1, stopLossPoints=20, takeProfitPoints=20
-[INFO] Closing existing positions for MNQ before placing bracket order
-[INFO] Closing all positions: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Close positions successful
-[INFO] Successfully closed existing positions for MNQ
-[INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, orderType=SELL, quantity=1
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Sending order request to https://userapi.thefuturesdesk.projectx.com/Order with payload: {
-  accountId: 103075,
-  symbolId: 'F.US.MNQ',
-  type: 2,
-  limitPrice: null,
-  stopPrice: null,
-  trailDistance: null,
-  positionSize: -1,
-  customTag: '7j408p81omgb871pg'
-}
-[INFO] Market order placed successfully: orderId=4798966
-[INFO] Market order placed successfully, order ID: 4798966
-[INFO] Retrieved accountId=103075
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Polling for position fill...
-[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
-[DEBUG] Response status code: 200
-[DEBUG] User data received: {
-  userName: 'tejashegde@gmail.com',
-  email: 'tejashegde@gmail.com',
-  userId: 20296,
-  firstName: 'Tejasvi',
-  lastName: 'Hegde',
-  hasSignedAgreements: false,
-  onboardingRequired: false,
-  onboardingState: 5,
-  createdAt: '2025-06-20T19:50:28.412446+00:00',
-  roles: []
-}
-[DEBUG] Extracted user ID: 20296
-[DEBUG] Requesting positions from URL: https://userapi.thefuturesdesk.projectx.com/Position/all/user/20296
-[DEBUG] Response status code for positions: 200
-[DEBUG] Received 1 positions
-[DEBUG] Found position: accountId=103075, symbolId=F.US.MNQ, averagePrice=25006.75, positionId=978495
-[INFO] Position filled at price: 25006.75, position ID: 978495
-[INFO] Order filled at price 25006.75, positionId=978495
-[INFO] Calculated stop loss price: 25026.75, take profit price: 24986.75
-[INFO] Sending editStopLoss request to https://userapi.thefuturesdesk.projectx.com/Order/editStopLossAccount
-[INFO] Stop loss and take profit set successfully for position ID: 978495
-[INFO] Close existing orders flag is set to true
-[VALIDATION] Checking trading time restrictions at 19:17 GMT
-[DEBUG] Current GMT time: 1917
+[VALIDATION] Checking trading time restrictions at 20:27 GMT
+[DEBUG] Current GMT time: 2027
 [DEBUG] Allowed sessions: []
 [DEBUG] Restricted sessions: []
 [DEBUG] Session-based trading is allowed
@@ -376,12 +160,53 @@
 [AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
 [INFO] Placing bracket order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, action=BUY, stopLoss=20, takeProfit=20, quantity=1, closeExisting=true
 [INFO] Placing bracket order: accountName=TFDXAP_508PA89, symbol=MNQ, orderType=BUY, quantity=1, stopLossPoints=20, takeProfitPoints=20
-[INFO] Closing existing positions for MNQ before placing bracket order
+[CORS] Allowing request with no/null origin
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[CORS] Allowing request with no/null origin
+[DEBUG] Extracted symbolId from backend: F.US.MNQ
+[AUTO-CLOSE] Opposite direction detected: SHORT → BUY
+[AUTO-CLOSE] Closing 1 contracts before reversing position
 [INFO] Closing all positions: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ
+[CORS] Allowing request with no/null origin
+[CORS] Allowing request with no/null origin
 [DEBUG] Extracted symbolId from backend: F.US.MNQ
 [INFO] Close positions successful
-[INFO] Successfully closed existing positions for MNQ
+[AUTO-CLOSE] Successfully closed SHORT position
+[CORS] Allowing request with no/null origin
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[CORS] Allowing request with no/null origin
+[DEBUG] Extracted symbolId from backend: F.US.MNQ
 [INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, orderType=BUY, quantity=1
+[CORS] Allowing request with no/null origin
+[CORS] Allowing request with no/null origin
 [DEBUG] Extracted symbolId from backend: F.US.MNQ
 [INFO] Sending order request to https://userapi.thefuturesdesk.projectx.com/Order with payload: {
   accountId: 103075,
@@ -391,11 +216,13 @@
   stopPrice: null,
   trailDistance: null,
   positionSize: 1,
-  customTag: 'so3qpbsrmmgb87due'
+  customTag: 'fwol18xrzmgbapf4j'
 }
-[INFO] Market order placed successfully: orderId=4798976
-[INFO] Market order placed successfully, order ID: 4798976
+[INFO] Market order placed successfully: orderId=4799845
+[INFO] Market order placed successfully, order ID: 4799845
+[CORS] Allowing request with no/null origin
 [INFO] Retrieved accountId=103075
+[CORS] Allowing request with no/null origin
 [DEBUG] Extracted symbolId from backend: F.US.MNQ
 [INFO] Polling for position fill...
 [DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
@@ -416,168 +243,115 @@
 [DEBUG] Requesting positions from URL: https://userapi.thefuturesdesk.projectx.com/Position/all/user/20296
 [DEBUG] Response status code for positions: 200
 [DEBUG] Received 1 positions
-[DEBUG] Found position: accountId=103075, symbolId=F.US.MNQ, averagePrice=25010, positionId=978497
-[INFO] Position filled at price: 25010, position ID: 978497
-[INFO] Order filled at price 25010, positionId=978497
-[INFO] Calculated stop loss price: 24990, take profit price: 25030
+[DEBUG] Found position: accountId=103075, symbolId=F.US.MNQ, averagePrice=24979, positionId=978661
+[INFO] Position filled at price: 24979, position ID: 978661
+[INFO] Order filled at price 24979, positionId=978661
+[INFO] Calculated stop loss price: 24959, take profit price: 24999
 [INFO] Sending editStopLoss request to https://userapi.thefuturesdesk.projectx.com/Order/editStopLossAccount
-[INFO] Stop loss and take profit set successfully for position ID: 978497
-[VALIDATION] Checking trading time restrictions at 19:17 GMT
-[DEBUG] Current GMT time: 1917
-[DEBUG] Allowed sessions: []
-[DEBUG] Restricted sessions: []
-[DEBUG] Session-based trading is allowed
-[VALIDATION] Trading is allowed
-[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
-[INFO] Placing bracket order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, action=BUY, stopLoss=20, takeProfit=20, quantity=1, closeExisting=false
-[INFO] Placing bracket order: accountName=TFDXAP_508PA89, symbol=MNQ, orderType=BUY, quantity=1, stopLossPoints=20, takeProfitPoints=20
-[INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, orderType=BUY, quantity=1
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Sending order request to https://userapi.thefuturesdesk.projectx.com/Order with payload: {
-  accountId: 103075,
-  symbolId: 'F.US.MNQ',
-  type: 2,
-  limitPrice: null,
-  stopPrice: null,
-  trailDistance: null,
-  positionSize: 1,
-  customTag: 'f14fthz6nmgb87kl8'
-}
-[INFO] Market order placed successfully: orderId=4798979
-[INFO] Market order placed successfully, order ID: 4798979
-[INFO] Retrieved accountId=103075
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Polling for position fill...
-[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
-[DEBUG] Response status code: 200
-[DEBUG] User data received: {
-  userName: 'tejashegde@gmail.com',
-  email: 'tejashegde@gmail.com',
-  userId: 20296,
-  firstName: 'Tejasvi',
-  lastName: 'Hegde',
-  hasSignedAgreements: false,
-  onboardingRequired: false,
-  onboardingState: 5,
-  createdAt: '2025-06-20T19:50:28.412446+00:00',
-  roles: []
-}
-[DEBUG] Extracted user ID: 20296
-[DEBUG] Requesting positions from URL: https://userapi.thefuturesdesk.projectx.com/Position/all/user/20296
-[DEBUG] Response status code for positions: 200
-[DEBUG] Received 1 positions
-[DEBUG] Found position: accountId=103075, symbolId=F.US.MNQ, averagePrice=25010.375, positionId=978497
-[INFO] Position filled at price: 25010.375, position ID: 978497
-[INFO] Order filled at price 25010.375, positionId=978497
-[INFO] Calculated stop loss price: 24990.375, take profit price: 25030.375
-[INFO] Sending editStopLoss request to https://userapi.thefuturesdesk.projectx.com/Order/editStopLossAccount
-[ERROR] Exception while setting bracket orders: Failed to set bracket orders: Invalid stop loss
-[ERROR] Unified order placement error: Failed to set bracket orders: Invalid stop loss
-[VALIDATION] Checking trading time restrictions at 19:17 GMT
-[DEBUG] Current GMT time: 1917
-[DEBUG] Allowed sessions: []
-[DEBUG] Restricted sessions: []
-[DEBUG] Session-based trading is allowed
-[VALIDATION] Trading is allowed
-[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
-[INFO] Placing bracket order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, action=BUY, stopLoss=20, takeProfit=20, quantity=1, closeExisting=false
-[INFO] Placing bracket order: accountName=TFDXAP_508PA89, symbol=MNQ, orderType=BUY, quantity=1, stopLossPoints=20, takeProfitPoints=20
-[INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, orderType=BUY, quantity=1
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Sending order request to https://userapi.thefuturesdesk.projectx.com/Order with payload: {
-  accountId: 103075,
-  symbolId: 'F.US.MNQ',
-  type: 2,
-  limitPrice: null,
-  stopPrice: null,
-  trailDistance: null,
-  positionSize: 1,
-  customTag: 'fx05lfu2smgb87lxq'
-}
-[INFO] Market order placed successfully: orderId=4798980
-[INFO] Market order placed successfully, order ID: 4798980
-[INFO] Retrieved accountId=103075
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Polling for position fill...
-[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
-[DEBUG] Response status code: 200
-[DEBUG] User data received: {
-  userName: 'tejashegde@gmail.com',
-  email: 'tejashegde@gmail.com',
-  userId: 20296,
-  firstName: 'Tejasvi',
-  lastName: 'Hegde',
-  hasSignedAgreements: false,
-  onboardingRequired: false,
-  onboardingState: 5,
-  createdAt: '2025-06-20T19:50:28.412446+00:00',
-  roles: []
-}
-[DEBUG] Extracted user ID: 20296
-[DEBUG] Requesting positions from URL: https://userapi.thefuturesdesk.projectx.com/Position/all/user/20296
-[DEBUG] Response status code for positions: 200
-[DEBUG] Received 1 positions
-[DEBUG] Found position: accountId=103075, symbolId=F.US.MNQ, averagePrice=25010.583333333, positionId=978497
-[INFO] Position filled at price: 25010.583333333, position ID: 978497
-[INFO] Order filled at price 25010.583333333, positionId=978497
-[INFO] Calculated stop loss price: 24990.583333333, take profit price: 25030.583333333
-[INFO] Sending editStopLoss request to https://userapi.thefuturesdesk.projectx.com/Order/editStopLossAccount
-[ERROR] Exception while setting bracket orders: Failed to set bracket orders: Invalid stop loss
-[ERROR] Unified order placement error: Failed to set bracket orders: Invalid stop loss
-[VALIDATION] Checking trading time restrictions at 19:17 GMT
-[DEBUG] Current GMT time: 1917
-[DEBUG] Allowed sessions: []
-[DEBUG] Restricted sessions: []
-[DEBUG] Session-based trading is allowed
-[VALIDATION] Trading is allowed
-[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
-[INFO] Placing bracket order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, action=BUY, stopLoss=20, takeProfit=20, quantity=1, closeExisting=false
-[INFO] Placing bracket order: accountName=TFDXAP_508PA89, symbol=MNQ, orderType=BUY, quantity=1, stopLossPoints=20, takeProfitPoints=20
-[INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, orderType=BUY, quantity=1
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Sending order request to https://userapi.thefuturesdesk.projectx.com/Order with payload: {
-  accountId: 103075,
-  symbolId: 'F.US.MNQ',
-  type: 2,
-  limitPrice: null,
-  stopPrice: null,
-  trailDistance: null,
-  positionSize: 1,
-  customTag: 'apb1e85m1mgb87ryi'
-}
-[INFO] Market order placed successfully: orderId=4798985
-[INFO] Market order placed successfully, order ID: 4798985
-[INFO] Retrieved accountId=103075
-[DEBUG] Extracted symbolId from backend: F.US.MNQ
-[INFO] Polling for position fill...
-[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
-[DEBUG] Response status code: 200
-[DEBUG] User data received: {
-  userName: 'tejashegde@gmail.com',
-  email: 'tejashegde@gmail.com',
-  userId: 20296,
-  firstName: 'Tejasvi',
-  lastName: 'Hegde',
-  hasSignedAgreements: false,
-  onboardingRequired: false,
-  onboardingState: 5,
-  createdAt: '2025-06-20T19:50:28.412446+00:00',
-  roles: []
-}
-[DEBUG] Extracted user ID: 20296
-[DEBUG] Requesting positions from URL: https://userapi.thefuturesdesk.projectx.com/Position/all/user/20296
-[DEBUG] Response status code for positions: 200
-[DEBUG] Received 1 positions
-[DEBUG] Found position: accountId=103075, symbolId=F.US.MNQ, averagePrice=25009.9375, positionId=978497
-[INFO] Position filled at price: 25009.9375, position ID: 978497
-[INFO] Order filled at price 25009.9375, positionId=978497
-[INFO] Calculated stop loss price: 24989.9375, take profit price: 25029.9375
-[INFO] Sending editStopLoss request to https://userapi.thefuturesdesk.projectx.com/Order/editStopLossAccount
-[ERROR] Exception while setting bracket orders: Failed to set bracket orders: Invalid stop loss
-[ERROR] Unified order placement error: Failed to set bracket orders: Invalid stop loss
+[INFO] Stop loss and take profit set successfully for position ID: 978661
+[CORS] Allowing request with no/null origin
 [INFO] Close existing orders flag is set to true
-[VALIDATION] Checking trading time restrictions at 19:17 GMT
-[DEBUG] Current GMT time: 1917
+[VALIDATION] Checking trading time restrictions at 20:27 GMT
+[DEBUG] Current GMT time: 2027
+[DEBUG] Allowed sessions: []
+[DEBUG] Restricted sessions: []
+[DEBUG] Session-based trading is allowed
+[VALIDATION] Trading is allowed
+[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
+[INFO] Placing bracket order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, action=BUY, stopLoss=20, takeProfit=20, quantity=1, closeExisting=true
+[INFO] Placing bracket order: accountName=TFDXAP_508PA89, symbol=MNQ, orderType=BUY, quantity=1, stopLossPoints=20, takeProfitPoints=20
+[CORS] Allowing request with no/null origin
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[CORS] Allowing request with no/null origin
+[DEBUG] Extracted symbolId from backend: F.US.MNQ
+[MANUAL-CLOSE] closeExistingOrders flag set - Closing LONG position
+[INFO] Closing all positions: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ
+[CORS] Allowing request with no/null origin
+[CORS] Allowing request with no/null origin
+[DEBUG] Extracted symbolId from backend: F.US.MNQ
+[INFO] Close positions successful
+[MANUAL-CLOSE] Successfully closed position before re-entry
+[CORS] Allowing request with no/null origin
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[CORS] Allowing request with no/null origin
+[DEBUG] Extracted symbolId from backend: F.US.MNQ
+[INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, orderType=BUY, quantity=1
+[CORS] Allowing request with no/null origin
+[CORS] Allowing request with no/null origin
+[DEBUG] Extracted symbolId from backend: F.US.MNQ
+[INFO] Sending order request to https://userapi.thefuturesdesk.projectx.com/Order with payload: {
+  accountId: 103075,
+  symbolId: 'F.US.MNQ',
+  type: 2,
+  limitPrice: null,
+  stopPrice: null,
+  trailDistance: null,
+  positionSize: 1,
+  customTag: 'eicvvjhrlmgbapv13'
+}
+[INFO] Market order placed successfully: orderId=4799849
+[INFO] Market order placed successfully, order ID: 4799849
+[CORS] Allowing request with no/null origin
+[INFO] Retrieved accountId=103075
+[CORS] Allowing request with no/null origin
+[DEBUG] Extracted symbolId from backend: F.US.MNQ
+[INFO] Polling for position fill...
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[DEBUG] Requesting positions from URL: https://userapi.thefuturesdesk.projectx.com/Position/all/user/20296
+[DEBUG] Response status code for positions: 200
+[DEBUG] Received 1 positions
+[DEBUG] Found position: accountId=103075, symbolId=F.US.MNQ, averagePrice=24977.25, positionId=978662
+[INFO] Position filled at price: 24977.25, position ID: 978662
+[INFO] Order filled at price 24977.25, positionId=978662
+[INFO] Calculated stop loss price: 24957.25, take profit price: 24997.25
+[INFO] Sending editStopLoss request to https://userapi.thefuturesdesk.projectx.com/Order/editStopLossAccount
+[INFO] Stop loss and take profit set successfully for position ID: 978662
+[CORS] Allowing request with no/null origin
+[INFO] Close existing orders flag is set to true
+[VALIDATION] Checking trading time restrictions at 20:27 GMT
+[DEBUG] Current GMT time: 2027
 [DEBUG] Allowed sessions: []
 [DEBUG] Restricted sessions: []
 [DEBUG] Session-based trading is allowed
@@ -585,12 +359,53 @@
 [AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
 [INFO] Placing bracket order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, action=SELL, stopLoss=20, takeProfit=20, quantity=1, closeExisting=true
 [INFO] Placing bracket order: accountName=TFDXAP_508PA89, symbol=MNQ, orderType=SELL, quantity=1, stopLossPoints=20, takeProfitPoints=20
-[INFO] Closing existing positions for MNQ before placing bracket order
+[CORS] Allowing request with no/null origin
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[CORS] Allowing request with no/null origin
+[DEBUG] Extracted symbolId from backend: F.US.MNQ
+[AUTO-CLOSE] Opposite direction detected: LONG → SELL
+[AUTO-CLOSE] Closing 1 contracts before reversing position
 [INFO] Closing all positions: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ
+[CORS] Allowing request with no/null origin
+[CORS] Allowing request with no/null origin
 [DEBUG] Extracted symbolId from backend: F.US.MNQ
 [INFO] Close positions successful
-[INFO] Successfully closed existing positions for MNQ
+[AUTO-CLOSE] Successfully closed LONG position
+[CORS] Allowing request with no/null origin
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[CORS] Allowing request with no/null origin
+[DEBUG] Extracted symbolId from backend: F.US.MNQ
 [INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, orderType=SELL, quantity=1
+[CORS] Allowing request with no/null origin
+[CORS] Allowing request with no/null origin
 [DEBUG] Extracted symbolId from backend: F.US.MNQ
 [INFO] Sending order request to https://userapi.thefuturesdesk.projectx.com/Order with payload: {
   accountId: 103075,
@@ -600,11 +415,13 @@
   stopPrice: null,
   trailDistance: null,
   positionSize: -1,
-  customTag: 'jfhwiixl9mgb8855a'
+  customTag: 'av53zi8i1mgbaq16z'
 }
-[INFO] Market order placed successfully: orderId=4798989
-[INFO] Market order placed successfully, order ID: 4798989
+[INFO] Market order placed successfully: orderId=4799853
+[INFO] Market order placed successfully, order ID: 4799853
+[CORS] Allowing request with no/null origin
 [INFO] Retrieved accountId=103075
+[CORS] Allowing request with no/null origin
 [DEBUG] Extracted symbolId from backend: F.US.MNQ
 [INFO] Polling for position fill...
 [DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
@@ -625,49 +442,123 @@
 [DEBUG] Requesting positions from URL: https://userapi.thefuturesdesk.projectx.com/Position/all/user/20296
 [DEBUG] Response status code for positions: 200
 [DEBUG] Received 1 positions
-[DEBUG] Found position: accountId=103075, symbolId=F.US.MNQ, averagePrice=25007.25, positionId=978500
-[INFO] Position filled at price: 25007.25, position ID: 978500
-[INFO] Order filled at price 25007.25, positionId=978500
-[INFO] Calculated stop loss price: 25027.25, take profit price: 24987.25
+[DEBUG] Found position: accountId=103075, symbolId=F.US.MNQ, averagePrice=24977, positionId=978663
+[INFO] Position filled at price: 24977, position ID: 978663
+[INFO] Order filled at price 24977, positionId=978663
+[INFO] Calculated stop loss price: 24997, take profit price: 24957
 [INFO] Sending editStopLoss request to https://userapi.thefuturesdesk.projectx.com/Order/editStopLossAccount
-[INFO] Stop loss and take profit set successfully for position ID: 978500
-[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
-[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
-[VALIDATION] Checking trading time restrictions at 19:18 GMT
-[DEBUG] Current GMT time: 1918
+[INFO] Stop loss and take profit set successfully for position ID: 978663
+[CORS] Allowing request with no/null origin
+[VALIDATION] Checking trading time restrictions at 20:28 GMT
+[DEBUG] Current GMT time: 2028
 [DEBUG] Allowed sessions: []
 [DEBUG] Restricted sessions: []
 [DEBUG] Session-based trading is allowed
 [VALIDATION] Trading is allowed
-[VALIDATION] Checking trading time restrictions at 19:18 GMT
-[DEBUG] Current GMT time: 1918
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:9025
+[CORS] Allowing origin: http://localhost:4001
+[CORS] Allowing origin: http://localhost:9025
+[CORS] Allowing request with no/null origin
+[INFO] Close existing orders flag is set to true
+[VALIDATION] Checking trading time restrictions at 20:28 GMT
+[DEBUG] Current GMT time: 2028
 [DEBUG] Allowed sessions: []
 [DEBUG] Restricted sessions: []
 [DEBUG] Session-based trading is allowed
 [VALIDATION] Trading is allowed
-[VALIDATION] Checking trading time restrictions at 19:19 GMT
-[DEBUG] Current GMT time: 1919
-[DEBUG] Allowed sessions: []
-[DEBUG] Restricted sessions: []
-[DEBUG] Session-based trading is allowed
-[VALIDATION] Trading is allowed
-[VALIDATION] Checking trading time restrictions at 19:19 GMT
-[DEBUG] Current GMT time: 1919
-[DEBUG] Allowed sessions: []
-[DEBUG] Restricted sessions: []
-[DEBUG] Session-based trading is allowed
-[VALIDATION] Trading is allowed
-[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
-[AUTH] Saved authentication for tejashegde@gmail.com@thefuturesdesk
-[VALIDATION] Checking trading time restrictions at 19:22 GMT
-[DEBUG] Current GMT time: 1922
-[DEBUG] Allowed sessions: []
-[DEBUG] Restricted sessions: []
-[DEBUG] Session-based trading is allowed
-[VALIDATION] Trading is allowed
-[VALIDATION] Checking trading time restrictions at 19:22 GMT
-[DEBUG] Current GMT time: 1922
-[DEBUG] Allowed sessions: []
-[DEBUG] Restricted sessions: []
-[DEBUG] Session-based trading is allowed
-[VALIDATION] Trading is allowed
+[AUTH] Loaded valid authentication for tejashegde@gmail.com@thefuturesdesk
+[INFO] Placing bracket order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, action=SELL, stopLoss=20, takeProfit=20, quantity=1, closeExisting=true
+[INFO] Placing bracket order: accountName=TFDXAP_508PA89, symbol=MNQ, orderType=SELL, quantity=1, stopLossPoints=20, takeProfitPoints=20
+[CORS] Allowing request with no/null origin
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[CORS] Allowing request with no/null origin
+[DEBUG] Extracted symbolId from backend: F.US.MNQ
+[AUTO-CLOSE] Opposite direction detected: LONG → SELL
+[AUTO-CLOSE] Closing 1 contracts before reversing position
+[INFO] Closing all positions: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ
+[CORS] Allowing request with no/null origin
+[CORS] Allowing request with no/null origin
+[DEBUG] Extracted symbolId from backend: F.US.MNQ
+[INFO] Close positions successful
+[AUTO-CLOSE] Successfully closed LONG position
+[CORS] Allowing request with no/null origin
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[CORS] Allowing request with no/null origin
+[DEBUG] Extracted symbolId from backend: F.US.MNQ
+[INFO] Placing market order: provider=thefuturesdesk, accountName=TFDXAP_508PA89, symbol=MNQ, orderType=SELL, quantity=1
+[CORS] Allowing request with no/null origin
+[CORS] Allowing request with no/null origin
+[DEBUG] Extracted symbolId from backend: F.US.MNQ
+[INFO] Sending order request to https://userapi.thefuturesdesk.projectx.com/Order with payload: {
+  accountId: 103075,
+  symbolId: 'F.US.MNQ',
+  type: 2,
+  limitPrice: null,
+  stopPrice: null,
+  trailDistance: null,
+  positionSize: -1,
+  customTag: '51ws6fc4pmgbaqnee'
+}
+[INFO] Market order placed successfully: orderId=4799859
+[INFO] Market order placed successfully, order ID: 4799859
+[CORS] Allowing request with no/null origin
+[INFO] Retrieved accountId=103075
+[CORS] Allowing request with no/null origin
+[DEBUG] Extracted symbolId from backend: F.US.MNQ
+[INFO] Polling for position fill...
+[DEBUG] Getting user ID from URL: https://userapi.thefuturesdesk.projectx.com/User
+[DEBUG] Response status code: 200
+[DEBUG] User data received: {
+  userName: 'tejashegde@gmail.com',
+  email: 'tejashegde@gmail.com',
+  userId: 20296,
+  firstName: 'Tejasvi',
+  lastName: 'Hegde',
+  hasSignedAgreements: false,
+  onboardingRequired: false,
+  onboardingState: 5,
+  createdAt: '2025-06-20T19:50:28.412446+00:00',
+  roles: []
+}
+[DEBUG] Extracted user ID: 20296
+[DEBUG] Requesting positions from URL: https://userapi.thefuturesdesk.projectx.com/Position/all/user/20296
+[DEBUG] Response status code for positions: 200
+[DEBUG] Received 1 positions
+[DEBUG] Found position: accountId=103075, symbolId=F.US.MNQ, averagePrice=24977.5, positionId=978665
+[INFO] Position filled at price: 24977.5, position ID: 978665
+[INFO] Order filled at price 24977.5, positionId=978665
+[INFO] Calculated stop loss price: 24997.5, take profit price: 24957.5
+[INFO] Sending editStopLoss request to https://userapi.thefuturesdesk.projectx.com/Order/editStopLossAccount
+[INFO] Stop loss and take profit set successfully for position ID: 978665
+[CORS] Allowing origin: http://localhost:9025

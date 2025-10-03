@@ -48,32 +48,50 @@ echo -e "${PURPLE}===========================================${NC}"
 kill_app_processes() {
     local identifier=$1
     local service_name=$2
-    
+    local project_dir=$3  # NEW: Added project directory parameter
+
     echo -e "${YELLOW}🔍 Checking for ${service_name} processes (${identifier})...${NC}"
-    
+
     # Find processes matching our application identifier
     local pids=$(ps aux | grep "$identifier" | grep -v grep | awk '{print $2}' || true)
-    
+
     if [ ! -z "$pids" ]; then
-        echo -e "${RED}❌ Found ${service_name} processes: ${pids}${NC}"
+        local killed_any=false
         for pid in $pids; do
             # Double-check this is really our process
             local cmdline=$(ps -p $pid -o command= 2>/dev/null || true)
             if [[ "$cmdline" == *"$identifier"* ]]; then
-                echo -e "${YELLOW}🔄 Killing ${service_name} process ${pid}: ${cmdline}${NC}"
-                kill -TERM $pid 2>/dev/null || true
-                sleep 2
-                # Force kill if still running
-                if kill -0 $pid 2>/dev/null; then
-                    kill -KILL $pid 2>/dev/null || true
-                    echo -e "${RED}⚠️  Force killed process ${pid}${NC}"
+                # Get process working directory to ensure it's from this project
+                local proc_cwd=$(lsof -a -p $pid -d cwd -Fn 2>/dev/null | grep '^n' | cut -c2- || true)
+
+                # Check if process is running from our project directory
+                if [[ "$proc_cwd" == *"$project_dir"* ]] || [[ "$cmdline" == *"$project_dir"* ]]; then
+                    # Kill the process
+                    echo -e "${YELLOW}🔄 Killing ${service_name} process ${pid} from this project${NC}"
+                    echo -e "${YELLOW}   CWD: ${proc_cwd}${NC}"
+                    echo -e "${YELLOW}   CMD: ${cmdline}${NC}"
+                    kill -TERM $pid 2>/dev/null || true
+                    sleep 2
+                    # Force kill if still running
+                    if kill -0 $pid 2>/dev/null; then
+                        kill -KILL $pid 2>/dev/null || true
+                        echo -e "${RED}⚠️  Force killed process ${pid}${NC}"
+                    else
+                        echo -e "${GREEN}✅ Process ${pid} stopped gracefully${NC}"
+                    fi
+                    killed_any=true
                 else
-                    echo -e "${GREEN}✅ Process ${pid} stopped gracefully${NC}"
+                    echo -e "${CYAN}ℹ️  Skipping process ${pid} (different project)${NC}"
+                    echo -e "${CYAN}   CWD: ${proc_cwd}${NC}"
                 fi
             fi
         done
+
+        if [ "$killed_any" = false ]; then
+            echo -e "${GREEN}✅ No ${service_name} processes from this project found${NC}"
+        fi
     else
-        echo -e "${GREEN}✅ No ${service_name} processes found${NC}"
+        echo -e "${GREEN}✅ No ${service_name} processes from this project found${NC}"
     fi
 }
 
@@ -166,24 +184,20 @@ check_directory() {
 # Cleanup function
 cleanup() {
     echo -e "\n${YELLOW}🛑 Shutting down Webhook Trading Bot...${NC}"
-    
+
     # Kill our application processes
-    kill_app_processes "$BACKEND_IDENTIFIER" "Backend"
-    kill_app_processes "$FRONTEND_IDENTIFIER" "Frontend"
-    
+    kill_app_processes "$BACKEND_IDENTIFIER" "Backend" "$SCRIPT_DIR"
+    kill_app_processes "$FRONTEND_IDENTIFIER" "Frontend" "$SCRIPT_DIR"
+
     # Clean up ports
     echo -e "${YELLOW}🧹 Cleaning up ports...${NC}"
     kill_port_safely $REACT_PORT "React Frontend"
     kill_port_safely $BACKEND_PORT "Backend API"
-    
+
     # Clean up PID files
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    REACT_DIR="$SCRIPT_DIR/react-trading-app"
-    BACKEND_DIR="$SCRIPT_DIR/trading-backend"
-    
     rm -f "$REACT_DIR/logs/frontend.pid" 2>/dev/null || true
     rm -f "$BACKEND_DIR/logs/backend.pid" 2>/dev/null || true
-    
+
     echo -e "${GREEN}✅ Webhook Trading Bot shutdown complete${NC}"
     exit 0
 }
@@ -191,10 +205,15 @@ cleanup() {
 # Set up signal handlers
 trap cleanup SIGINT SIGTERM
 
+# Get project directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REACT_DIR="$SCRIPT_DIR/react-trading-app"
+BACKEND_DIR="$SCRIPT_DIR/trading-backend"
+
 # Step 1: Clean up any existing processes
 echo -e "${BLUE}🧹 Cleaning up existing processes...${NC}"
-kill_app_processes "$BACKEND_IDENTIFIER" "Backend"
-kill_app_processes "$FRONTEND_IDENTIFIER" "Frontend"
+kill_app_processes "$BACKEND_IDENTIFIER" "Backend" "$SCRIPT_DIR"
+kill_app_processes "$FRONTEND_IDENTIFIER" "Frontend" "$SCRIPT_DIR"
 
 # Step 2: Clean up ports
 echo -e "${BLUE}🧹 Cleaning up ports...${NC}"
@@ -223,11 +242,7 @@ fi
 echo -e "${GREEN}✅ Node.js $(node --version) detected${NC}"
 echo -e "${GREEN}✅ npm $(npm --version) detected${NC}"
 
-# Check project directories
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REACT_DIR="$SCRIPT_DIR/react-trading-app"
-BACKEND_DIR="$SCRIPT_DIR/trading-backend"
-
+# Check project directories (SCRIPT_DIR already defined above)
 echo -e "${BLUE}🔍 Checking project structure...${NC}"
 
 if ! check_directory "$REACT_DIR" "React Frontend"; then
